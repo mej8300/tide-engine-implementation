@@ -1,0 +1,182 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 
+1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--html xmlns="http://www.w3.org/1999/xhtml"-->
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>Google Tide</title>
+    <link rel="stylesheet" href="print.css" type="text/css">
+    <style type="text/css">
+    v\:* {
+      behavior:url(#default#VML);
+    }
+    </style>
+    <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAoODkN4W0YAhwwPkCTFcO6xR3muO_BFLsQuvpyhewujSGiI0udBTa4ayEoK33Wss9zbwycXcGhn309Q"
+            type="text/javascript">
+    </script>
+    <script src="googletide.js" type="text/javascript"></script>
+    <script type="text/javascript">
+//  <![CDATA[
+window.onresize = resize;
+
+function resize()
+{
+	var winW = 630, winH = 460;
+	
+//alert("Navigator:" + navigator.appName);
+	
+	if (parseInt(navigator.appVersion) > 3) 
+	{
+	  if (navigator.appName == "Netscape") 
+	  {
+	    winW = window.innerWidth;
+	    winH = window.innerHeight;
+
+//		var h = document.getElementById('map').style.height;
+//		var w = document.getElementById('map').style.width;
+			
+			document.getElementById('map').style.height = (winH - 16) + "px";
+			document.getElementById('map').style.width  = (winW * 0.80) + "px";
+	  }
+	  if (navigator.appName.indexOf("Microsoft") != -1) 
+	  {
+	    winW = document.documentElement.clientWidth;
+	    winH = document.documentElement.clientHeight;
+
+//		document.all("map").style.height = (winH - 20).toString() + "px";
+//		document.all("map").style.width  = (winW * 0.80).toString() + "px";
+			document.getElementById('map').style.height = (winH - 20) + "px";
+			document.getElementById('map').style.width  = (winW * 0.80) + "px";
+			
+//		alert("W:" + document.all("map").style.width + ", H:" + document.all("map").style.height);
+	  }
+	}
+}    
+
+// Chart center
+var centerlat = lat2plot;
+var centerlng = lng2plot;
+
+var ns = "NS";
+var ew = "EW";
+
+function format(expr, decplaces)
+{
+  var str = "" + Math.round(eval(expr) * Math.pow(10, decplaces));
+  while (str.length <= decplaces)
+  {
+    str = "0" + str;
+  }
+  var decpoint = str.length - decplaces;
+  return str.substring(0, decpoint) + "." + str.substring(decpoint, str.length);
+}
+
+function sexagesimalToDecimal(d, m, sgn)
+{
+  var value = parseFloat(d);
+
+  value += (parseFloat(m)/60.0);
+  if (sgn == "W" || sgn == "S")
+    value = -value;
+  return value;
+}
+
+function decimalToSexagesimal(v, ns_ew)
+{
+  var s = "";
+  var absVal = Math.abs(v);
+  var intValue = Math.floor(absVal);
+  var dec = absVal - intValue;
+  i = intValue;
+  dec *= 60;
+  s = String(i) + "&deg;" + format(dec, 2) + "'";
+  if (v < 0)
+  {
+    switch(ns_ew)
+    {
+      case ns:
+        s = s + "S";
+        break;
+      case ew:
+        s = s + "W";
+        break;
+    }
+  }
+  else
+  {
+    switch(ns_ew)
+    {
+      case ns:
+        s = s + "N";
+        break;
+      case ew:
+        s = s + "E";
+        break;
+    }
+  }
+  return s;
+}
+
+function loadChart()
+{
+  map = new GMap2(document.getElementById("map"));
+  map.addControl(new GLargeMapControl());
+  map.addControl(new GMapTypeControl());
+  map.addControl(new GOverviewMapControl());
+  map.enableContinuousZoom();
+  map.enableDoubleClickZoom();
+  map.setCenter(new GLatLng(centerlat, centerlng), 10);
+  map.addMapType(G_NORMAL_MAP );
+  map.addMapType(G_AERIAL_MAP);
+  map.addMapType(G_SATELLITE_MAP);
+  map.addMapType(G_SATELLITE_3D_MAP);
+  map.addMapType(G_PHYSICAL_MAP );
+  map.enableRotation();
+
+//map.setMapType(G_SATELLITE_MAP);
+  map.setMapType(G_HYBRID_MAP);
+  map.enableScrollWheelZoom();
+
+  function createMarker(point, label) 
+  {
+    var marker = new GMarker(point);
+    GEvent.addListener(marker, "click", function() 
+      {
+        marker.openInfoWindowHtml(label);
+      });
+    return marker;
+  }
+  var pos = new GLatLng(lat2plot, lng2plot);
+  var mess = "<b>Tide for " + stationName + "</b><br>" +
+             "<b>Latitude</b>:" + decimalToSexagesimal(lat2plot, ns) + "<br>" +
+             "<b>Longitude</b>:" + decimalToSexagesimal(lng2plot, ew) + "<br>";
+  mess += "<table>";
+  for (var i=0; i<tidedata.length; i++)
+  {
+    mess += ("<tr><td>" + tidedata[i].type + "</td><td>" + tidedata[i].time + "</td><td align='right'>" + tidedata[i].height + "</td><td>" + tidedata[i].unit + "</td></tr>");
+  }
+  mess += "</table>";
+  map.addOverlay(createMarker(pos, mess));            
+}
+
+function load()
+{
+  if (GBrowserIsCompatible())
+  {
+    loadChart();
+  }
+}
+// ]]>
+    </script>
+  </head>
+  <body onload="load(); resize()" onunload="GUnload()">
+    <table width="98%" height="98%" border="0">
+      <tr>
+        <td valign="top" align="center">
+          <div id="map" style="width: 850px; height: 550px"></div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
