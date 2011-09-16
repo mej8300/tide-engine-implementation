@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import javax.swing.JFrame;
 
+import tideengine.BackEndTideComputer;
 import tideengine.TideStation;
 
 import tideengineimplementation.utils.StationPositions;
@@ -43,7 +44,7 @@ public class SampleFrame extends JFrame
           try
           { 
             System.out.println("Reading Station Data...");
-            ArrayList<TideStation> stationData = StationPositions.getStationData();
+            ArrayList<TideStation> stationData = BackEndTideComputer.getStationData();
             System.out.println("Done!");
             commandPanel.setStationData(stationData);
             commandPanel.repaint();
