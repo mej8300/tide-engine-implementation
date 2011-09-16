@@ -943,7 +943,7 @@ public class TideInternalFrame
           try
           { 
             System.out.println("Reading Station Data...");
-            ArrayList<TideStation> stationData = StationPositions.getStationData();
+            ArrayList<TideStation> stationData = BackEndTideComputer.getStationData();
             System.out.println("Done!");
             chartCommandPanel.setStationData(stationData);
             chartCommandPanel.repaint();

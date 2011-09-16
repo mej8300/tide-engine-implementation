@@ -15,6 +15,7 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.xml.sax.InputSource;
 
+import tideengine.BackEndTideComputer;
 import tideengine.BackEndXMLTideComputer;
 import tideengine.TideStation;
 
@@ -25,35 +26,9 @@ import user.util.GeomUtil;
 
 public class StationPositions
 {
-  private final static boolean verbose = false;
-  private final static String STATION_FILE     = "xml.data" + File.separator + "stations.xml";
-  
-  public static ArrayList<TideStation> getStationData() throws Exception
-  {
-    long before = System.currentTimeMillis();
-    ArrayList<TideStation> stationData = new ArrayList<TideStation>();
-    BackEndXMLTideComputer.StationFinder sf = new BackEndXMLTideComputer.StationFinder(stationData);
-    try
-    {
-      SAXParserFactory factory = SAXParserFactory.newInstance();
-      SAXParser saxParser = factory.newSAXParser();      
-      InputSource is = new InputSource(new FileInputStream(new File(STATION_FILE)));
-      is.setEncoding("ISO-8859-1");
-      saxParser.parse(is, sf);       
-    }
-    catch (Exception ex)
-    {
-      ex.printStackTrace();
-    }
-    long after = System.currentTimeMillis();
-    if (verbose) System.out.println("Finding all the stations took " + Long.toString(after - before) + " ms");
-    
-    return stationData;
-  }
-  
   public static void main(String[] args) throws Exception
   {
-    ArrayList<TideStation> stationData = getStationData();
+    ArrayList<TideStation> stationData = BackEndTideComputer.getStationData();
     boolean display = false;
     if (display)
     {
