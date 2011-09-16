@@ -1,0 +1,26 @@
+#!/bin/bash
+echo ----------------------------
+echo Tide publisher
+echo ----------------------------
+#
+cd /home/oracle/oliv/all-scripts/pub
+export JAVA_HOME=/usr/java/jre1.6.0_17
+export PATH=$JAVA_HOME/bin:$PATH
+#
+export RADICAL=$1
+echo Transforming ${RADICAL}.xml into ${RADICAL}.pdf
+#
+export OLIVSOFT_HOME=../..
+#
+export CP=${CP}:${OLIVSOFT_HOME}/all-3rd-party/xmlparserv2.jar
+export CP=${CP}:${OLIVSOFT_HOME}/all-3rd-party/orai18n-collation.jar
+export CP=${CP}:${OLIVSOFT_HOME}/all-3rd-party/orai18n-mapping.jar
+export CP=${CP}:${OLIVSOFT_HOME}/all-3rd-party/fnd2.zip
+export CP=${CP}:${OLIVSOFT_HOME}/all-3rd-party/xdo-0301.jar
+#
+export XSL_STYLESHEET=./tide2fop.xsl
+echo Publishing
+java -Xms256m -Xmx1024m -classpath ${CP} oracle.apps.xdo.template.FOProcessor -xml ${RADICAL}.xml -xsl ${XSL_STYLESHEET} -pdf ${RADICAL}.pdf
+echo Done transforming, displaying.
+evince ${RADICAL}.pdf
+# exit
