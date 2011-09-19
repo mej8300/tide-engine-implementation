@@ -137,6 +137,11 @@ public class AstroComputer
     return new double[] { utRise, utSet };    
   }
 
+  public static double getMoonIllum()
+  {
+    return Context.k_moon;
+  }
+  
   public static void setDeltaT(double deltaT)
   {
     AstroComputer.deltaT = deltaT;
