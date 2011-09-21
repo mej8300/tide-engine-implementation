@@ -55,6 +55,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JEditorPane;
+import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -654,7 +655,7 @@ public class TideInternalFrame
               y += (fontSize + 2);
               // Sun rise & set
               SUN_RISE_SET_SDF.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
-              g.drawString("Sun  Rise:" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()), x, y);
+              g.drawString("Sun Rise :" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()), x, y);
               y += (fontSize + 2);              
               g.drawString("Moon Rise:" + SUN_RISE_SET_SDF.format(moonRise.getTime()) + ", Set:" + SUN_RISE_SET_SDF.format(moonSet.getTime()), x, y);
               y += (fontSize + 2);              
@@ -664,13 +665,13 @@ public class TideInternalFrame
                 y += (fontSize + 2);
               }
               // Moon Phase
-              // Percentage
+              //     Percentage
               g.drawString("Moon Phase: " + DF3.format(moonPhase) + "\272 (" + Long.toString(Math.round(moonIllum)) + "%)", x, y);
               int phaseInDay = (int)Math.round(moonPhase / (360d / 28d)) + 1;
               if (phaseInDay > 28) phaseInDay = 28;
               if (phaseInDay < 1) phaseInDay = 1;
               URL imgUrl = this.getClass().getResource("img/phase" + DF2.format(phaseInDay) + ".gif"); // ".png"
-  //            System.out.println("Phase Image:" + imgUrl.toString());
+  //          System.out.println("Phase Image:" + imgUrl.toString());
               Image moon = new ImageIcon(imgUrl).getImage();
               g.drawImage(moon, this.getWidth() - 50 -10, 10, null); // 50: image width (gif 50, png 30)
               y += (fontSize + 2);
@@ -730,6 +731,11 @@ public class TideInternalFrame
 
   public TideInternalFrame()
   {
+    this(null);
+  }
+
+  public TideInternalFrame(final JFrame parent)
+  {
     try
     {
       System.out.println("Loading...");
@@ -740,7 +746,7 @@ public class TideInternalFrame
         {
           public void run()
           {
-            SplashWindow.splash(Splasher.class.getResource("paperboat.png"));
+            SplashWindow.splash(Splasher.class.getResource("paperboat.png"), parent);
           }
         };
       splashThread.start();
