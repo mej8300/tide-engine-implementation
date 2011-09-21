@@ -10,6 +10,7 @@ import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.MediaTracker;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -17,6 +18,7 @@ import java.awt.event.MouseEvent;
 import java.net.URL;
 
 import javax.swing.ImageIcon;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
@@ -46,7 +48,11 @@ public class SplashWindow extends JWindow
    * @param parent the parent of the window.
    * @param image the splash image.
    */
-  private SplashWindow(Frame parent, Image image) 
+  private SplashWindow(Frame parent, Image image)
+  {
+    this(parent, image, null);
+  }
+  private SplashWindow(Frame parent, Image image, JFrame parentFrame) 
   {
     super(parent);
     this.image = image;
@@ -77,11 +83,23 @@ public class SplashWindow extends JWindow
 //  int imgWidth = image.getWidth(this);
 //  int imgHeight = image.getHeight(this);
 //  setSize(imgWidth, imgHeight);
-    Dimension screenDim = Toolkit.getDefaultToolkit().getScreenSize();
+    Dimension screenDim = null;
+    if (parentFrame == null)
+      screenDim = Toolkit.getDefaultToolkit().getScreenSize();
+    else
+      screenDim = parentFrame.getSize(); // .getContentPane().getSize();
     Dimension dim = new Dimension(W, H);
     this.setSize(dim);
-    setLocation((screenDim.width - dim.width) / 2,
-                (screenDim.height - dim.height) / 2);
+    int x = 0;
+    int y = 0;
+    if (parentFrame != null)
+    {
+      Point location = parentFrame.getLocation();
+      x = location.x;
+      y = location.y;
+    }
+    setLocation(x + (screenDim.width - dim.width) / 2,
+                y + (screenDim.height - dim.height) / 2);
     JLayeredPane layer = new JLayeredPane();
     
     ImageIcon img = new ImageIcon(this.getClass().getResource("paperboat.png"));    
@@ -176,12 +194,17 @@ public class SplashWindow extends JWindow
    */
   public static void splash(Image image) 
   {
+    splash(image, null);
+  }
+  
+  public static void splash(Image image, JFrame parent) 
+  {
     if (instance == null && image != null) 
     {
       Frame f = new Frame();
       
       // Create the splash image
-      instance = new SplashWindow(f, image);
+      instance = new SplashWindow(f, image, parent);
       
       // Show the window.
       instance.setVisible(true); // .show();
@@ -206,11 +229,11 @@ public class SplashWindow extends JWindow
    * Open's a splash window using the specified image.
    * @param imageURL The url of the splash image.
    */
-  public static void splash(URL imageURL) 
+  public static void splash(URL imageURL, JFrame parent) 
   {
     if (imageURL != null) 
     {
-      splash(Toolkit.getDefaultToolkit().createImage(imageURL));
+      splash(Toolkit.getDefaultToolkit().createImage(imageURL), parent);
     }
   }
   
