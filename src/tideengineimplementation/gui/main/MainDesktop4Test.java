@@ -35,7 +35,7 @@ public class MainDesktop4Test
     this.setSize(new Dimension(1295, 774));
     this.setTitle( "Oliv" );
     
-    TideInternalFrame tides = new TideInternalFrame();
+    TideInternalFrame tides = new TideInternalFrame(null);
     tides.setIconifiable(true);
     tides.setClosable(true);
     tides.setMaximizable(true);
