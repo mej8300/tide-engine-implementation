@@ -18,6 +18,7 @@ import java.awt.Insets;
 import java.awt.Paint;
 import java.awt.Point;
 import java.awt.Polygon;
+import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -182,12 +183,17 @@ public class TideInternalFrame
     @Override
     protected void paintComponent(Graphics g)
     {
+      ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                                       RenderingHints.VALUE_TEXT_ANTIALIAS_ON);      
+      ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                                       RenderingHints.VALUE_ANTIALIAS_ON);      
+      
       now.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
       TIME_FORMAT.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
       DATE_FORMAT.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
       FULL_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
       super.paintComponent(g);
-      g.setFont(new Font("courier new", Font.PLAIN, 12));
+//    g.setFont(new Font("courier new", Font.PLAIN, 12));
       Calendar from = null, to = null;
       double moonPhase = -1D;
       int prevPhase = -1;
@@ -422,6 +428,11 @@ public class TideInternalFrame
               mainCurveStroke = new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
               ((Graphics2D) g).setStroke(mainCurveStroke);
             }
+            else
+            {
+              mainCurveStroke = new BasicStroke(1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
+              ((Graphics2D) g).setStroke(mainCurveStroke);
+            }
             if (showBaseHeightCheckBox.isSelected())
             {
               g.setColor(Color.BLUE);
@@ -549,10 +560,10 @@ public class TideInternalFrame
                         Color c = g.getColor();
                         g.setColor(Color.DARK_GRAY);
                         Font f = g.getFont();
-                        Font f2 = new Font("Arial", Font.PLAIN, 9); // f.deriveFont(Font.PLAIN, 6);
-                        g.setFont(f2);
-                        int l = g.getFontMetrics(f2).stringWidth(dStr);
-                        g.drawString(dStr, x - (l/2), 5 + (f2.getSize() * ((currDay % 2) + 1)));
+//                      Font f2 = new Font("Arial", Font.PLAIN, 9); // f.deriveFont(Font.PLAIN, 6);
+                        g.setFont(g.getFont().deriveFont(Font.PLAIN, 9));
+                        int l = g.getFontMetrics(g.getFont()).stringWidth(dStr);
+                        g.drawString(dStr, x - (l/2), 5 + (g.getFont().getSize() * ((currDay % 2) + 1)));
                         g.setFont(f);
                         g.setColor(c);
                       }
@@ -613,9 +624,9 @@ public class TideInternalFrame
               currDay++;
     //        System.out.println("Day " + currDay + " widthRatio:" + widthRatio);
             }
+            ((Graphics2D) g).setStroke(origStroke);
             if (from == null && to == null)
             {
-              ((Graphics2D) g).setStroke(origStroke);
               // Paint the lower part of the curve
               curvePolygon.addPoint(this.getWidth(), this.getHeight());
               curvePolygon.addPoint(0, this.getHeight());
@@ -644,7 +655,8 @@ public class TideInternalFrame
               Collections.sort(timeAL);
               // Station Name            
               int fontSize = 12;
-              g.setFont(new Font("Arial", Font.PLAIN, fontSize));
+//            g.setFont(new Font("Arial", Font.PLAIN, fontSize));
+              g.setFont(g.getFont().deriveFont(Font.PLAIN, fontSize));
               Font f = g.getFont();
               g.setFont(f.deriveFont(Font.BOLD, f.getSize()));
               g.drawString(ts.getFullName() + ", " + FULL_DATE_FORMAT.format(now.getTime()), x, y);
@@ -853,7 +865,8 @@ public class TideInternalFrame
     useUnitLabel.setText("Use Unit");
     stationTZLabel.setText("Station Time Zone");
     stationTimeZoneLabel.setText("Etc/UTC");
-    stationTimeZoneLabel.setFont(new Font("Tahoma", 1, 11));
+//  stationTimeZoneLabel.setFont(new Font("Tahoma", 1, 11));
+    stationTimeZoneLabel.setFont(stationTimeZoneLabel.getFont().deriveFont(Font.BOLD, 11));
     useTZLabel.setText("Use Time Zone");
     tzComboBox.setMinimumSize(new Dimension(100, 21));
     tzComboBox.removeAllItems();
@@ -1313,7 +1326,7 @@ public class TideInternalFrame
     
     g2d.setColor(Color.BLUE);
     Font f = g2d.getFont();
-    Font f2 = new Font("Arial", Font.BOLD, 10);// f.deriveFont(Font.BOLD, f.getSize());
+    Font f2 = f.deriveFont(Font.BOLD, f.getSize()); // new Font("Arial", Font.BOLD, 10);
     g2d.setFont(f2);
     int l = g2d.getFontMetrics(f).stringWidth(label);
     g2d.drawString(label, xCenter - (l/2), yCenter + (f.getSize() / 2));
