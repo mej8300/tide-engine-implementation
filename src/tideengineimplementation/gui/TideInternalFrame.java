@@ -174,7 +174,7 @@ public class TideInternalFrame
 
 
         this.setToolTipText("<html>" + DF2.format((int)h) + ":" + DF2.format(m) + "<br>" +
-                            TideUtilities.DF22.format(wh) + " " + currentUnit + "</html>");
+                            TideUtilities.DF22PLUS.format(wh) + " " + currentUnit + "</html>");
       }
       else
         this.setToolTipText(null);
@@ -670,11 +670,27 @@ public class TideInternalFrame
               g.drawString("Sun Rise :" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()), x, y);
               y += (fontSize + 2);              
               g.drawString("Moon Rise:" + SUN_RISE_SET_SDF.format(moonRise.getTime()) + ", Set:" + SUN_RISE_SET_SDF.format(moonSet.getTime()), x, y);
-              y += (fontSize + 2);              
+              y += (fontSize + 2);       
+              double prevHeight = -Double.MAX_VALUE;
+              int diffOffset = -1;
               for (TimedValue tv : timeAL)
               {
-                g.drawString(tv.getType() + " " + TIME_FORMAT.format(tv.getCalendar().getTime()) + " : " + TideUtilities.DF22.format(tv.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit, x, y);
-                y += (fontSize + 2);
+                String dataStr = tv.getType() + " " + TIME_FORMAT.format(tv.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(tv.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit;
+                if (diffOffset == -1)
+                {
+                  int len = g.getFontMetrics(g.getFont()).stringWidth(dataStr);
+                  int tabSize = 50;
+                  diffOffset = (int)((len / tabSize) + 1) * tabSize;
+                }
+                g.drawString(dataStr, x, y);
+                if (prevHeight != -Double.MAX_VALUE && !currentUnit.startsWith("knots"))
+                {
+                  double ampl = Math.abs(prevHeight - tv.getValue());
+                  String diffStr = TideUtilities.DF22.format(ampl) + " " + currentUnit;
+                  g.drawString(diffStr, x + diffOffset, y - (fontSize / 2));
+                }
+                y += (fontSize + 2);                
+                prevHeight = tv.getValue();
               }
               // Moon Phase
               //     Percentage
@@ -682,7 +698,9 @@ public class TideInternalFrame
               int phaseInDay = (int)Math.round(moonPhase / (360d / 28d)) + 1;
               if (phaseInDay > 28) phaseInDay = 28;
               if (phaseInDay < 1) phaseInDay = 1;
-              URL imgUrl = this.getClass().getResource("img/phase" + DF2.format(phaseInDay) + ".gif"); // ".png"
+              String moonImageName = "img/phase" + DF2.format(phaseInDay) + ".gif"; // ".png"
+//            System.out.println("Image Name:" + moonImageName + " monn phase:" + moonPhase);
+              URL imgUrl = this.getClass().getResource(moonImageName);
   //          System.out.println("Phase Image:" + imgUrl.toString());
               Image moon = new ImageIcon(imgUrl).getImage();
               g.drawImage(moon, this.getWidth() - 50 -10, 10, null); // 50: image width (gif 50, png 30)
@@ -690,7 +708,7 @@ public class TideInternalFrame
               // Current Height
               y += (fontSize + 2);
               double wh = Utils.convert(TideUtilities.getWaterHeight(ts, constSpeed, now), ts.getDisplayUnit(), currentUnit);
-              g.drawString("At " + TIME_FORMAT.format(now.getTime()) + " : " + TideUtilities.DF22.format(wh) + " " + /*ts.getDisplayUnit()*/ currentUnit, x, y);
+              g.drawString("At " + TIME_FORMAT.format(now.getTime()) + " : " + TideUtilities.DF22PLUS.format(wh) + " " + /*ts.getDisplayUnit()*/ currentUnit, x, y);
               y += (fontSize + 2);
             }
           }
@@ -1683,7 +1701,7 @@ public class TideInternalFrame
           bw.write("  ,\n");
         bw.write("  {type:\"" + tv.getType() + "\",\n");
         bw.write("   time:\"" + TideForOneMonth.TF.format(tv.getCalendar().getTime()) + "\",\n");
-        bw.write("   height:\"" + TideUtilities.DF22.format(tv.getValue()) + "\",\n");
+        bw.write("   height:\"" + TideUtilities.DF22PLUS.format(tv.getValue()) + "\",\n");
         bw.write("   unit:\"" + currentUnit + "\"}\n");
       }
       bw.write(");\n");
