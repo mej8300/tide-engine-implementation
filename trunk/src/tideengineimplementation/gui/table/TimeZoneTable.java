@@ -88,7 +88,7 @@ public class TimeZoneTable
     {
       e.printStackTrace();
     }
-    this.setStatusLabel(Integer.toString(nbl) + " station(s)");
+    this.setStatusLabel(Integer.toString(nbl) + " time zone(s)");
   }
 
   private void jbInit()

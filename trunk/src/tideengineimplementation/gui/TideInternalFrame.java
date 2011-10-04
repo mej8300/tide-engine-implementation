@@ -29,7 +29,9 @@ import java.awt.event.MouseMotionListener;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintStream;
 
@@ -45,6 +47,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeMap;
@@ -785,6 +788,22 @@ public class TideInternalFrame
       SplashWindow.disposeSplash();
       for (TideEventListener tel : TideContext.getInstance().getListeners())
         tel.stopLoad();
+      // Last station ?
+      try
+      {
+        Properties prop = new Properties();
+        prop.load(new FileReader("tidestation.properties")); 
+        String sn = prop.getProperty("tide.station");
+        if (sn != null)
+          displayTide(sn);
+      } 
+      catch (FileNotFoundException fnfe)
+      {
+        ;
+      }
+      catch (Exception ex) 
+      { ex.printStackTrace(); }
+
     }
     catch (Exception e)
     {
@@ -815,6 +834,10 @@ public class TideInternalFrame
         public void stationSelected(String stationName)
         {
           displayTide(stationName);
+          Properties prop = new Properties();
+          prop.setProperty("tide.station", stationName);
+          try { prop.store(new FileOutputStream("tidestation.properties"), null); } catch (Exception ex) 
+          { ex.printStackTrace(); }
         }
         @Override
         public void setDate(long date)
