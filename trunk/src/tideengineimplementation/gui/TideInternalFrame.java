@@ -686,7 +686,7 @@ public class TideInternalFrame
                 if (prevHeight != -Double.MAX_VALUE && !currentUnit.startsWith("knots"))
                 {
                   double ampl = Math.abs(prevHeight - tv.getValue());
-                  String diffStr = TideUtilities.DF22.format(ampl) + " " + currentUnit;
+                  String diffStr = "\u0394 : " + TideUtilities.DF22.format(ampl) + " " + currentUnit; // \u0394 : Delta
                   g.drawString(diffStr, x + diffOffset, y - (fontSize / 2));
                 }
                 y += (fontSize + 2);                
