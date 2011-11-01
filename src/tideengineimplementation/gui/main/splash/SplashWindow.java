@@ -106,7 +106,7 @@ public class SplashWindow extends JWindow
     JLabel imgHolder = new JLabel(img);
 //  imgHolder.setBorder(BorderFactory.createLineBorder(new Color(228, 24, 106), 2));
     imgHolder.setBounds(0, 10, 325, 150);
-    layer.add(imgHolder, JLayeredPane.DEFAULT_LAYER);
+    layer.add(imgHolder, JLayeredPane.DRAG_LAYER);
 
     JPanel itemHolder = new JPanel();
     itemHolder.setLayout(gridBagLayout1);
@@ -116,7 +116,12 @@ public class SplashWindow extends JWindow
     copyrightLabel.setText((char)169  + " " + "OlivSoft, 2011");
     copyrightLabel.setForeground(Color.red);
 
-    loadingLabel.setText("Loading");
+    String flavor = "XML";
+    if (System.getProperty("tide.flavor", "xml").equals("xml"))
+      flavor = "XML";
+    else
+      flavor = "SQL";
+    loadingLabel.setText("Loading " + "(" + flavor + ")");
     loadingLabel.setForeground(Color.red);
     itemHolder.add(loadingLabel, new GridBagConstraints(0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(140, 0, 0, 0), 0, 0));
     

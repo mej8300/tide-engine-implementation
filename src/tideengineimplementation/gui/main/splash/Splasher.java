@@ -1,5 +1,8 @@
 package tideengineimplementation.gui.main.splash;
 
+/**
+ * Not used.
+ */
 public class Splasher
 {
   public static void main(String[] args)
