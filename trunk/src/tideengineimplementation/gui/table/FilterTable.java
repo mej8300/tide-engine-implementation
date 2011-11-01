@@ -1,6 +1,7 @@
 package tideengineimplementation.gui.table;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -29,6 +31,8 @@ import javax.swing.table.TableModel;
 
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
+
+import javax.swing.table.TableCellRenderer;
 
 import tideengine.BackEndXMLTideComputer;
 
@@ -164,30 +168,30 @@ public class FilterTable
     this.filterTextField.setEnabled(this.stationData != null);
     
     table.addMouseListener(new MouseAdapter()
-                           {
-                             public void mouseReleased(MouseEvent e)
-                             {
-                               if (e.getClickCount() == 2)
-                               {
-                                 int sr = table.getSelectedRow();
-                                 if (sr >= 0)
-                                 {
-                                   for (TideStation sd : stationData)
-                                   {
-                                     if (sd.getFullName().equals(data[sr][0]))
-                                     {
-                                       TideContext.getInstance().fireStationSelected(sd.getFullName());
-                                       break;
-                                     }
-                                   }
-                                 }
-                               }
-                               else
-                               {
-                                 ; // tryPopup(e);
-                               }
-                             }
-                           });
+     {
+       public void mouseReleased(MouseEvent e)
+       {
+         if (e.getClickCount() == 2)
+         {
+           int sr = table.getSelectedRow();
+           if (sr >= 0)
+           {
+             for (TideStation sd : stationData)
+             {
+               if (sd.getFullName().equals(data[sr][0]))
+               {
+                 TideContext.getInstance().fireStationSelected(sd.getFullName());
+                 break;
+               }
+             }
+           }
+         }
+         else
+         {
+           ; // tryPopup(e);
+         }
+       }
+     });
   }
   
   private void initTable()
@@ -218,7 +222,19 @@ public class FilterTable
       }
     };
     // Create JTable
-    table = new JTable(dataModel);
+    table = new JTable(dataModel)
+      {
+        public Component prepareRenderer(TableCellRenderer renderer, int rowIndex, int vColIndex)
+        {
+          Component c = super.prepareRenderer(renderer, rowIndex, vColIndex);
+          if (c instanceof JComponent)
+          {
+            JComponent jc = (JComponent) c;
+            jc.setToolTipText((String) getValueAt(rowIndex, vColIndex));
+          }
+          return c;
+        }
+      };
     table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     
     centerScrollPane = new JScrollPane(table);

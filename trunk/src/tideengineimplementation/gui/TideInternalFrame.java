@@ -433,7 +433,7 @@ public class TideInternalFrame
             }
             else
             {
-              mainCurveStroke = new BasicStroke(1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
+              mainCurveStroke = new BasicStroke(1f);  // , BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
               ((Graphics2D) g).setStroke(mainCurveStroke);
             }
             if (showBaseHeightCheckBox.isSelected())
@@ -718,7 +718,7 @@ public class TideInternalFrame
         }
         catch (Exception ex)
         {
-          JOptionPane.showMessageDialog(this, ex.toString(), "Oops", JOptionPane.ERROR_MESSAGE);
+//        JOptionPane.showMessageDialog(this, (ex!=null?ex.toString():"Null Exception..."), "Oops", JOptionPane.ERROR_MESSAGE);
           ex.printStackTrace();
         }
       }
@@ -743,8 +743,8 @@ public class TideInternalFrame
   
   private ButtonGroup group = new ButtonGroup();
   
-  CommandPanel chartCommandPanel = new CommandPanel();
-  JTabbedPane tabbedPane = new JTabbedPane();
+  private CommandPanel chartCommandPanel = new CommandPanel();
+  private JTabbedPane tabbedPane = new JTabbedPane();
   private GridBagLayout gridBagLayout1 = new GridBagLayout();
   private JPanel topButtonPanel = new JPanel();
   private JPanel bottomButtonPanel = new JPanel();
@@ -762,6 +762,8 @@ public class TideInternalFrame
   private JCheckBox decomposeCheckBox = new JCheckBox();
   private JCheckBox showBaseHeightCheckBox = new JCheckBox();
 
+  private transient TideEventListener tideEventListener = null;
+  
   public TideInternalFrame()
   {
     this(null);
@@ -771,8 +773,7 @@ public class TideInternalFrame
   {
     try
     {
-      System.out.println("Loading...");
-       
+      System.out.println("Loading...");       
       for (TideEventListener tel : TideContext.getInstance().getListeners())
         tel.beginLoad();
       Thread splashThread = new Thread()
@@ -828,7 +829,8 @@ public class TideInternalFrame
       else
         JOptionPane.showMessageDialog(this, ex.toString(), "XML Data", JOptionPane.ERROR_MESSAGE);
     }
-    TideContext.getInstance().addTideListener(new TideEventListener()
+    
+    tideEventListener = new TideEventListener()
       {
         @Override
         public void stationSelected(String stationName)
@@ -845,12 +847,14 @@ public class TideInternalFrame
           now.setTime(new Date(date));
           graphPanel.repaint();          
         }
-      });
+      };
+    TideContext.getInstance().addTideListener(tideEventListener);
+
     this.setJMenuBar( menuBar );
     this.getContentPane().setLayout(mainBorderLayout);
     this.setSize(new Dimension(1080, 650));
-    this.setTitle( "Oliv's Tide Computer" );
-    menuFile.setText( "File" );
+    this.setTitle("Oliv's Tide Computer");
+    menuFile.setText("File");
     menuFilePrint.setText("Print");
     menuFilePrint.setEnabled(false);
     menuFilePrint.addActionListener( new ActionListener() { public void actionPerformed( ActionEvent ae ) { filePrint_ActionPerformed( ae ); } } );
@@ -860,12 +864,12 @@ public class TideInternalFrame
     menuFileGoogle.setText("Google Map");
     menuFileGoogle.setEnabled(false);
     menuFileGoogle.addActionListener( new ActionListener() { public void actionPerformed( ActionEvent ae ) { fileGoogle_ActionPerformed( ae ); } } );    
-    menuFileExit.setText( "Exit" );
+    menuFileExit.setText("Exit");
     menuFileExit.addActionListener( new ActionListener() { public void actionPerformed( ActionEvent ae ) { fileExit_ActionPerformed( ae ); } } );
-    menuHelp.setText( "Help" );
-    menuHelpAbout.setText( "About" );
+    menuHelp.setText("Help");
+    menuHelpAbout.setText("About");
     menuHelpAbout.addActionListener( new ActionListener() { public void actionPerformed( ActionEvent ae ) { helpAbout_ActionPerformed( ae ); } } );
-    statusBar.setText( "" );
+    statusBar.setText("");
     menuFile.add( menuFilePrint );
     menuFile.add( menuFileSearch );
     menuFile.add( menuFileGoogle );
@@ -921,8 +925,7 @@ public class TideInternalFrame
           timeZone2Use = (String)tzComboBox.getSelectedItem();
           graphPanel.repaint();
         }
-      });
-    
+      });    
     tzComboBox.setPreferredSize(new Dimension(140, 21));
     displayLabel.setText("Display : ");
     findTimeZoneButton.setText("?");
@@ -1814,6 +1817,7 @@ public class TideInternalFrame
   private void this_internalFrameClosed(InternalFrameEvent e)
   {
     TideContext.getInstance().fireInternalFrameClosed();
+    TideContext.getInstance().removeTideListener(tideEventListener);
   }
 
   private void findTimeZoneButton_actionPerformed(ActionEvent e)
