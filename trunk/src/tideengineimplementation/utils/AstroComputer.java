@@ -72,6 +72,7 @@ public class AstroComputer
    * @return the time of rise and set of the body (Sun in that case).
    * 
    * @see http://aa.usno.navy.mil/data/docs/RS_OneYear.php
+   * @see http://www.jgiesen.de/SunMoonHorizon/
    */
   public static double[] sunRiseAndSet(double latitude, double longitude)
   {
@@ -114,7 +115,10 @@ public class AstroComputer
     return new double[] { utRise, utSet, Z, 360d - Z };    
   }
 
-  // See http://aa.usno.navy.mil/data/docs/RS_OneYear.php
+  /**
+   * @see http://aa.usno.navy.mil/data/docs/RS_OneYear.php
+   * @see http://www.jgiesen.de/SunMoonHorizon/
+   */
   public static double[] moonRiseAndSet(double latitude, double longitude)
   {    
   //  out.println("Moon HP:" + (Context.HPmoon / 60) + "'");
@@ -159,7 +163,10 @@ public class AstroComputer
   {
     SimpleDateFormat sdf = new SimpleDateFormat("Z");
     sdf.setTimeZone(tz);
-    int i = Integer.parseInt(sdf.format(new Date()));
+    String s = sdf.format(new Date());
+    if (s.startsWith("+"))
+      s = s.substring(1);
+    int i = Integer.parseInt(s);
     double d = 0;
     d = (int)(i / 100);
     int m = (int)(i % 100);
@@ -185,6 +192,8 @@ public class AstroComputer
   {
     System.out.println("Moon phase:" + getMoonPhase(2011, 8, 22, 12, 00, 00));
     System.out.println("TimeOffset:" + getTimeOffsetInHours("-09:30"));
-    System.out.println("TimeOffset:" +  getTimeZoneOffsetInHours(TimeZone.getTimeZone("Pacific/Marquesas")));
+    String[] tz = new String[] { "Pacific/Marquesas", "America/Los_Angeles", "GMT", "Europe/Paris", "Europe/Moscow", "Australia/Sydney", "Australia/Adelaide" };
+    for (int i=0; i<tz.length; i++)
+      System.out.println("TimeOffset for " + tz[i] + ":" +  getTimeZoneOffsetInHours(TimeZone.getTimeZone(tz[i])));
   }
 }
