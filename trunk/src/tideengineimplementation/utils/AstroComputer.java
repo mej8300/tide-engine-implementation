@@ -1,5 +1,10 @@
 package tideengineimplementation.utils;
 
+import java.text.SimpleDateFormat;
+
+import java.util.Date;
+import java.util.TimeZone;
+
 import nauticalalmanac.Anomalies;
 import nauticalalmanac.Context;
 import nauticalalmanac.Core;
@@ -65,8 +70,10 @@ public class AstroComputer
    * 
    * @param latitude
    * @return the time of rise and set of the body (Sun in that case).
+   * 
+   * @see http://aa.usno.navy.mil/data/docs/RS_OneYear.php
    */
-  public static double[] sunRiseAndSet(double latitude)
+  public static double[] sunRiseAndSet(double latitude, double longitude)
   {
   //  out.println("Sun HP:" + Context.HPsun);
   //  out.println("Sun SD:" + Context.SDsun);
@@ -78,7 +85,7 @@ public class AstroComputer
   //  out.println("Sun GHA: " + Context.GHAsun);
   //  double lon = - Context.GHAsun; // - Math.toDegrees(t);
   //  double lon = Context.GHAsun; // - Math.toDegrees(t);
-    double lon = 0;
+    double lon = longitude;
 //  while (lon < -180D)
 //    lon += 360D;
   //  out.println("Lon:" + lon + ", Eot:" + Context.EoT + " (" + (Context.EoT / 60D) + ")" + ", t:" + Math.toDegrees(t));
@@ -92,11 +99,11 @@ public class AstroComputer
     return new double[] { utRise, utSet, Z, 360d - Z };    
   }
 
-  public static double[] sunRiseAndSet_wikipedia(double latitude)
+  public static double[] sunRiseAndSet_wikipedia(double latitude, double longitude)
   {
     double cost = Math.tan(Math.toRadians(latitude)) * Math.tan(Math.toRadians(Context.DECsun));
     double t    = Math.acos(cost);
-    double lon = 0;
+    double lon = longitude;
     double utRise = 12D - (Context.EoT / 60D) - (lon / 15D) - (Math.toDegrees(t) / 15D);
     double utSet  = 12D - (Context.EoT / 60D) - (lon / 15D) + (Math.toDegrees(t) / 15D);
     
@@ -107,7 +114,8 @@ public class AstroComputer
     return new double[] { utRise, utSet, Z, 360d - Z };    
   }
 
-  public static double[] moonRiseAndSet(double latitude)
+  // See http://aa.usno.navy.mil/data/docs/RS_OneYear.php
+  public static double[] moonRiseAndSet(double latitude, double longitude)
   {    
   //  out.println("Moon HP:" + (Context.HPmoon / 60) + "'");
   //  out.println("Moon SD:" + (Context.SDmoon / 60) + "'");
@@ -119,7 +127,7 @@ public class AstroComputer
   //  out.println("Sun GHA: " + Context.GHAsun);
   //  double lon = - Context.GHAsun; // - Math.toDegrees(t);
   //  double lon = Context.GHAsun; // - Math.toDegrees(t);
-    double lon = 0;
+    double lon = longitude;
     while (lon < -180D)
       lon += 360D;
   //  out.println("Moon Eot:" + Context.moonEoT + " (" + (Context.moonEoT / 60D) + ")" + ", t:" + Math.toDegrees(t));
@@ -146,9 +154,37 @@ public class AstroComputer
   {
     AstroComputer.deltaT = deltaT;
   }
+
+  public static final double getTimeZoneOffsetInHours(TimeZone tz)
+  {
+    SimpleDateFormat sdf = new SimpleDateFormat("Z");
+    sdf.setTimeZone(tz);
+    int i = Integer.parseInt(sdf.format(new Date()));
+    double d = 0;
+    d = (int)(i / 100);
+    int m = (int)(i % 100);
+    d += (m / 60d);
+    return d;
+  }
+  
+  public static final double getTimeOffsetInHours(String timeOffset)
+  {
+    System.out.println("Managing:" + timeOffset);
+    double d = 0d;
+    String[] hm = timeOffset.split(":");
+    int h = Integer.parseInt(hm[0]);
+    int m = Integer.parseInt(hm[1]);
+    if (h > 0)
+      d = h + (m / 60d);
+    if (h < 0)
+      d = h - (m / 60d);
+    return d;
+  }
   
   public static void main(String[] args)
   {
     System.out.println("Moon phase:" + getMoonPhase(2011, 8, 22, 12, 00, 00));
+    System.out.println("TimeOffset:" + getTimeOffsetInHours("-09:30"));
+    System.out.println("TimeOffset:" +  getTimeZoneOffsetInHours(TimeZone.getTimeZone("Pacific/Marquesas")));
   }
 }
