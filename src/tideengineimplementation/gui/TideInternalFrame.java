@@ -276,12 +276,12 @@ public class TideInternalFrame
               moonPhase = AstroComputer.getMoonPhase(utcCal.get(Calendar.YEAR), 
                                                      utcCal.get(Calendar.MONTH) + 1, 
                                                      utcCal.get(Calendar.DAY_OF_MONTH), 
-                                                     utcCal.get(Calendar.HOUR_OF_DAY), 
+                                                     12, // utcCal.get(Calendar.HOUR_OF_DAY), 
                                                      utcCal.get(Calendar.MINUTE), 
                                                      utcCal.get(Calendar.SECOND));
 //            rsSun  = AstroComputer.sunRiseAndSet_wikipedia(ts.getLatitude());
-              rsSun  = AstroComputer.sunRiseAndSet(ts.getLatitude());
-              rsMoon = AstroComputer.moonRiseAndSet(ts.getLatitude());
+              rsSun  = AstroComputer.sunRiseAndSet(ts.getLatitude(), ts.getLongitude());
+              rsMoon = AstroComputer.moonRiseAndSet(ts.getLatitude(), ts.getLongitude());
               moonIllum = AstroComputer.getMoonIllum();
               
               sunRise = new GregorianCalendar();
@@ -290,7 +290,8 @@ public class TideInternalFrame
               sunRise.set(Calendar.MONTH, now.get(Calendar.MONTH));
               sunRise.set(Calendar.DAY_OF_MONTH, now.get(Calendar.DAY_OF_MONTH));
               sunRise.set(Calendar.SECOND, 0);
-              double r = rsSun[0] + Utils.daylightOffset(sunRise);
+              
+              double r = rsSun[0] + Utils.daylightOffset(sunRise) + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(ts.getTimeZone()));
               int min = (int)((r - ((int)r)) * 60);
               sunRise.set(Calendar.MINUTE, min);
               sunRise.set(Calendar.HOUR_OF_DAY, (int)r);
@@ -301,13 +302,13 @@ public class TideInternalFrame
               sunSet.set(Calendar.MONTH, now.get(Calendar.MONTH));
               sunSet.set(Calendar.DAY_OF_MONTH, now.get(Calendar.DAY_OF_MONTH));
               sunSet.set(Calendar.SECOND, 0);
-              r = rsSun[1] + Utils.daylightOffset(sunSet);
+              r = rsSun[1] + Utils.daylightOffset(sunSet) +  + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(ts.getTimeZone()));
               min = (int)((r - ((int)r)) * 60);
               sunSet.set(Calendar.MINUTE, min);
               sunSet.set(Calendar.HOUR_OF_DAY, (int)r);
               
               SUN_RISE_SET_SDF.setTimeZone(TimeZone.getTimeZone(ts.getTimeZone()));
-              System.out.println("Sun Rise:" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()));
+//            System.out.println("Sun Rise:" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()));
 
               moonRise = new GregorianCalendar();
               moonRise.setTimeZone(TimeZone.getTimeZone(ts.getTimeZone()));
@@ -315,7 +316,7 @@ public class TideInternalFrame
               moonRise.set(Calendar.MONTH, now.get(Calendar.MONTH));
               moonRise.set(Calendar.DAY_OF_MONTH, now.get(Calendar.DAY_OF_MONTH));
               moonRise.set(Calendar.SECOND, 0);
-              r = rsMoon[0] + Utils.daylightOffset(moonRise);
+              r = rsMoon[0] + Utils.daylightOffset(moonRise) +  + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(ts.getTimeZone()));
               min = (int)((r - ((int)r)) * 60);
               moonRise.set(Calendar.MINUTE, min);
               moonRise.set(Calendar.HOUR_OF_DAY, (int)r);
@@ -326,13 +327,13 @@ public class TideInternalFrame
               moonSet.set(Calendar.MONTH, now.get(Calendar.MONTH));
               moonSet.set(Calendar.DAY_OF_MONTH, now.get(Calendar.DAY_OF_MONTH));
               moonSet.set(Calendar.SECOND, 0);
-              r = rsMoon[1] + Utils.daylightOffset(moonSet);
+              r = rsMoon[1] + Utils.daylightOffset(moonSet) +  + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(ts.getTimeZone()));
               min = (int)((r - ((int)r)) * 60);
               moonSet.set(Calendar.MINUTE, min);
               moonSet.set(Calendar.HOUR_OF_DAY, (int)r);
               
               SUN_RISE_SET_SDF.setTimeZone(TimeZone.getTimeZone(ts.getTimeZone()));
-              System.out.println("Moon Rise:" + SUN_RISE_SET_SDF.format(moonRise.getTime()) + ", Set:" + SUN_RISE_SET_SDF.format(moonSet.getTime()));
+//            System.out.println("Moon Rise:" + SUN_RISE_SET_SDF.format(moonRise.getTime()) + ", Set:" + SUN_RISE_SET_SDF.format(moonSet.getTime()));
 
               // Paint background for Sun
               ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
@@ -344,7 +345,7 @@ public class TideInternalFrame
               moonSet.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
               
               SUN_RISE_SET_SDF.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
-              System.out.println("Sun Rise:" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()));
+//            System.out.println("Sun Rise:" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()));
 
               if (sunRise.get(Calendar.DAY_OF_MONTH) != sunSet.get(Calendar.DAY_OF_MONTH)) // TASK Not always right...
               {
@@ -670,7 +671,8 @@ public class TideInternalFrame
               y += (fontSize + 2);
               // Sun rise & set
               SUN_RISE_SET_SDF.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
-              g.drawString("Sun Rise :" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()), x, y);
+              long daylight = (sunSet.getTimeInMillis() - sunRise.getTimeInMillis()) / 1000L;
+              g.drawString("Sun Rise :" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + " Z:" + DF3.format(rsSun[2]) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()) + " Z:" + DF3.format(rsSun[3]) + (daylight>0?(" - daylight:" + DF2.format(daylight / 3600) + ":" + DF2.format((daylight % 3600) / 60L)):""), x, y);
               y += (fontSize + 2);              
               g.drawString("Moon Rise:" + SUN_RISE_SET_SDF.format(moonRise.getTime()) + ", Set:" + SUN_RISE_SET_SDF.format(moonSet.getTime()), x, y);
               y += (fontSize + 2);       
@@ -713,6 +715,12 @@ public class TideInternalFrame
               double wh = Utils.convert(TideUtilities.getWaterHeight(ts, constSpeed, now), ts.getDisplayUnit(), currentUnit);
               g.drawString("At " + TIME_FORMAT.format(now.getTime()) + " : " + TideUtilities.DF22PLUS.format(wh) + " " + /*ts.getDisplayUnit()*/ currentUnit, x, y);
               y += (fontSize + 2);
+              
+              // Bottom note
+              String s = "Rise and Set times are given for an altitude of the body equal to zero.";
+              g.setFont(g.getFont().deriveFont(Font.PLAIN, 9));
+              y = this.getHeight() - 5;
+              g.drawString(s, x, y);
             }
           }
         }
