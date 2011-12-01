@@ -1,10 +1,12 @@
 package tideengineimplementation.gui.main.splash;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
@@ -174,10 +176,18 @@ public class SplashWindow extends JWindow
    */
   public void paint(Graphics g) 
   {
-    super.paint(g);
-    super.setBackground(Color.white);
+    if (g instanceof Graphics2D)
+    {
+      // Transparency
+      ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.25f));    
+    }
+//  super.paint(g);
+//  super.setBackground(Color.white);
     int w = this.getWidth();
     int h = this.getHeight();
+    g.setColor(Color.LIGHT_GRAY);
+    g.fillRect(0, 0, w, h);
+    ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f));    
     g.setColor(Color.RED);
     g.drawRoundRect(2, 2, w-4, h-4, 5, 5);
 //  g.drawImage(image, 0, 0, this);
