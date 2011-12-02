@@ -41,7 +41,6 @@ import java.net.URL;
 
 import java.sql.SQLException;
 
-import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -687,6 +686,7 @@ public class TideInternalFrame
               Matcher matcher = pattern.matcher(srs);
               int nbMatch = 0;
               boolean found = matcher.find();
+              // Rise and Set time
               while (found && nbMatch < 2)
               {
                 nbMatch++;
@@ -699,10 +699,60 @@ public class TideInternalFrame
                 astr.addAttribute(TextAttribute.BACKGROUND, Color.LIGHT_GRAY, start, end);
                 found = matcher.find();
               }
+              // Body
+              pattern = Pattern.compile("Sun");
+              matcher = pattern.matcher(srs);
+              nbMatch = 0;
+              found = matcher.find();
+              // Rise and Set time
+              while (found && nbMatch < 1)
+              {
+                nbMatch++;
+                int start = matcher.start();
+                int end   = matcher.end();
+                astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), start, end);
+                astr.addAttribute(TextAttribute.BACKGROUND, Color.LIGHT_GRAY, start, end);
+                found = matcher.find();
+              }
+              
               g.drawString(astr.getIterator(), x, y);
               
               y += (fontSize + 2);              
-              g.drawString("Moon Rise:" + SUN_RISE_SET_SDF.format(moonRise.getTime()) + ", Set:" + SUN_RISE_SET_SDF.format(moonSet.getTime()), x, y);
+              String mrs = "Moon Rise:" + SUN_RISE_SET_SDF.format(moonRise.getTime()) + ", Set:" + SUN_RISE_SET_SDF.format(moonSet.getTime());
+              // Isolate the hours in the string
+              //            System.out.println(srs);
+              astr = new AttributedString(mrs);
+              pattern = Pattern.compile("\\d{2}:\\d{2}");
+              matcher = pattern.matcher(mrs);
+              nbMatch = 0;
+              found = matcher.find();
+              // Rise and Set time
+              while (found && nbMatch < 2)
+              {
+                nbMatch++;
+                int start = matcher.start();
+                int end   = matcher.end();
+                astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), start, end);
+                astr.addAttribute(TextAttribute.BACKGROUND, Color.LIGHT_GRAY, start, end);
+                found = matcher.find();
+              }
+              // Body
+              pattern = Pattern.compile("Moon");
+              matcher = pattern.matcher(mrs);
+              nbMatch = 0;
+              found = matcher.find();
+              // Rise and Set time
+              while (found && nbMatch < 1)
+              {
+                nbMatch++;
+                int start = matcher.start();
+                int end   = matcher.end();
+                astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), start, end);
+                astr.addAttribute(TextAttribute.BACKGROUND, Color.LIGHT_GRAY, start, end);
+                found = matcher.find();
+              }              
+              g.drawString(astr.getIterator(), x, y);
+              
               y += (fontSize + 2);       
               double prevHeight = -Double.MAX_VALUE;
               int diffOffset = -1;
