@@ -27,6 +27,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
+import java.awt.font.TextAttribute;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -39,6 +41,8 @@ import java.net.URL;
 
 import java.sql.SQLException;
 
+import java.text.AttributedCharacterIterator;
+import java.text.AttributedString;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 
@@ -51,6 +55,9 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeMap;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -672,7 +679,28 @@ public class TideInternalFrame
               // Sun rise & set
               SUN_RISE_SET_SDF.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
               long daylight = (sunSet.getTimeInMillis() - sunRise.getTimeInMillis()) / 1000L;
-              g.drawString("Sun Rise :" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + " Z:" + DF3.format(rsSun[2]) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()) + " Z:" + DF3.format(rsSun[3]) + (daylight>0?(" - daylight:" + DF2.format(daylight / 3600) + ":" + DF2.format((daylight % 3600) / 60L)):""), x, y);
+              String srs = "Sun Rise :" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + " Z:" + DF3.format(rsSun[2]) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()) + " Z:" + DF3.format(rsSun[3]) + (daylight>0?(" - daylight:" + DF2.format(daylight / 3600) + ":" + DF2.format((daylight % 3600) / 60L)):"");
+              // Isolate the hours in the string
+//            System.out.println(srs);
+              AttributedString astr = new AttributedString(srs);
+              Pattern pattern = Pattern.compile("\\d{2}:\\d{2}");
+              Matcher matcher = pattern.matcher(srs);
+              int nbMatch = 0;
+              boolean found = matcher.find();
+              while (found && nbMatch < 2)
+              {
+                nbMatch++;
+//              String match = matcher.group();
+                int start = matcher.start();
+                int end   = matcher.end();
+//              System.out.println("Match: [" + match + "] : " + start + ", " + end);
+                astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), start, end);
+//              astr.addAttribute(TextAttribute.FOREGROUND, Color.RED, start, end);
+                astr.addAttribute(TextAttribute.BACKGROUND, Color.LIGHT_GRAY, start, end);
+                found = matcher.find();
+              }
+              g.drawString(astr.getIterator(), x, y);
+              
               y += (fontSize + 2);              
               g.drawString("Moon Rise:" + SUN_RISE_SET_SDF.format(moonRise.getTime()) + ", Set:" + SUN_RISE_SET_SDF.format(moonSet.getTime()), x, y);
               y += (fontSize + 2);       
@@ -717,10 +745,15 @@ public class TideInternalFrame
               y += (fontSize + 2);
               
               // Bottom note
-              String s = "Rise and Set times are given for an altitude of the body equal to zero.";
               g.setFont(g.getFont().deriveFont(Font.PLAIN, 9));
+              String s = "Rise and Set times are given for an altitude of the body equal to zero.";
+              //          012345678901234567890123456789012345678901234567890123456789012345678901
+              //                    1         2         3         4         5         6         7  
+           /* AttributedString */ astr = new AttributedString(s);
+              astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, 10), 36, 44);
+              astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, 10), 66, 70);
               y = this.getHeight() - 5;
-              g.drawString(s, x, y);
+              g.drawString(astr.getIterator(), x, y);
             }
           }
         }
@@ -1952,6 +1985,22 @@ public class TideInternalFrame
         this.setToolTipText("Mouse Moved: x=" + e.getX() + ", y=" + e.getY());
       else
         this.setToolTipText("One month");
+    }
+  }
+  
+  public static void main(String[] args)
+  {
+    String str = "Sun Rise :Thu 01-Dec-2011 07:09 (PST) Z:117, Set:Thu 01-Dec-2011 16:47 (PST) Z:243 - daylight:09:38";
+    Pattern pattern = Pattern.compile("\\d{2}:\\d{2}");
+    Matcher matcher = pattern.matcher(str);
+    boolean found = matcher.find();
+    while (found)
+    {
+      String match = matcher.group();
+      int start = matcher.start();
+      int end   = matcher.end();
+      System.out.println("Match: [" + match + "] : " + start + ", " + end);
+      found = matcher.find();
     }
   }
 }
