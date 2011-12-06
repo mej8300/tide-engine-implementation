@@ -1,5 +1,9 @@
 package tideengineimplementation.utils;
 
+import app.almanac.AlmanacComputer;
+
+import calculation.SightReductionUtil;
+
 import java.text.SimpleDateFormat;
 
 import java.util.Date;
@@ -11,14 +15,15 @@ import nauticalalmanac.Core;
 // import nauticalalmanac.Jupiter;
 // import nauticalalmanac.Mars;
 import nauticalalmanac.Moon;
+
+import user.util.GeomUtil;
 // import nauticalalmanac.Saturn;
 // import nauticalalmanac.Venus;
 
 public class AstroComputer
 {
   private static int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0;
-  private static double deltaT = 66.4749d; // 2011
-  
+  private static double deltaT = 66.4749d; // 2011.Overridden by deltaT system variable.  
   /**
    * Time are UTC
    * @param y year
@@ -47,6 +52,7 @@ public class AstroComputer
   
   public static void calculate()
   {
+    deltaT = Double.parseDouble(System.getProperty("deltaT", Double.toString(deltaT)));
     Core.julianDate(year, month, day, hour, minute, second, deltaT);
     Anomalies.nutation();
     Anomalies.aberration();
@@ -82,10 +88,6 @@ public class AstroComputer
   //  out.println("Sin Sun H0:" + Math.sin(Math.toRadians(h0)));
     double cost = Math.sin(Math.toRadians(h0)) - (Math.tan(Math.toRadians(latitude)) * Math.tan(Math.toRadians(Context.DECsun)));
     double t    = Math.acos(cost);
-    // TASK Look into this next line...
-  //  out.println("Sun GHA: " + Context.GHAsun);
-  //  double lon = - Context.GHAsun; // - Math.toDegrees(t);
-  //  double lon = Context.GHAsun; // - Math.toDegrees(t);
     double lon = longitude;
 //  while (lon < -180D)
 //    lon += 360D;
@@ -127,10 +129,6 @@ public class AstroComputer
   //  out.println("Moon H0:" + h0);
     double cost = Math.sin(Math.toRadians(h0)) - (Math.tan(Math.toRadians(latitude)) * Math.tan(Math.toRadians(Context.DECmoon)));
     double t    = Math.acos(cost);
-    // TASK Look into this next line...
-  //  out.println("Sun GHA: " + Context.GHAsun);
-  //  double lon = - Context.GHAsun; // - Math.toDegrees(t);
-  //  double lon = Context.GHAsun; // - Math.toDegrees(t);
     double lon = longitude;
     while (lon < -180D)
       lon += 360D;
@@ -156,6 +154,7 @@ public class AstroComputer
   
   public static void setDeltaT(double deltaT)
   {
+    System.out.println("...DeltaT set to " + deltaT);
     AstroComputer.deltaT = deltaT;
   }
 
@@ -186,6 +185,116 @@ public class AstroComputer
     if (h < 0)
       d = h - (m / 60d);
     return d;
+  }
+  
+  public static double[] getSunMoon(int y, int m, int d, int h, int mi, int s, double lat, double lng)
+  {
+    double[] values = new double[4];
+    year = y;
+    month = m;
+    day = d;
+    hour = h;
+    minute = mi;
+    second = s;
+    
+    calculate();
+    SightReductionUtil sru = new SightReductionUtil();    
+    sru.setL(lat);
+    sru.setG(lng);
+    
+    // Sun
+    sru.setAHG(Context.GHAsun);
+    sru.setD(Context.DECsun);    
+    sru.calculate();          
+    values[0] = sru.getHe();
+    values[1] = sru.getZ();
+    // Moon
+    sru.setAHG(Context.GHAmoon);
+    sru.setD(Context.DECmoon);    
+    sru.calculate();          
+    values[2] = sru.getHe();
+    values[3] = sru.getZ();
+    
+    return values;
+  }
+  
+  public static double getSunAlt(int y, int m, int d, int h, int mi, int s, double lat, double lng)
+  {
+    double value = 0d;
+    year = y;
+    month = m;
+    day = d;
+    hour = h;
+    minute = mi;
+    second = s;
+    
+    calculate();
+    SightReductionUtil sru = new SightReductionUtil();    
+    sru.setL(lat);
+    sru.setG(lng);
+    
+    // Sun
+    sru.setAHG(Context.GHAsun);
+    sru.setD(Context.DECsun);    
+    sru.calculate();          
+    value = sru.getHe();
+    
+    return value;
+  }
+  
+  public static double getMoonAlt(int y, int m, int d, int h, int mi, int s, double lat, double lng)
+  {
+    double value = 0d;
+    year = y;
+    month = m;
+    day = d;
+    hour = h;
+    minute = mi;
+    second = s;
+    
+    calculate();
+    SightReductionUtil sru = new SightReductionUtil();    
+    sru.setL(lat);
+    sru.setG(lng);
+    
+    // Moon
+    sru.setAHG(Context.GHAmoon);
+    sru.setD(Context.DECmoon);    
+    sru.calculate();          
+    value = sru.getHe();
+    
+    return value;
+  }
+  
+  public static double[] getSunMoonAlt(int y, int m, int d, int h, int mi, int s, double lat, double lng)
+  {
+    double[] values = new double[2];
+    year = y;
+    month = m;
+    day = d;
+    hour = h;
+    minute = mi;
+    second = s;
+    
+//  System.out.println(y + "-" + month + "-" + day + " " + h + ":" + mi + ":" + s);
+    
+    calculate();
+    SightReductionUtil sru = new SightReductionUtil();    
+    sru.setL(lat);
+    sru.setG(lng);
+    
+    // Sun
+    sru.setAHG(Context.GHAsun);
+    sru.setD(Context.DECsun);    
+    sru.calculate();          
+    values[0] = sru.getHe();
+    // Moon
+    sru.setAHG(Context.GHAmoon);
+    sru.setD(Context.DECmoon);    
+    sru.calculate();          
+    values[1] = sru.getHe();
+    
+    return values;
   }
   
   public static void main(String[] args)
