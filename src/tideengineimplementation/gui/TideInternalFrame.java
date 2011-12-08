@@ -23,9 +23,6 @@ import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -53,6 +50,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
@@ -108,6 +106,7 @@ import tideengineimplementation.gui.dialog.PrintDialog;
 import tideengineimplementation.gui.dialog.SearchPanel;
 import tideengineimplementation.gui.main.splash.SplashWindow;
 import tideengineimplementation.gui.main.splash.Splasher;
+import tideengineimplementation.gui.table.CoeffTable;
 import tideengineimplementation.gui.table.FilterTable;
 import tideengineimplementation.gui.table.TimeZoneTable;
 
@@ -167,7 +166,13 @@ public class TideInternalFrame
   private FilterTable filterTable = new FilterTable(null);
   private Calendar now = GregorianCalendar.getInstance();
   
+  private transient Image sunSymbol  = new ImageIcon(this.getClass().getResource("sun.png")).getImage();
+  private transient Image moonSymbol = new ImageIcon(this.getClass().getResource("moon.png")).getImage();
+  
   private int hourOffset = 0;
+  private CoeffTable ct = null;
+  private HashMap<String, String> coeffData = null;
+  private boolean showAllCurves = true;
   
   private TidePanel graphPanel = new TidePanel()
   {
@@ -256,6 +261,7 @@ public class TideInternalFrame
             double widthRatio = (double)width / timeWidth;
             double heightRatio = (double)height / ((2 * gutter) + mm[TideUtilities.MAX_POS] - mm[TideUtilities.MIN_POS]);
             double bottomValue = mm[TideUtilities.MIN_POS] - gutter;
+            double heightRatioAlt = (double)height / 180d;
               
             // Horizontal grid
             g.setColor(Color.LIGHT_GRAY);
@@ -263,8 +269,8 @@ public class TideInternalFrame
             {
               g.drawLine(0, height - (int)((hgt - bottomValue) * heightRatio), width, height - (int)((hgt - bottomValue) * heightRatio));
               Color c = g.getColor();
-              g.setColor(Color.BLACK);
-              g.drawString(TideUtilities.DF2PLUS.format(hgt) /* + " " + unitComboBox.getSelectedItem().toString() */, 
+              g.setColor(Color.BLACK);              
+              g.drawString((hgt==0?"0":TideUtilities.DF2PLUS.format(hgt)) /* + " " + unitComboBox.getSelectedItem().toString() */, 
                            5, 
                            height - (int)((hgt - bottomValue) * heightRatio) - 2);
               g.setColor(c);
@@ -293,8 +299,11 @@ public class TideInternalFrame
             if (from == null && to == null)
             {
               int tx = (int)((now.get(Calendar.HOUR_OF_DAY) - hourOffset + (double)(now.get(Calendar.MINUTE) / 60D) + ((double)(now.get(Calendar.SECOND) / 3600D))) * widthRatio);
+              Stroke origStroke = ((Graphics2D)g).getStroke();
+              ((Graphics2D) g).setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
               g.setColor(Color.GREEN);
               g.drawLine(tx, 0, tx, height);
+              ((Graphics2D) g).setStroke(origStroke);
               
               Calendar utcCal = (Calendar)now.clone();
               utcCal.setTimeZone(TimeZone.getTimeZone("Etc/UTC"));
@@ -440,9 +449,24 @@ public class TideInternalFrame
 //            ((Graphics2D) g).setStroke(origStroke);
               for (int i=0; i<constSpeed.size(); i++)
               {
-                g.setColor(randomColor[i]);
+                Stroke origStroke = null;
+                if (coeffToHighlight != null)
+                {
+                  if (coeffToHighlight.contains(coeffColor[i].name))
+                  {
+                    // Thicker
+//                  System.out.println("Highlighting " + i + " (" + coeffColor[i].name + ")");
+                    origStroke = ((Graphics2D)g).getStroke();
+                    ((Graphics2D) g).setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+                  }
+                  else if (!showAllCurves)
+                    continue;
+                }
+                
+                g.setColor(coeffColor[i].color);
                 Point previousVal = null;
-                for (int h=0; h<24; h++)
+                // Drawing one full curve
+                for (int h=0; h<24; h++) 
                 {
                   for (int m=0; m<60; m++)
                   {
@@ -462,13 +486,15 @@ public class TideInternalFrame
                     previousVal = new Point(x, y);                            
                   }
                 }
-              }                
+                // Reset thickness
+                if (origStroke != null)
+                  ((Graphics2D) g).setStroke(origStroke);
+              }     
 //            ((Graphics2D) g).setStroke(mainCurveStroke);
             }
 
             if (showAltitudesCheckBox.isSelected())
             {
-              double heightRatioAlt = (double)height / 180d;
               ArrayList<Point> sunAltitudes  = new ArrayList<Point>();
               ArrayList<Point> moonAltitudes = new ArrayList<Point>();
               for (int h=0; h<24; h++)
@@ -509,7 +535,17 @@ public class TideInternalFrame
               double bh = ts.getBaseHeight();
               bh = Utils.convert(bh, ts.getDisplayUnit(), currentUnit);
               int y = this.getHeight() / 2;
-              g.drawLine(0, y, this.getWidth(), y);              
+              g.drawLine(0, y, this.getWidth(), y);       
+              GradientPaint gradient = new GradientPaint(0, this.getHeight(), Color.WHITE, 0, 0, Color.BLUE); // vertical, upside down
+              Paint paint = ((Graphics2D)g).getPaint();
+              ((Graphics2D)g).setPaint(gradient);              
+              ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
+              g.fillPolygon(new Polygon(new int[] {0, this.getWidth(), this.getWidth(), 0},
+                                        new int[] {y, y, this.getHeight(), this.getHeight()},
+                                        4));
+              ((Graphics2D)g).setPaint(paint);              
+              ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+              
               // Sun
               g.setColor(Color.DARK_GRAY);
               Point previousPt = null;
@@ -777,127 +813,32 @@ public class TideInternalFrame
               // Sun rise & set
               SUN_RISE_SET_SDF.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
               long daylight = (sunSet.getTimeInMillis() - sunRise.getTimeInMillis()) / 1000L;
-              String srs = "Sun Rise :" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + " Z:" + DF3.format(rsSun[2]) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()) + " Z:" + DF3.format(rsSun[3]) + (daylight>0?(" - daylight:" + DF2.format(daylight / 3600) + ":" + DF2.format((daylight % 3600) / 60L)):"");
-              // Isolate the hours in the string
-//            System.out.println(srs);
-              AttributedString astr = new AttributedString(srs);
-              Pattern pattern = Pattern.compile("\\d{2}:\\d{2}");
-              Matcher matcher = pattern.matcher(srs);
-              int nbMatch = 0;
-              boolean found = matcher.find();
-              // Highlight Rise and Set time
-              while (found && nbMatch < 2)
+              if (!Double.isNaN(rsSun[0]))
               {
-                nbMatch++;
-//              String match = matcher.group();
-                int start = matcher.start();
-                int end   = matcher.end();
-//              System.out.println("Match: [" + match + "] : " + start + ", " + end);
-                astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), start, end);
-//              astr.addAttribute(TextAttribute.FOREGROUND, Color.RED, start, end);
-                astr.addAttribute(TextAttribute.BACKGROUND, Color.YELLOW, start, end);
-                found = matcher.find();
-              }
-              // Body
-              pattern = Pattern.compile("Sun");
-              matcher = pattern.matcher(srs);
-              nbMatch = 0;
-              found = matcher.find();
-              while (found && nbMatch < 1)
-              {
-                nbMatch++;
-                int start = matcher.start();
-                int end   = matcher.end();
-                astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), start, end);
-                astr.addAttribute(TextAttribute.BACKGROUND, Color.YELLOW, start, end);
-                found = matcher.find();
-              }              
-              g.drawString(astr.getIterator(), x, y);
-              
-              y += (fontSize + 2);              
-              // Reorder rise and set when necessary
-              String mrs = null;
-              int xRise = 0, xSet = 0;
-//            System.out.println("rsMoon:" + rsMoonInHours[0] + ", " + rsMoonInHours[1]);
-              xRise = (int)((rsMoonInHours[0] - hourOffset) * widthRatio);
-              xSet  = (int)((rsMoonInHours[1] - hourOffset) * widthRatio);
-              if (moonRise.before(moonSet))
-              {
-                mrs = "Moon Rise:" + SUN_RISE_SET_SDF.format(moonRise.getTime()) + ", Set:" + SUN_RISE_SET_SDF.format(moonSet.getTime());
-              }
-              else
-              {
-                mrs = "Moon Set:" + SUN_RISE_SET_SDF.format(moonSet.getTime()) + ", Rise:" + SUN_RISE_SET_SDF.format(moonRise.getTime());
-              }
-              // Little arrow on the graphic, for moon rise and set times.
-              int baseLine = 60;
-              g.drawString("Moon", x,  this.getHeight() - baseLine + 3);
-              // Arrow Up
-              Polygon polygon = new Polygon(); 
-              polygon.addPoint(xRise, this.getHeight() - baseLine);
-              polygon.addPoint(xRise + 5, this.getHeight() - baseLine + 5);
-              polygon.addPoint(xRise - 5, this.getHeight() - baseLine + 5);
-              g.fillPolygon(polygon);
-              // Arrow Down
-              polygon = new Polygon(); 
-              polygon.addPoint(xSet, this.getHeight() - baseLine);
-              polygon.addPoint(xSet + 5, this.getHeight() - baseLine - 5);
-              polygon.addPoint(xSet - 5, this.getHeight() - baseLine - 5);
-              g.fillPolygon(polygon);
-              
-              // Draw a band across the screen
-              Color c = g.getColor();
-              ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-              g.setColor(Color.GRAY);
-              g.drawRect(0, this.getHeight() - baseLine - 10, this.getWidth(), 20);
-              g.setColor(Color.LIGHT_GRAY);
-//            System.out.println("xRise:" + xRise + ", xSet:" + xSet);
-              if (moonRise.before(moonSet))
-              {
-                g.fillRect(0, this.getHeight() - baseLine - 10, xRise, 20);                     // 0 to rise
-                g.fillRect(xSet, this.getHeight() - baseLine - 10, this.getWidth() - xSet, 20); // Set to end
-              }
-              else
-              {
-                g.fillRect(xSet, this.getHeight() - baseLine - 10, xRise - xSet, 20);
-              }
-              ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
-              g.setColor(c);
-              // Isolate the hours in the string
-//            System.out.println(srs);
-              astr = new AttributedString(mrs);
-              pattern = Pattern.compile("\\d{2}:\\d{2}");
-              matcher = pattern.matcher(mrs);
-              nbMatch = 0;
-              found = matcher.find();
-              // Highlight Rise and Set time
-              while (found && nbMatch < 2)
-              {
-                nbMatch++;
-                int start = matcher.start();
-                int end   = matcher.end();
-                astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), start, end);
-                astr.addAttribute(TextAttribute.BACKGROUND, Color.ORANGE, start, end);
-                found = matcher.find();
-              }
-              // Body
-              pattern = Pattern.compile("Moon");
-              matcher = pattern.matcher(mrs);
-              nbMatch = 0;
-              found = matcher.find();
-              while (found && nbMatch < 1)
-              {
-                nbMatch++;
-                int start = matcher.start();
-                int end   = matcher.end();
-                astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), start, end);
-                astr.addAttribute(TextAttribute.BACKGROUND, Color.ORANGE, start, end);
-                found = matcher.find();
-              }              
-              if (moonSet.before(moonRise))
-              {
-                pattern = Pattern.compile("Rise");
-                matcher = pattern.matcher(mrs);
+                String srs = "Sun Rise :" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + " Z:" + DF3.format(rsSun[2]) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()) + " Z:" + DF3.format(rsSun[3]) + (daylight>0?(" - daylight:" + DF2.format(daylight / 3600) + ":" + DF2.format((daylight % 3600) / 60L)):"");
+                // Isolate the hours in the string
+  //            System.out.println(srs);
+                AttributedString astr = new AttributedString(srs);
+                Pattern pattern = Pattern.compile("\\d{2}:\\d{2}");
+                Matcher matcher = pattern.matcher(srs);
+                int nbMatch = 0;
+                boolean found = matcher.find();
+                // Highlight Rise and Set time
+                while (found && nbMatch < 2)
+                {
+                  nbMatch++;
+  //              String match = matcher.group();
+                  int start = matcher.start();
+                  int end   = matcher.end();
+  //              System.out.println("Match: [" + match + "] : " + start + ", " + end);
+                  astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), start, end);
+  //              astr.addAttribute(TextAttribute.FOREGROUND, Color.RED, start, end);
+                  astr.addAttribute(TextAttribute.BACKGROUND, Color.YELLOW, start, end);
+                  found = matcher.find();
+                }
+                // Body
+                pattern = Pattern.compile("Sun");
+                matcher = pattern.matcher(srs);
                 nbMatch = 0;
                 found = matcher.find();
                 while (found && nbMatch < 1)
@@ -905,10 +846,83 @@ public class TideInternalFrame
                   nbMatch++;
                   int start = matcher.start();
                   int end   = matcher.end();
-                  astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.ITALIC, g.getFont().getSize()), start, end);
+                  astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), start, end);
+                  astr.addAttribute(TextAttribute.BACKGROUND, Color.YELLOW, start, end);
                   found = matcher.find();
                 }              
-                pattern = Pattern.compile("Set");
+                g.drawString(astr.getIterator(), x, y);
+                
+                y += (fontSize + 2);            
+              }
+              // Reorder rise and set when necessary
+              if (!Double.isNaN(rsMoon[0]))
+              {
+                String mrs = null;
+                int xRise = 0, xSet = 0;
+  //            System.out.println("rsMoon:" + rsMoonInHours[0] + ", " + rsMoonInHours[1]);
+                xRise = (int)((rsMoonInHours[0] - hourOffset) * widthRatio);
+                xSet  = (int)((rsMoonInHours[1] - hourOffset) * widthRatio);
+                if (moonRise.before(moonSet))
+                {
+                  mrs = "Moon Rise:" + SUN_RISE_SET_SDF.format(moonRise.getTime()) + ", Set:" + SUN_RISE_SET_SDF.format(moonSet.getTime());
+                }
+                else
+                {
+                  mrs = "Moon Set:" + SUN_RISE_SET_SDF.format(moonSet.getTime()) + ", Rise:" + SUN_RISE_SET_SDF.format(moonRise.getTime());
+                }
+                // Little arrow on the graphic, for moon rise and set times.
+                int baseLine = 60;
+                g.drawString("Moon", x,  this.getHeight() - baseLine + 3);
+                // Arrow Up
+                Polygon polygon = new Polygon(); 
+                polygon.addPoint(xRise, this.getHeight() - baseLine);
+                polygon.addPoint(xRise + 5, this.getHeight() - baseLine + 5);
+                polygon.addPoint(xRise - 5, this.getHeight() - baseLine + 5);
+                g.fillPolygon(polygon);
+                // Arrow Down
+                polygon = new Polygon(); 
+                polygon.addPoint(xSet, this.getHeight() - baseLine);
+                polygon.addPoint(xSet + 5, this.getHeight() - baseLine - 5);
+                polygon.addPoint(xSet - 5, this.getHeight() - baseLine - 5);
+                g.fillPolygon(polygon);
+                
+                // Draw a band across the screen
+                Color c = g.getColor();
+                ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+                g.setColor(Color.GRAY);
+                g.drawRect(0, this.getHeight() - baseLine - 10, this.getWidth(), 20);
+                g.setColor(Color.LIGHT_GRAY);
+  //            System.out.println("xRise:" + xRise + ", xSet:" + xSet);
+                if (moonRise.before(moonSet))
+                {
+                  g.fillRect(0, this.getHeight() - baseLine - 10, xRise, 20);                     // 0 to rise
+                  g.fillRect(xSet, this.getHeight() - baseLine - 10, this.getWidth() - xSet, 20); // Set to end
+                }
+                else
+                {
+                  g.fillRect(xSet, this.getHeight() - baseLine - 10, xRise - xSet, 20);
+                }
+                ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+                g.setColor(c);
+                // Isolate the hours in the string
+  //            System.out.println(srs);
+                AttributedString astr = new AttributedString(mrs);
+                Pattern pattern = Pattern.compile("\\d{2}:\\d{2}");
+                Matcher matcher = pattern.matcher(mrs);
+                int nbMatch = 0;
+                boolean found = matcher.find();
+                // Highlight Rise and Set time
+                while (found && nbMatch < 2)
+                {
+                  nbMatch++;
+                  int start = matcher.start();
+                  int end   = matcher.end();
+                  astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), start, end);
+                  astr.addAttribute(TextAttribute.BACKGROUND, Color.ORANGE, start, end);
+                  found = matcher.find();
+                }
+                // Body
+                pattern = Pattern.compile("Moon");
                 matcher = pattern.matcher(mrs);
                 nbMatch = 0;
                 found = matcher.find();
@@ -917,13 +931,41 @@ public class TideInternalFrame
                   nbMatch++;
                   int start = matcher.start();
                   int end   = matcher.end();
-                  astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.ITALIC, g.getFont().getSize()), start, end);
+                  astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), start, end);
+                  astr.addAttribute(TextAttribute.BACKGROUND, Color.ORANGE, start, end);
                   found = matcher.find();
-                }                              
+                }              
+                if (moonSet.before(moonRise))
+                {
+                  pattern = Pattern.compile("Rise");
+                  matcher = pattern.matcher(mrs);
+                  nbMatch = 0;
+                  found = matcher.find();
+                  while (found && nbMatch < 1)
+                  {
+                    nbMatch++;
+                    int start = matcher.start();
+                    int end   = matcher.end();
+                    astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.ITALIC, g.getFont().getSize()), start, end);
+                    found = matcher.find();
+                  }              
+                  pattern = Pattern.compile("Set");
+                  matcher = pattern.matcher(mrs);
+                  nbMatch = 0;
+                  found = matcher.find();
+                  while (found && nbMatch < 1)
+                  {
+                    nbMatch++;
+                    int start = matcher.start();
+                    int end   = matcher.end();
+                    astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.ITALIC, g.getFont().getSize()), start, end);
+                    found = matcher.find();
+                  }                              
+                }
+                g.drawString(astr.getIterator(), x, y);
+                
+                y += (fontSize + 2);      
               }
-              g.drawString(astr.getIterator(), x, y);
-              
-              y += (fontSize + 2);       
               double prevHeight = -Double.MAX_VALUE;
               int diffOffset = -1;
               for (TimedValue tv : timeAL)
@@ -969,7 +1011,7 @@ public class TideInternalFrame
               String s = "Rise and Set times are given for an altitude of the body equal to zero.";
               //          012345678901234567890123456789012345678901234567890123456789012345678901
               //                    1         2         3         4         5         6         7  
-           /* AttributedString */ astr = new AttributedString(s);
+              AttributedString astr = new AttributedString(s);
               astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, 10), 36, 44);
               astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, 10), 66, 70);
               y = this.getHeight() - 5;
@@ -978,6 +1020,18 @@ public class TideInternalFrame
               g.setFont(g.getFont().deriveFont(Font.PLAIN, fontSize));
               y -= (fontSize + 2);
               // Astronomical data
+              if (est != null && showAltitudesCheckBox.isSelected())
+              {
+                double value = est[0];  // Sun Altitude     
+                int h = now.get(Calendar.HOUR_OF_DAY);
+                int m = now.get(Calendar.MINUTE);
+                int _x = (int)((/*(currDay * 24) +*/ h - hourOffset + (double)(m / 60D)) * widthRatio);
+                int _y = (this.getHeight() / 2) - (int)((value) * heightRatioAlt);
+                g.drawImage(sunSymbol, _x - 6, _y - 14, null); // Image is 13x13
+                value = est[2];  // Moon Altitude     
+                _y = (this.getHeight() / 2) - (int)((value) * heightRatioAlt);
+                g.drawImage(moonSymbol, _x - 6, _y - 14, null); // Image is 13x13
+              }
               if (est != null && est[2] > 0)
               {
 //              System.out.println("Moon Alt:" + GeomUtil.decToSex(est[2], GeomUtil.SWING, GeomUtil.NONE) + " (" + est[2] + ")");
@@ -1037,12 +1091,13 @@ public class TideInternalFrame
   private GridBagLayout gridBagLayout3 = new GridBagLayout();
   private JButton findTimeZoneButton = new JButton();
   
-  private Color[] randomColor = null;
+  private transient ColoredCoeff[] coeffColor = null;
   private JCheckBox decomposeCheckBox = new JCheckBox();
   private JCheckBox showBaseHeightCheckBox = new JCheckBox();
   private JCheckBox showAltitudesCheckBox = new JCheckBox();
 
   private transient TideEventListener tideEventListener = null;
+  private ArrayList<String> coeffToHighlight = null;
   
   public TideInternalFrame()
   {
@@ -1126,6 +1181,18 @@ public class TideInternalFrame
         {
           now.setTime(new Date(date));
           graphPanel.repaint();          
+        }
+        @Override
+        public void setCoeffToHighlight(ArrayList<String> names) 
+        {
+          coeffToHighlight = names;
+          graphPanel.repaint();
+        }
+        @Override
+        public void showAllCurves(boolean b) 
+        {
+          showAllCurves = b;
+          graphPanel.repaint();
         }
       };
     TideContext.getInstance().addTideListener(tideEventListener);
@@ -1223,6 +1290,13 @@ public class TideInternalFrame
       });
     decomposeCheckBox.setText("Decompose");
     decomposeCheckBox.setToolTipText("<html><b>Warning:</b><br>This is a demanding operation...</html>");
+    decomposeCheckBox.addActionListener(new ActionListener()
+      {
+        public void actionPerformed(ActionEvent e)
+        {
+          decomposeCheckBox_actionPerformed(e);
+        }
+      });
     showBaseHeightCheckBox.setText("Base Height");
     showBaseHeightCheckBox.setToolTipText("Show the tide station base height.");
     showAltitudesCheckBox.setText("Alt");
@@ -1292,6 +1366,7 @@ public class TideInternalFrame
                                                  new Insets(0, 0, 0, 0), 0, 0));
     rightPanel.add(buttonPanel, BorderLayout.NORTH);
     rightPanel.add(graphPanel, BorderLayout.CENTER);
+//  rightPanel.add(ct, BorderLayout.EAST);
 
     //  leftPanel.setPreferredSize(new Dimension(300, 600)); // TEMP
     tabbedPane.add("Tide Curves", rightPanel);
@@ -1341,9 +1416,13 @@ public class TideInternalFrame
     // Tide Specific part
     constSpeed = BackEndTideComputer.buildSiteConstSpeed();
     // Random Colors array
-    randomColor = new Color[constSpeed.size()];
+    coeffColor = new ColoredCoeff[constSpeed.size()];
     for (int i=0; i<constSpeed.size(); i++)
-      randomColor[i] = new Color((int)(Math.random() * 255), (int)(Math.random() * 255), (int)(Math.random() * 255));
+    {
+      coeffColor[i] = new ColoredCoeff();
+      coeffColor[i].color = new Color((int)(Math.random() * 255), (int)(Math.random() * 255), (int)(Math.random() * 255));
+      coeffColor[i].name  = TideUtilities.getHarmonicCoeffName(ts, constSpeed, i);
+    }
 
     // Populate the station tree
     TreeMap<String, TideUtilities.StationTreeNode> tree = BackEndTideComputer.buildStationTree();
@@ -2127,6 +2206,30 @@ public class TideInternalFrame
     }
   }
 
+  private void decomposeCheckBox_actionPerformed(ActionEvent e)
+  {
+    if (decomposeCheckBox.isSelected())
+    {
+      coeffData = new HashMap<String, String>();
+      for (int i=0; i<constSpeed.size(); i++)
+      {
+        String coeffName = coeffColor[i].name; // TideUtilities.getHarmonicCoeffName(ts, constSpeed, i);
+        coeffData.put(coeffName, TideUtilities.getHarmonicCoeffDefinition(coeffName)); 
+      }
+      // Create coeff table
+      ct = new CoeffTable(coeffData);
+      rightPanel.add(ct, BorderLayout.EAST);
+    }
+    else
+    {
+      rightPanel.remove(ct);
+      coeffData = null;
+      ct = null;
+      coeffToHighlight = null;
+    }
+    rightPanel.repaint();
+  }
+
   private static class TimedValue implements Comparable<TimedValue>
   {
     private Calendar cal;
@@ -2241,6 +2344,12 @@ public class TideInternalFrame
       else
         this.setToolTipText("One month");
     }
+  }  
+  
+  private class ColoredCoeff
+  {
+    public String name = "";
+    public Color color = Color.WHITE;
   }
 
   public static void main(String[] args)

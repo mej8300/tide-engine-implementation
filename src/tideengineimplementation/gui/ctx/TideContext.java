@@ -58,9 +58,21 @@ public class TideContext
       tel.stationSelected(sn);
   }
 
+  public void fireShowAllCurves(boolean b)
+  {
+    for (TideEventListener tel : tideListeners)
+      tel.showAllCurves(b);
+  }
+
   public void fireFilter(String pattern)
   {
     for (TideEventListener tel : tideListeners)
       tel.filterList(pattern);
+  }  
+  
+  public void fireCoeffSelection(ArrayList<String> names)
+  {
+    for (TideEventListener tel : tideListeners)
+      tel.setCoeffToHighlight(names);
   }
 }
