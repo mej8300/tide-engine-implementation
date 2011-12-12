@@ -1,6 +1,8 @@
 package tideengineimplementation.gui.table;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
@@ -16,6 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.ButtonGroup;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -28,16 +31,17 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 
+import tideengineimplementation.gui.TideInternalFrame;
 import tideengineimplementation.gui.ctx.TideContext;
-
 
 public class CoeffTable
   extends JPanel
 {
-  private transient String[][] coeffData;
+  private transient Object[][] coeffData;
 
   // Table Columns
   final static String COEFF_NAME = "Name";
@@ -46,7 +50,7 @@ public class CoeffTable
   final static String[] names =
   { COEFF_NAME, COEFF_DEF };
   // Table content
-  private transient String[][] data = new String[0][names.length];
+  private transient Object[][] data = new Object[0][names.length];
 
   private transient TableModel dataModel;
   private JTable table;
@@ -68,7 +72,7 @@ public class CoeffTable
   private JRadioButton selectedCoeffRadioButton = new JRadioButton();
   private ButtonGroup bg = new ButtonGroup();
 
-  public CoeffTable(HashMap<String, String> coeff)
+  public CoeffTable(HashMap<TideInternalFrame.ColoredCoeff, String> coeff)
   {
     try
     {
@@ -100,7 +104,7 @@ public class CoeffTable
       {
         for (int i=0; i<coeffData.length; i++)
         {
-          addLineInTable(coeffData[i][0], coeffData[i][1]);
+          addLineInTable((TideInternalFrame.ColoredCoeff)coeffData[i][0], (String)coeffData[i][1]);
           nbl++;
         }
       }
@@ -241,7 +245,39 @@ public class CoeffTable
         }
       };
     // Create JTable
-    table = new JTable(dataModel);
+    table = new JTable(dataModel)
+    {
+      /* For the tooltip text */
+      public Component prepareRenderer_tamere(TableCellRenderer renderer, int rowIndex, int vColIndex)
+      {
+        Component c = super.prepareRenderer(renderer, rowIndex, vColIndex);
+        if (c instanceof JComponent)
+        {
+          JComponent jc = (JComponent) c;
+          try
+          { 
+            if (vColIndex == 1)
+            {
+              jc.setToolTipText(getValueAt(rowIndex, vColIndex).toString());
+              jc.setForeground(Color.BLACK);
+              jc.setBackground(Color.WHITE);
+            }
+            else if (vColIndex == 0)
+            {
+              TideInternalFrame.ColoredCoeff cc = (TideInternalFrame.ColoredCoeff)getValueAt(rowIndex, vColIndex);
+              jc.setToolTipText(cc.name);
+              jc.setForeground(reverseColor(cc.color));
+              jc.setBackground(cc.color);
+            }
+          }
+          catch (Exception ex)
+          {
+            System.err.println("ParamPanel:" + ex.getMessage());
+          }
+        }
+        return c;
+      }
+    };
     table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
     centerScrollPane = new JScrollPane(table);
@@ -251,21 +287,22 @@ public class CoeffTable
     table.getColumn(COEFF_NAME).setMinWidth(0);
     table.getColumn(COEFF_NAME).setMaxWidth(50);
     table.getColumn(COEFF_NAME).setPreferredWidth(50);
-
+    
     table.getColumn(COEFF_DEF).setMinWidth(100);
     table.getColumn(COEFF_DEF).setPreferredWidth(400);
+//  table.getColumn(COEFF_DEF).setCellRenderer(new CustomTableCellRenderer());
   }
 
-  private void addLineInTable(String name, String def)
+  private void addLineInTable(TideInternalFrame.ColoredCoeff cc, String def)
   {
     int len = data.length;
-    String[][] newData = new String[len + 1][names.length];
+    Object[][] newData = new Object[len + 1][names.length];
     for (int i = 0; i < len; i++)
     {
       for (int j = 0; j < names.length; j++)
         newData[i][j] = data[i][j];
     }
-    newData[len][0] = name;
+    newData[len][0] = cc;
     newData[len][1] = def;
     data = newData;
     ((AbstractTableModel) dataModel).fireTableDataChanged();
@@ -285,7 +322,7 @@ public class CoeffTable
         {
           if (coeffData[i][0].equals(data[sr[j]][0]))
           {
-            selected.add(coeffData[i][0]);
+            selected.add(((TideInternalFrame.ColoredCoeff)coeffData[i][0]).toString());
             break;
           }
         }
@@ -307,13 +344,13 @@ public class CoeffTable
     int nbl = 0;
     for (int i=0; i<coeffData.length; i++)
     {
-      Matcher m1 = p.matcher(coeffData[i][0]);
-      Matcher m2 = p.matcher(coeffData[i][1]);
+      Matcher m1 = p.matcher(((TideInternalFrame.ColoredCoeff)coeffData[i][0]).toString());
+      Matcher m2 = p.matcher((String)coeffData[i][1]);
       if (m1.matches() || m2.matches())
       {
         // Add in table
         nbl++;
-        addLineInTable(coeffData[i][0], coeffData[i][1]);
+        addLineInTable((TideInternalFrame.ColoredCoeff)coeffData[i][0], (String)coeffData[i][1]);
       }
     }
     this.setStatusLabel(Integer.toString(nbl) + " zone(s)");
@@ -321,22 +358,22 @@ public class CoeffTable
     table.repaint();
   }
 
-  public void setCoeffData(HashMap<String, String> coeff)
+  public void setCoeffData(HashMap<TideInternalFrame.ColoredCoeff, String> coeff)
   {
-    String[][] cd = new String[coeff.size()][2];
-    Set<String> keys = coeff.keySet();
+    Object[][] cd = new Object[coeff.size()][2];
+    Set<TideInternalFrame.ColoredCoeff> keys = coeff.keySet();
     int i = 0;
-    for (String s : keys)
+    for (TideInternalFrame.ColoredCoeff cc : keys)
     {
-      String val = coeff.get(s);
-      cd[i][0] = s;
+      String val = coeff.get(cc);
+      cd[i][0] = cc;
       cd[i][1] = (val!=null?val:"");
       i++;
     }
     setCoeffData(cd);
   }
   
-  public void setCoeffData(String[][] coeff)
+  public void setCoeffData(Object[][] coeff)
   {
     this.coeffData = coeff;
     this.filterLabel.setEnabled(this.coeffData != null);
@@ -344,7 +381,7 @@ public class CoeffTable
     setValues();
   }
 
-  public String[][] getCoeffData()
+  public Object[][] getCoeffData()
   {
     return coeffData;
   }
@@ -378,5 +415,39 @@ public class CoeffTable
   public void setStatusLabel(String s)
   {
     this.statusLabel.setText(s);
+  }
+  
+  private static Color reverseColor(Color c)
+  {
+    Color reversed = new Color(255 - c.getRed(), 
+                               255 - c.getGreen(), 
+                               255 - c.getBlue());    
+    return reversed;
+  }
+  
+  public class CustomTableCellRenderer
+    extends JLabel
+    implements TableCellRenderer
+  {
+    Object curValue = null;
+    boolean selected = false;
+
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
+    {
+      curValue = value;
+      selected = isSelected;
+      this.setToolTipText(value.toString());
+      return this;
+    }
+
+    public void paintComponent(Graphics g)
+    {
+      System.out.println("Painting, " + (selected?"":"non ") + "selected:" + curValue.toString());
+      if (curValue != null)
+      {
+        this.setBackground(selected?Color.LIGHT_GRAY:Color.WHITE);
+        g.drawString((String)curValue, 1, getHeight() - 1);
+      }
+    }
   }
 }
