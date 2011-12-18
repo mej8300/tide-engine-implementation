@@ -123,6 +123,10 @@ import user.util.GeomUtil;
 public class TideInternalFrame
   extends JInternalFrame
 {
+  public final static String COMPUTER_TIME_ZONE = "Computer Time Zone";
+  public final static String STATION_TIME_ZONE  = "Station Time Zone";
+  public final static String SEPARATOR          = "------------------";
+  
   private final static SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm (z) Z ");
   private final static DecimalFormat DF2 = new DecimalFormat("00");
   private final static DecimalFormat DF22 = new DecimalFormat("#0.00");
@@ -162,7 +166,7 @@ public class TideInternalFrame
   private JSplitPane mainSplitPane = new JSplitPane();
   private JScrollPane stationScrollPane = new JScrollPane();
   private JTree stationTree = new JTree();
-  private final static String ROOT_NAME = "invisible root";
+  private final static String ROOT_NAME = "invisible root"; // De ch'val
   private JPanel rightPanel = new JPanel(new BorderLayout());
   private JSplitPane leftPanel = new JSplitPane();
   private FilterTable filterTable = new FilterTable(null);
@@ -175,7 +179,10 @@ public class TideInternalFrame
   private CoeffTable ct = null;
   private transient HashMap<ColoredCoeff, String> coeffData = null;
   private boolean showAllCurves = true;
-  private int defaultWidth = 3;
+  private boolean showTideCurve = true;
+  private int defaultWidth = 3; // 3 Days
+  
+  private int currentYear = -1;
 
   private TidePanel graphPanelOneDay = new TidePanel() // Current Day, now.
   {
@@ -228,6 +235,11 @@ public class TideInternalFrame
         {
           if (ts != null)
           {
+            if (now.get(Calendar.YEAR) != currentYear)
+            {
+              ts = BackEndTideComputer.findTideStation(tideStationName, now.get(Calendar.YEAR));
+              currentYear = now.get(Calendar.YEAR);
+            }
             // Draw the graph.
             g.setColor(Color.WHITE);
             int height = this.getHeight();
@@ -289,11 +301,12 @@ public class TideInternalFrame
             
             Calendar utcCal = (Calendar)now.clone();
             utcCal.setTimeZone(TimeZone.getTimeZone("Etc/UTC"));
+            utcCal.getTime();
          // System.out.println("UTC Date:" + utcCal.getTime());
             moonPhase = AstroComputer.getMoonPhase(utcCal.get(Calendar.YEAR), 
                                                    utcCal.get(Calendar.MONTH) + 1, 
                                                    utcCal.get(Calendar.DAY_OF_MONTH), 
-                                                   12 - (int)Math.round(AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(ts.getTimeZone()))), 
+                                                   utcCal.get(Calendar.HOUR_OF_DAY), // 12 - (int)Math.round(AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(ts.getTimeZone()))), 
                                                    utcCal.get(Calendar.MINUTE), 
                                                    utcCal.get(Calendar.SECOND));
 //          rsSun  = AstroComputer.sunRiseAndSet_wikipedia(ts.getLatitude());
@@ -526,241 +539,244 @@ public class TideInternalFrame
               int y = height - (int)((bh - bottomValue) * heightRatio);
               g.drawLine(0, y, this.getWidth(), y);
             }
-            g.setColor(Color.RED);            
-            /* The curve */
-            Polygon curvePolygon = new Polygon();
-            for (int h=0; h<24; h++)
+            if (showTideCurve)
             {
-              for (int m=0; m<60; m++)
+              g.setColor(Color.RED);            
+              /* The curve */
+              Polygon curvePolygon = new Polygon();
+              for (int h=0; h<24; h++)
               {
-                Calendar cal = new GregorianCalendar(reference.get(Calendar.YEAR),
-                                                     reference.get(Calendar.MONTH),
-                                                     reference.get(Calendar.DAY_OF_MONTH),
-                                                     h + hourOffset, m);
-                cal.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
-                double wh = Utils.convert(TideUtilities.getWaterHeight(ts, constSpeed, cal), ts.getDisplayUnit(), currentUnit);
-                if (!Double.isNaN(previousWH))
+                for (int m=0; m<60; m++)
                 {
+                  Calendar cal = new GregorianCalendar(reference.get(Calendar.YEAR),
+                                                       reference.get(Calendar.MONTH),
+                                                       reference.get(Calendar.DAY_OF_MONTH),
+                                                       h + hourOffset, m);
+                  cal.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
+                  double wh = Utils.convert(TideUtilities.getWaterHeight(ts, constSpeed, cal), ts.getDisplayUnit(), currentUnit);
+                  if (!Double.isNaN(previousWH))
                   {
-                    if (trend == 0)
                     {
-                      if (previousWH > wh)
-                        trend = TidePanel.FALLING;
-                      else if (previousWH < wh)
-                        trend = TidePanel.RISING;
-                    }
-                    else
-                    {
-                      switch (trend)
+                      if (trend == 0)
                       {
-                        case RISING:
-                          if (previousWH > wh) // Now going down
-                          {
-                            if (Double.isNaN(high1))
+                        if (previousWH > wh)
+                          trend = TidePanel.FALLING;
+                        else if (previousWH < wh)
+                          trend = TidePanel.RISING;
+                      }
+                      else
+                      {
+                        switch (trend)
+                        {
+                          case RISING:
+                            if (previousWH > wh) // Now going down
                             {
-                              high1 = previousWH;
-                              cal.add(Calendar.MINUTE, -1);
-                              high1Cal = cal;
+                              if (Double.isNaN(high1))
+                              {
+                                high1 = previousWH;
+                                cal.add(Calendar.MINUTE, -1);
+                                high1Cal = cal;
+                              }
+                              else
+                              {
+                                high2 = previousWH;
+                                cal.add(Calendar.MINUTE, -1);
+                                high2Cal = cal;
+                              }
+                              trend = FALLING; // Now falling
                             }
-                            else
+                            break;
+                          case FALLING:
+                            if (previousWH < wh) // Now going up
                             {
-                              high2 = previousWH;
-                              cal.add(Calendar.MINUTE, -1);
-                              high2Cal = cal;
+                              if (Double.isNaN(low1))
+                              {
+                                low1 = previousWH;
+                                cal.add(Calendar.MINUTE, -1);
+                                low1Cal = cal;
+                              }
+                              else
+                              {
+                                low2 = previousWH;
+                                cal.add(Calendar.MINUTE, -1);
+                                low2Cal = cal;
+                              }
+                              trend = RISING; // Now rising
                             }
-                            trend = FALLING; // Now falling
-                          }
-                          break;
-                        case FALLING:
-                          if (previousWH < wh) // Now going up
-                          {
-                            if (Double.isNaN(low1))
-                            {
-                              low1 = previousWH;
-                              cal.add(Calendar.MINUTE, -1);
-                              low1Cal = cal;
-                            }
-                            else
-                            {
-                              low2 = previousWH;
-                              cal.add(Calendar.MINUTE, -1);
-                              low2Cal = cal;
-                            }
-                            trend = RISING; // Now rising
-                          }
-                          break;
+                            break;
+                        }
                       }
                     }
+                    int x = (int)((h + (double)(m / 60D)) * widthRatio);
+                    int y = height - (int)((wh - bottomValue) * heightRatio);
+                    if (previous != null)
+                      g.drawLine(previous.x, previous.y, x, y);
+                    previous = new Point(x, y);                      
+                    curvePolygon.addPoint(x, y);
                   }
-                  int x = (int)((h + (double)(m / 60D)) * widthRatio);
-                  int y = height - (int)((wh - bottomValue) * heightRatio);
-                  if (previous != null)
-                    g.drawLine(previous.x, previous.y, x, y);
-                  previous = new Point(x, y);                      
-                  curvePolygon.addPoint(x, y);
+                  previousWH = wh;
                 }
-                previousWH = wh;
               }
-            }
-            ((Graphics2D) g).setStroke(origStroke);
-            // Paint the lower part of the curve
-            curvePolygon.addPoint(this.getWidth(), this.getHeight());
-            curvePolygon.addPoint(0, this.getHeight());
-            GradientPaint gradient = new GradientPaint(0, this.getHeight(), Color.WHITE, 0, 0, Color.BLUE); // vertical, upside down
-            Paint paint = ((Graphics2D)g).getPaint();
-            ((Graphics2D)g).setPaint(gradient);              
-            ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
-            g.fillPolygon(curvePolygon);
-            ((Graphics2D)g).setPaint(paint);              
-            ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
-            int x = 5, y = 12;
-            g.setColor(Color.BLUE);
-            ArrayList<TimedValue> timeAL = new ArrayList<TimedValue>(4); 
-            if (low1Cal != null)
-              timeAL.add(new TimedValue("LW", low1Cal, low1));
-            if (low2Cal != null)
-              timeAL.add(new TimedValue("LW", low2Cal, low2));
-            if (high1Cal != null)
-              timeAL.add(new TimedValue("HW", high1Cal, high1));
-            if (high2Cal != null)
-              timeAL.add(new TimedValue("HW", high2Cal, high2));
-            
-            Collections.sort(timeAL);
-            // Station Name            
-            int fontSize = 12;
-//            g.setFont(new Font("Arial", Font.PLAIN, fontSize));
-            g.setFont(g.getFont().deriveFont(Font.PLAIN, fontSize));
-            Font f = g.getFont();
-            g.setFont(f.deriveFont(Font.BOLD, f.getSize()));
-            g.drawString(ts.getFullName() + ", " + FULL_DATE_FORMAT.format(now.getTime()), x, y);
-            g.setFont(f);
-            y += (fontSize + 2);
-            // Station Position and base height
-            g.drawString(new GeoPos(ts.getLatitude(), ts.getLongitude()).toString() + " - Base Height : " + DF22.format(Utils.convert(ts.getBaseHeight(), ts.getDisplayUnit(), currentUnit)) + " " + currentUnit, x, y);
-            y += (fontSize + 2);
-            // Sun rise & set
-            SUN_RISE_SET_SDF.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
-            long daylight = (sunSet.getTimeInMillis() - sunRise.getTimeInMillis()) / 1000L;
-            if (!Double.isNaN(rsSun[0]))
-            {
-              String srs = "Sun Rise :" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + " Z:" + DF3.format(rsSun[2]) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()) + " Z:" + DF3.format(rsSun[3]) + (daylight>0?(" - daylight:" + DF2.format(daylight / 3600) + ":" + DF2.format((daylight % 3600) / 60L)):"");
-              // Isolate the hours in the string
-//            System.out.println(srs);
-              AttributedString astr = new AttributedString(srs);
-              Pattern pattern = Pattern.compile("\\d{2}:\\d{2}");
-              Matcher matcher = pattern.matcher(srs);
-              int nbMatch = 0;
-              boolean found = matcher.find();
-              // Highlight Rise and Set time
-              while (found && nbMatch < 2)
-              {
-                nbMatch++;
-//              String match = matcher.group();
-                int start = matcher.start();
-                int end   = matcher.end();
-//              System.out.println("Match: [" + match + "] : " + start + ", " + end);
-                astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), start, end);
-//              astr.addAttribute(TextAttribute.FOREGROUND, Color.RED, start, end);
-                astr.addAttribute(TextAttribute.BACKGROUND, Color.YELLOW, start, end);
-                found = matcher.find();
-              }
-              // Body
-              pattern = Pattern.compile("Sun");
-              matcher = pattern.matcher(srs);
-              nbMatch = 0;
-              found = matcher.find();
-              while (found && nbMatch < 1)
-              {
-                nbMatch++;
-                int start = matcher.start();
-                int end   = matcher.end();
-                astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), start, end);
-                astr.addAttribute(TextAttribute.BACKGROUND, Color.YELLOW, start, end);
-                found = matcher.find();
-              }              
-              g.drawString(astr.getIterator(), x, y);
+              ((Graphics2D) g).setStroke(origStroke);
+              // Paint the lower part of the curve
+              curvePolygon.addPoint(this.getWidth(), this.getHeight());
+              curvePolygon.addPoint(0, this.getHeight());
+              GradientPaint gradient = new GradientPaint(0, this.getHeight(), Color.WHITE, 0, 0, Color.BLUE); // vertical, upside down
+              Paint paint = ((Graphics2D)g).getPaint();
+              ((Graphics2D)g).setPaint(gradient);              
+              ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
+              g.fillPolygon(curvePolygon);
+              ((Graphics2D)g).setPaint(paint);              
+              ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+              int x = 5, y = 12;
+              g.setColor(Color.BLUE);
+              ArrayList<TimedValue> timeAL = new ArrayList<TimedValue>(4); 
+              if (low1Cal != null)
+                timeAL.add(new TimedValue("LW", low1Cal, low1));
+              if (low2Cal != null)
+                timeAL.add(new TimedValue("LW", low2Cal, low2));
+              if (high1Cal != null)
+                timeAL.add(new TimedValue("HW", high1Cal, high1));
+              if (high2Cal != null)
+                timeAL.add(new TimedValue("HW", high2Cal, high2));
               
-              y += (fontSize + 2);            
-            }
-            double prevHeight = -Double.MAX_VALUE;
-            int diffOffset = -1;
-            for (TimedValue tv : timeAL)
-            {
-              String dataStr = tv.getType() + " " + TIME_FORMAT.format(tv.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(tv.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit;
-              if (diffOffset == -1)
+              Collections.sort(timeAL);
+              // Station Name            
+              int fontSize = 12;
+  //          g.setFont(new Font("Arial", Font.PLAIN, fontSize));
+              g.setFont(g.getFont().deriveFont(Font.PLAIN, fontSize));
+              Font f = g.getFont();
+              g.setFont(f.deriveFont(Font.BOLD, f.getSize()));
+              g.drawString(ts.getFullName() + ", " + FULL_DATE_FORMAT.format(now.getTime()), x, y);
+              g.setFont(f);
+              y += (fontSize + 2);
+              // Station Position and base height
+              g.drawString(new GeoPos(ts.getLatitude(), ts.getLongitude()).toString() + " - Base Height : " + DF22.format(Utils.convert(ts.getBaseHeight(), ts.getDisplayUnit(), currentUnit)) + " " + currentUnit, x, y);
+              y += (fontSize + 2);
+              // Sun rise & set
+              SUN_RISE_SET_SDF.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
+              long daylight = (sunSet.getTimeInMillis() - sunRise.getTimeInMillis()) / 1000L;
+              if (!Double.isNaN(rsSun[0]))
               {
-                int len = g.getFontMetrics(g.getFont()).stringWidth(dataStr);
-                int tabSize = 50;
-                diffOffset = (int)((len / tabSize) + 1) * tabSize;
+                String srs = "Sun Rise :" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + " Z:" + DF3.format(rsSun[2]) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()) + " Z:" + DF3.format(rsSun[3]) + (daylight>0?(" - daylight:" + DF2.format(daylight / 3600) + ":" + DF2.format((daylight % 3600) / 60L)):"");
+                // Isolate the hours in the string
+  //            System.out.println(srs);
+                AttributedString astr = new AttributedString(srs);
+                Pattern pattern = Pattern.compile("\\d{2}:\\d{2}");
+                Matcher matcher = pattern.matcher(srs);
+                int nbMatch = 0;
+                boolean found = matcher.find();
+                // Highlight Rise and Set time
+                while (found && nbMatch < 2)
+                {
+                  nbMatch++;
+  //              String match = matcher.group();
+                  int start = matcher.start();
+                  int end   = matcher.end();
+  //              System.out.println("Match: [" + match + "] : " + start + ", " + end);
+                  astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), start, end);
+  //              astr.addAttribute(TextAttribute.FOREGROUND, Color.RED, start, end);
+                  astr.addAttribute(TextAttribute.BACKGROUND, Color.YELLOW, start, end);
+                  found = matcher.find();
+                }
+                // Body
+                pattern = Pattern.compile("Sun");
+                matcher = pattern.matcher(srs);
+                nbMatch = 0;
+                found = matcher.find();
+                while (found && nbMatch < 1)
+                {
+                  nbMatch++;
+                  int start = matcher.start();
+                  int end   = matcher.end();
+                  astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), start, end);
+                  astr.addAttribute(TextAttribute.BACKGROUND, Color.YELLOW, start, end);
+                  found = matcher.find();
+                }              
+                g.drawString(astr.getIterator(), x, y);
+                
+                y += (fontSize + 2);            
               }
-              g.drawString(dataStr, x, y);
-              if (prevHeight != -Double.MAX_VALUE && !currentUnit.startsWith("knots"))
+              double prevHeight = -Double.MAX_VALUE;
+              int diffOffset = -1;
+              for (TimedValue tv : timeAL)
               {
-                double ampl = Math.abs(prevHeight - tv.getValue());
-                String diffStr = "\u0394 : " + TideUtilities.DF22.format(ampl) + " " + currentUnit; // \u0394 : Delta
-                g.drawString(diffStr, x + diffOffset, y - (fontSize / 2));
+                String dataStr = tv.getType() + " " + TIME_FORMAT.format(tv.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(tv.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit;
+                if (diffOffset == -1)
+                {
+                  int len = g.getFontMetrics(g.getFont()).stringWidth(dataStr);
+                  int tabSize = 50;
+                  diffOffset = (int)((len / tabSize) + 1) * tabSize;
+                }
+                g.drawString(dataStr, x, y);
+                if (prevHeight != -Double.MAX_VALUE && currentUnit != null && !currentUnit.startsWith("knots"))
+                {
+                  double ampl = Math.abs(prevHeight - tv.getValue());
+                  String diffStr = "\u0394 : " + TideUtilities.DF22.format(ampl) + " " + currentUnit; // \u0394 : Delta
+                  g.drawString(diffStr, x + diffOffset, y - (fontSize / 2));
+                }
+                y += (fontSize + 2);                
+                prevHeight = tv.getValue();
               }
-              y += (fontSize + 2);                
-              prevHeight = tv.getValue();
-            }
-            // Moon Phase
-            //     Percentage
-            g.drawString("Moon Phase: " + DF3.format(moonPhase) + "\272 (" + Long.toString(Math.round(moonIllum)) + "%)", x, y);
-            int phaseInDay = (int)Math.round(moonPhase / (360d / 28d)) + 1;
-            if (phaseInDay > 28) phaseInDay = 28;
-            if (phaseInDay < 1) phaseInDay = 1;
-            String moonImageName = "img/phase" + DF2.format(phaseInDay) + ".gif"; // ".png"
-//            System.out.println("Image Name:" + moonImageName + " monn phase:" + moonPhase);
-            URL imgUrl = this.getClass().getResource(moonImageName);
-//          System.out.println("Phase Image:" + imgUrl.toString());
-            Image moon = new ImageIcon(imgUrl).getImage();
-            g.drawImage(moon, this.getWidth() - 50 -10, 10, null); // 50: image width (gif 50, png 30)
-            y += (fontSize + 2);
-            // Current Height
-            y += (fontSize + 2);
-            double wh = Utils.convert(TideUtilities.getWaterHeight(ts, constSpeed, now), ts.getDisplayUnit(), currentUnit);
-            g.drawString("At " + TIME_FORMAT.format(now.getTime()) + " : " + TideUtilities.DF22PLUS.format(wh) + " " + /*ts.getDisplayUnit()*/ currentUnit, x, y);
-            y += (fontSize + 2);
-            
-            // Bottom note
-            g.setFont(g.getFont().deriveFont(Font.PLAIN, 9));
-            String s = "Rise and Set times are given for an altitude of the body equal to zero.";
-            //          012345678901234567890123456789012345678901234567890123456789012345678901
-            //                    1         2         3         4         5         6         7  
-            AttributedString astr = new AttributedString(s);
-            astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, 10), 36, 44);
-            astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, 10), 66, 70);
-            y = this.getHeight() - 5;
-            g.drawString(astr.getIterator(), x, y);
-
-            g.setFont(g.getFont().deriveFont(Font.PLAIN, fontSize));
-            y -= (fontSize + 2);
-            // Astronomical data
-            if (est != null && showAltitudesCheckBox.isSelected())
-            {
-              double value = est[0];  // Sun Altitude     
-              int h = now.get(Calendar.HOUR_OF_DAY);
-              int m = now.get(Calendar.MINUTE);
-              int _x = (int)((/*(currDay * 24) +*/ h - hourOffset + (double)(m / 60D)) * widthRatio);
-              int _y = (this.getHeight() / 2) - (int)((value) * heightRatioAlt);
-              g.drawImage(sunSymbol, _x - 6, _y - 14, null); // Image is 13x13
-              value = est[2];  // Moon Altitude     
-              _y = (this.getHeight() / 2) - (int)((value) * heightRatioAlt);
-              g.drawImage(moonSymbol, _x - 6, _y - 14, null); // Image is 13x13
-            }
-            if (est != null && est[2] > 0)
-            {
-//              System.out.println("Moon Alt:" + GeomUtil.decToSex(est[2], GeomUtil.SWING, GeomUtil.NONE) + " (" + est[2] + ")");
-//              System.out.println("Moon Z  :" + GeomUtil.decToSex(est[3], GeomUtil.SWING, GeomUtil.NONE));
-              g.drawString("Moon : Alt=" + GeomUtil.decToSex(est[2], GeomUtil.SWING, GeomUtil.NONE) + ", Z:" + GeomUtil.decToSex(est[3], GeomUtil.SWING, GeomUtil.NONE), x, y);
+              // Moon Phase
+              //     Percentage
+              g.drawString("Moon Phase: " + DF3.format(moonPhase) + "\272 (" + Long.toString(Math.round(moonIllum)) + "%)", x, y);
+              int phaseInDay = (int)Math.round(moonPhase / (360d / 28d)) + 1;
+              if (phaseInDay > 28) phaseInDay = 28;
+              if (phaseInDay < 1) phaseInDay = 1;
+              String moonImageName = "img/phase" + DF2.format(phaseInDay) + ".gif"; // ".png"
+  //            System.out.println("Image Name:" + moonImageName + " monn phase:" + moonPhase);
+              URL imgUrl = this.getClass().getResource(moonImageName);
+  //          System.out.println("Phase Image:" + imgUrl.toString());
+              Image moon = new ImageIcon(imgUrl).getImage();
+              g.drawImage(moon, this.getWidth() - 50 -10, 10, null); // 50: image width (gif 50, png 30)
+              y += (fontSize + 2);
+              // Current Height
+              y += (fontSize + 2);
+              double wh = Utils.convert(TideUtilities.getWaterHeight(ts, constSpeed, now), ts.getDisplayUnit(), currentUnit);
+              g.drawString("At " + TIME_FORMAT.format(now.getTime()) + " : " + TideUtilities.DF22PLUS.format(wh) + " " + /*ts.getDisplayUnit()*/ currentUnit, x, y);
+              y += (fontSize + 2);
+              
+              // Bottom note
+              g.setFont(g.getFont().deriveFont(Font.PLAIN, 9));
+              String s = "Rise and Set times are given for an altitude of the body equal to zero.";
+              //          012345678901234567890123456789012345678901234567890123456789012345678901
+              //                    1         2         3         4         5         6         7  
+              AttributedString astr = new AttributedString(s);
+              astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, 10), 36, 44);
+              astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, 10), 66, 70);
+              y = this.getHeight() - 5;
+              g.drawString(astr.getIterator(), x, y);
+  
+              g.setFont(g.getFont().deriveFont(Font.PLAIN, fontSize));
               y -= (fontSize + 2);
-            }
-            if (est != null && est[0] > 0)
-            {
-//              System.out.println("Sun Alt:" + GeomUtil.decToSex(est[0], GeomUtil.SWING, GeomUtil.NONE) + " (" + est[0] + ")");
-//              System.out.println("Sun Z  :" + GeomUtil.decToSex(est[1], GeomUtil.SWING, GeomUtil.NONE));
-              g.drawString("Sun : Alt=" + GeomUtil.decToSex(est[0], GeomUtil.SWING, GeomUtil.NONE) + ", Z:" + GeomUtil.decToSex(est[1], GeomUtil.SWING, GeomUtil.NONE), x, y);
-              y -= (fontSize + 2);
+              // Astronomical data
+              if (est != null && showAltitudesCheckBox.isSelected())
+              {
+                double value = est[0];  // Sun Altitude     
+                int h = now.get(Calendar.HOUR_OF_DAY);
+                int m = now.get(Calendar.MINUTE);
+                int _x = (int)((/*(currDay * 24) +*/ h - hourOffset + (double)(m / 60D)) * widthRatio);
+                int _y = (this.getHeight() / 2) - (int)((value) * heightRatioAlt);
+                g.drawImage(sunSymbol, _x - 6, _y - 14, null); // Image is 13x13
+                value = est[2];  // Moon Altitude     
+                _y = (this.getHeight() / 2) - (int)((value) * heightRatioAlt);
+                g.drawImage(moonSymbol, _x - 6, _y - 14, null); // Image is 13x13
+              }
+              if (est != null && est[2] > 0)
+              {
+  //              System.out.println("Moon Alt:" + GeomUtil.decToSex(est[2], GeomUtil.SWING, GeomUtil.NONE) + " (" + est[2] + ")");
+  //              System.out.println("Moon Z  :" + GeomUtil.decToSex(est[3], GeomUtil.SWING, GeomUtil.NONE));
+                g.drawString("Moon : Alt=" + GeomUtil.decToSex(est[2], GeomUtil.SWING, GeomUtil.NONE) + ", Z:" + GeomUtil.decToSex(est[3], GeomUtil.SWING, GeomUtil.NONE), x, y);
+                y -= (fontSize + 2);
+              }
+              if (est != null && est[0] > 0)
+              {
+  //              System.out.println("Sun Alt:" + GeomUtil.decToSex(est[0], GeomUtil.SWING, GeomUtil.NONE) + " (" + est[0] + ")");
+  //              System.out.println("Sun Z  :" + GeomUtil.decToSex(est[1], GeomUtil.SWING, GeomUtil.NONE));
+                g.drawString("Sun : Alt=" + GeomUtil.decToSex(est[0], GeomUtil.SWING, GeomUtil.NONE) + ", Z:" + GeomUtil.decToSex(est[1], GeomUtil.SWING, GeomUtil.NONE), x, y);
+                y -= (fontSize + 2);
+              }
             }
           }
         }
@@ -830,7 +846,7 @@ public class TideInternalFrame
             // Draw the graph.
             g.setColor(Color.WHITE);
             int height = this.getHeight();
-            int width  = this.getWidth();
+            int width  = this.getWidth(); 
             g.fillRect(0, 0, width, height);
             // Get boundaries
             double[] mm = null;
@@ -883,15 +899,20 @@ public class TideInternalFrame
             
             Point previous = null;
             // Draw here            
-            double low1  = Double.NaN;
-            double low2  = Double.NaN;
-            double high1 = Double.NaN;
-            double high2 = Double.NaN;
-            Calendar low1Cal = null;
-            Calendar low2Cal = null;
-            Calendar high1Cal = null;
-            Calendar high2Cal = null;
-            int trend = 0;
+            int fontSize = 12;
+            int _x = 5, _y = fontSize;
+            g.setColor(Color.BLUE);
+//          g.setFont(new Font("Arial", Font.PLAIN, fontSize));
+            g.setFont(g.getFont().deriveFont(Font.PLAIN, fontSize));
+            Font f = g.getFont();
+            g.setFont(f.deriveFont(Font.BOLD, f.getSize()));
+            g.drawString(ts.getFullName(), _x, _y);
+            g.setFont(f);
+            _y += (fontSize + 2);
+            // Station Position and base height
+            g.drawString(new GeoPos(ts.getLatitude(), ts.getLongitude()).toString() + " - Base Height : " + DF22.format(Utils.convert(ts.getBaseHeight(), ts.getDisplayUnit(), currentUnit)) + " " + currentUnit, _x, _y);
+            _y += (fontSize + 2);
+
             
             double previousWH = Double.NaN;
             boolean keepLooping = true;
@@ -900,7 +921,7 @@ public class TideInternalFrame
             int currDay = 0;
 //          reference = (Calendar)from.clone();            
             // Decompose
-            if (decomposeCheckBox.isSelected()) //  && from == null && to == null)              
+            if (decomposeCheckBox.isSelected())               
             {
               if (coeffColor == null && ts != null) // Tide Station has changed
               {
@@ -935,6 +956,12 @@ public class TideInternalFrame
                   {
                     keepLooping = false;
      //            System.out.println("Exiting loop:" + reference.getTime().toString() + " after " + to.getTime().toString());
+                  }
+                  if (reference.get(Calendar.YEAR) != currentYear)
+                  {
+//                  System.out.println("Refetching TideStation for " + reference.get(Calendar.YEAR) + " was " + currentYear);
+                    ts = BackEndTideComputer.findTideStation(tideStationName, reference.get(Calendar.YEAR));
+                    currentYear = reference.get(Calendar.YEAR);
                   }
                   for (int h=0; h<24; h++) 
                   {
@@ -1066,26 +1093,31 @@ public class TideInternalFrame
               int y = height - (int)((bh - bottomValue) * heightRatio);
               g.drawLine(0, y, this.getWidth(), y);
             }
-            
-            /* The curve */
-            currDay = 0;
-            reference = (Calendar)from.clone();
-            keepLooping = true;
-            Polygon curvePolygon = new Polygon();
-
-            g.setColor(Color.RED);            
-            int prevSunRS = 0;
-            while (keepLooping)
+            if (showTideCurve)
             {
-  //          System.out.println("Calculating tide for " + reference.getTime().toString());
-              if (!reference.before(to))
+              /* The curve */
+              currDay = 0;
+              reference = (Calendar)from.clone();
+              keepLooping = true;
+              Polygon curvePolygon = new Polygon();
+  
+              g.setColor(Color.RED);            
+              int prevSunRS = 0;
+              while (keepLooping)
               {
-                keepLooping = false;
-  //            System.out.println("Exiting loop:" + reference.getTime().toString() + " after " + to.getTime().toString());
-              }
-              for (int h=0; h<24; h++)
-              {
-                if (from != null && to != null) // TASK Remove this test
+    //          System.out.println("Calculating tide for " + reference.getTime().toString());
+                if (!reference.before(to))
+                {
+                  keepLooping = false;
+    //            System.out.println("Exiting loop:" + reference.getTime().toString() + " after " + to.getTime().toString());
+                }
+                if (reference.get(Calendar.YEAR) != currentYear)
+                {
+//                System.out.println("Refetching TideStation for " + reference.get(Calendar.YEAR) + " was " + currentYear);
+                  ts = BackEndTideComputer.findTideStation(tideStationName, reference.get(Calendar.YEAR));
+                  currentYear = reference.get(Calendar.YEAR);
+                }
+                for (int h=0; h<24; h++)
                 {
                   Calendar utcCal = new GregorianCalendar(reference.get(Calendar.YEAR), 
                                                           reference.get(Calendar.MONTH), 
@@ -1094,10 +1126,11 @@ public class TideInternalFrame
                                                           0, 
                                                           0);
                   utcCal.setTimeZone(TimeZone.getTimeZone("Etc/UTC"));
+                  utcCal.getTime();
                   moonPhase = AstroComputer.getMoonPhase(utcCal.get(Calendar.YEAR), 
                                                          utcCal.get(Calendar.MONTH) + 1, 
                                                          utcCal.get(Calendar.DAY_OF_MONTH), 
-                                                         12 - (int)Math.round(AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(ts.getTimeZone()))), // utcCal.get(Calendar.HOUR_OF_DAY), 
+                                                         h + hourOffset - (int)Math.round(AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(ts.getTimeZone()))), 
                                                          0, 
                                                          0);
                   if (h == 0)
@@ -1168,69 +1201,20 @@ public class TideInternalFrame
                   }
     //            SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM HH:mm Z");
     //            System.out.println("At " + sdf.format(utcCal.getTime()) + ", phase = " + moonPhase);
-                }
-                for (int m=0; m<60; m++)
-                {
-                  Calendar cal = new GregorianCalendar(reference.get(Calendar.YEAR),
-                                                       reference.get(Calendar.MONTH),
-                                                       reference.get(Calendar.DAY_OF_MONTH),
-                                                       h + hourOffset, m);
-                  cal.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
-                  double wh = Utils.convert(TideUtilities.getWaterHeight(ts, constSpeed, cal), ts.getDisplayUnit(), currentUnit);
-                  if (!Double.isNaN(previousWH))
+                  for (int m=0; m<60; m++)
                   {
-                    if (from == null && to == null)
-                    {
-                      if (trend == 0)
-                      {
-                        if (previousWH > wh)
-                          trend = TidePanel.FALLING;
-                        else if (previousWH < wh)
-                          trend = TidePanel.RISING;
-                      }
-                      else
-                      {
-                        switch (trend)
-                        {
-                          case RISING:
-                            if (previousWH > wh) // Now going down
-                            {
-                              if (Double.isNaN(high1))
-                              {
-                                high1 = previousWH;
-                                cal.add(Calendar.MINUTE, -1);
-                                high1Cal = cal;
-                              }
-                              else
-                              {
-                                high2 = previousWH;
-                                cal.add(Calendar.MINUTE, -1);
-                                high2Cal = cal;
-                              }
-                              trend = FALLING; // Now falling
-                            }
-                            break;
-                          case FALLING:
-                            if (previousWH < wh) // Now going up
-                            {
-                              if (Double.isNaN(low1))
-                              {
-                                low1 = previousWH;
-                                cal.add(Calendar.MINUTE, -1);
-                                low1Cal = cal;
-                              }
-                              else
-                              {
-                                low2 = previousWH;
-                                cal.add(Calendar.MINUTE, -1);
-                                low2Cal = cal;
-                              }
-                              trend = RISING; // Now rising
-                            }
-                            break;
-                        }
-                      }
-                    }
+//                    moonPhase = AstroComputer.getMoonPhase(utcCal.get(Calendar.YEAR), 
+//                                                           utcCal.get(Calendar.MONTH) + 1, 
+//                                                           utcCal.get(Calendar.DAY_OF_MONTH), 
+//                                                           h - (int)Math.round(AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(ts.getTimeZone()))), // utcCal.get(Calendar.HOUR_OF_DAY), 
+//                                                           m, 
+//                                                           0);
+                    Calendar cal = new GregorianCalendar(reference.get(Calendar.YEAR),
+                                                         reference.get(Calendar.MONTH),
+                                                         reference.get(Calendar.DAY_OF_MONTH),
+                                                         h + hourOffset, m);
+                    cal.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
+                    double wh = Utils.convert(TideUtilities.getWaterHeight(ts, constSpeed, cal), ts.getDisplayUnit(), currentUnit);
                     int x = (int)(((currDay * 24) + (h) + (double)(m / 60D)) * widthRatio);
                     int y = height - (int)((wh - bottomValue) * heightRatio);
                     if (previous != null)
@@ -1246,12 +1230,12 @@ public class TideInternalFrame
                       g.setColor(c);
                       ((Graphics2D) g).setStroke(mainCurveStroke);
                     }
-                    if (h == 12 && m == 0) // Local Noon, display day
+                    if (h == 12 && m == 0) // Local Noon, display day label
                     {
                       String dStr = DATE_FORMAT.format(cal.getTime());
                       Color c = g.getColor();
                       g.setColor(Color.DARK_GRAY);
-                      Font f = g.getFont();
+                      f = g.getFont();
   //                  Font f2 = new Font("Arial", Font.PLAIN, 9); // f.deriveFont(Font.PLAIN, 6);
                       g.setFont(g.getFont().deriveFont(Font.PLAIN, 9));
                       int l = g.getFontMetrics(g.getFont()).stringWidth(dStr);
@@ -1260,6 +1244,8 @@ public class TideInternalFrame
                       g.setColor(c);
                     }
                     Calendar currentDate = GregorianCalendar.getInstance();
+                    currentDate.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
+                    currentDate.getTime(); // Validate...
                     // If Today, draw line for current time
                     if (currentDate.get(Calendar.YEAR)         == cal.get(Calendar.YEAR) &&
                         currentDate.get(Calendar.MONTH)        == cal.get(Calendar.MONTH) &&
@@ -1273,12 +1259,14 @@ public class TideInternalFrame
                       g.drawLine(x, 0, x, height);
                       g.setColor(c);
                     }                      
+//                  System.out.println("Phase:" + (int)Math.round(moonPhase) + " at " + cal.getTime());
                     if (((int)Math.round(moonPhase) == 0 && prevPhase != 0 && prevPhase != 360) ||
                         ((int)Math.round(moonPhase) == 90 && prevPhase != 90) ||
                         ((int)Math.round(moonPhase) == 180 && prevPhase != 180) ||
                         ((int)Math.round(moonPhase) == 270 && prevPhase != 270) ||
                         ((int)Math.round(moonPhase) == 360 && prevPhase != 360 && prevPhase != 0))
                     {
+//                    System.out.println("Phase:" + (int)Math.round(moonPhase) + " at " + cal.getTime() + ", X=" + x + " (width:" + this.getWidth() + ")");
                       // Draw line for moon phase (for now)
                       Color c = g.getColor();
                       g.setColor(Color.BLUE);
@@ -1307,32 +1295,31 @@ public class TideInternalFrame
                       prevPhase = (int)Math.round(moonPhase);
                     }
                   }
-                  previousWH = wh;
                 }
+                reference.add(Calendar.DAY_OF_YEAR, 1);
+                currDay++;
+      //        System.out.println("Day " + currDay + " widthRatio:" + widthRatio);
               }
-              reference.add(Calendar.DAY_OF_YEAR, 1);
-              currDay++;
-    //        System.out.println("Day " + currDay + " widthRatio:" + widthRatio);
-            }
-            ((Graphics2D) g).setStroke(origStroke);
-            // Paint the lower part of the curve
-            curvePolygon.addPoint(this.getWidth(), this.getHeight());
-            curvePolygon.addPoint(0, this.getHeight());
-            GradientPaint gradient = new GradientPaint(0, this.getHeight(), Color.WHITE, 0, 0, Color.BLUE); // vertical, upside down
-            Paint paint = ((Graphics2D)g).getPaint();
-            ((Graphics2D)g).setPaint(gradient);              
-            ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
-            g.fillPolygon(curvePolygon);
-            ((Graphics2D)g).setPaint(paint);              
-            ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
-
-            if (showAltitudesCheckBox.isSelected())
-            {
+              ((Graphics2D) g).setStroke(origStroke);
               // Paint the lower part of the curve
               curvePolygon.addPoint(this.getWidth(), this.getHeight());
               curvePolygon.addPoint(0, this.getHeight());
-              gradient = new GradientPaint(0, this.getHeight(), Color.WHITE, 0, 0, Color.BLUE); // vertical, upside down
-              paint = ((Graphics2D)g).getPaint();
+              GradientPaint gradient = new GradientPaint(0, this.getHeight(), Color.WHITE, 0, 0, Color.BLUE); // vertical, upside down
+              Paint paint = ((Graphics2D)g).getPaint();
+              ((Graphics2D)g).setPaint(gradient);              
+              ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
+              g.fillPolygon(curvePolygon);
+              ((Graphics2D)g).setPaint(paint);              
+              ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+            }
+            if (showAltitudesCheckBox.isSelected())
+            {
+              Polygon curvePolygon = new Polygon();
+              // Paint the lower part of the curve
+              curvePolygon.addPoint(this.getWidth(), this.getHeight());
+              curvePolygon.addPoint(0, this.getHeight());
+              GradientPaint gradient = new GradientPaint(0, this.getHeight(), Color.WHITE, 0, 0, Color.BLUE); // vertical, upside down
+              Paint paint = ((Graphics2D)g).getPaint();
               ((Graphics2D)g).setPaint(gradient);              
               ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
               g.fillPolygon(curvePolygon);
@@ -1488,12 +1475,18 @@ public class TideInternalFrame
           graphPanelOneDay.repaint();
           graphPanelExtended.repaint();
         }
+        public void showTideCurve(boolean b)
+        {
+          showTideCurve = b;
+          graphPanelOneDay.repaint();
+          graphPanelExtended.repaint();
+        }
       };
     TideContext.getInstance().addTideListener(tideEventListener);
 
     this.setJMenuBar( menuBar );
     this.getContentPane().setLayout(mainBorderLayout);
-    this.setSize(new Dimension(1275, 644));
+    this.setSize(new Dimension(1167, 644));
     this.setTitle("Oliv's Tide Computer");
     menuFile.setText("File");
     menuFilePrint.setText("Print");
@@ -1557,6 +1550,9 @@ public class TideInternalFrame
     useTZLabel.setText("Use Time Zone");
     tzComboBox.setMinimumSize(new Dimension(100, 21));
     tzComboBox.removeAllItems();
+    tzComboBox.addItem(COMPUTER_TIME_ZONE); // ==> "user.timezone"
+    tzComboBox.addItem(STATION_TIME_ZONE);
+    tzComboBox.addItem(SEPARATOR);
     String[] tz = TimeZone.getAvailableIDs();
     for (int i=0; i<tz.length; i++)
       tzComboBox.addItem(tz[i]);
@@ -1565,6 +1561,18 @@ public class TideInternalFrame
         public void actionPerformed(ActionEvent e)
         {
           timeZone2Use = (String)tzComboBox.getSelectedItem();
+          if (timeZone2Use.equals(SEPARATOR))
+            return;
+          if (timeZone2Use.equals(COMPUTER_TIME_ZONE))
+          {
+            timeZone2Use = System.getProperty("user.timezone");
+            tzComboBox.setSelectedItem(timeZone2Use);
+          }
+          if (timeZone2Use.equals(STATION_TIME_ZONE))
+          {
+            timeZone2Use = (ts != null?ts.getTimeZone():System.getProperty("user.timezone"));
+            tzComboBox.setSelectedItem(timeZone2Use);
+          }
           graphPanelOneDay.repaint();
           graphPanelExtended.repaint();
         }
@@ -1673,7 +1681,46 @@ public class TideInternalFrame
     rightPanel.add(buttonPanel, BorderLayout.NORTH);
     
     tideTabPane.add("One Day", graphPanelOneDay);
-    tideTabPane.add("Extended", graphPanelExtended);
+    final JScrollPane scrollPane = new JScrollPane(graphPanelExtended);
+    JPanel secondPanel = new JPanel(new BorderLayout());
+    secondPanel.add(scrollPane, BorderLayout.CENTER);
+    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+    scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+    JSlider verticalSlider = new JSlider();                    
+    verticalSlider.setMinimum(1);
+    verticalSlider.setMaximum(50);
+    verticalSlider.setValue(1);
+    verticalSlider.setToolTipText("<html><center>Graph width<br>same as view port</center></html>");
+    verticalSlider.addChangeListener(new ChangeListener()
+      {
+        public void stateChanged(ChangeEvent evt)
+        {
+          JSlider slider = (JSlider) evt.getSource();
+          if (!slider.getValueIsAdjusting())
+          {
+            int value = slider.getValue();
+//          System.out.println("Slider now " + value);
+            if (value == 1)
+              slider.setToolTipText("<html><center>Graph width<br>same as view port</center></html>");
+            else
+              slider.setToolTipText("<html><center>Graph width<br>" + Integer.toString(value) + " times the<br>size of the view port</center></html>");
+            if (graphPanelExtended.isVisible())
+            {
+              int w = graphPanelExtended.getWidth();
+              int h = graphPanelExtended.getHeight();
+              int vpw = scrollPane.getViewport().getWidth();    
+              w = vpw * value;
+              graphPanelExtended.setSize(w, h);  
+              graphPanelExtended.setPreferredSize(new Dimension(w, h));
+              graphPanelExtended.repaint();
+            }
+          }
+        }
+      });
+    verticalSlider.setOrientation(JSlider.VERTICAL);
+    secondPanel.add(verticalSlider, BorderLayout.EAST);
+//  tideTabPane.add("Extended", graphPanelExtended);
+    tideTabPane.add("Extended", secondPanel);
     widthSlideBar.setEnabled(false);
     displayLabel.setEnabled(false);
     widthSlideBar.addChangeListener(new ChangeListener()
@@ -1685,7 +1732,7 @@ public class TideInternalFrame
           {
             int value = slider.getValue();
 //          System.out.println("Slider now " + value);
-            slider.setToolTipText(Integer.toString(value) + " day" + (value>1?"s":""));
+            slider.setToolTipText("<html>Period width:<br><center>" + Integer.toString(value) + " day" + (value>1?"s":"") + "</center></html>");
             defaultWidth = value;
             if (graphPanelExtended.isVisible())
               graphPanelExtended.repaint();
@@ -1962,7 +2009,7 @@ public class TideInternalFrame
           nowButton_actionPerformed(e);
         }
       });
-    widthSlideBar.setMinimumSize(new Dimension(200, 24));
+    widthSlideBar.setMinimumSize(new Dimension(200, 30));
     widthSlideBar.setValue(3);
     widthSlideBar.setMaximum(31);
     widthSlideBar.setMinimum(1);
@@ -2033,6 +2080,7 @@ public class TideInternalFrame
           try 
           { 
             ts = BackEndTideComputer.findTideStation(tideStationName, now.get(Calendar.YEAR));
+            currentYear = now.get(Calendar.YEAR);
             if (ts != null)
             {
               menuFilePrint.setEnabled(true);
@@ -2580,6 +2628,9 @@ public class TideInternalFrame
 
   private void decomposeCheckBox_actionPerformed(ActionEvent e)
   {
+    if (!decomposeCheckBox.isSelected())
+      showTideCurve = true;
+    
     if (decomposeCheckBox.isSelected())
     {
       if (ts != null)

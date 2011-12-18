@@ -64,6 +64,12 @@ public class TideContext
       tel.showAllCurves(b);
   }
 
+  public void fireShowTideCurve(boolean b)
+  {
+    for (TideEventListener tel : tideListeners)
+      tel.showTideCurve(b);
+  }
+
   public void fireFilter(String pattern)
   {
     for (TideEventListener tel : tideListeners)
