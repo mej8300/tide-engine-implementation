@@ -144,6 +144,7 @@ public class TideInternalFrame
   }
   private final static SimpleDateFormat SUITABLE_DATE_FORMAT = new SimpleDateFormat("EEEE dd MMMM yyyy HH:mm (Z) z");
   private final static SimpleDateFormat JUST_DATE_FORMAT = new SimpleDateFormat("EEEE dd MMMM yyyy");
+  private final static SimpleDateFormat JUST_DATE_FORMAT_SMALL = new SimpleDateFormat("E dd MMM yyyy z (Z)");
   private final static String FRAME_TITLE = "Tide Computer";
 
   private transient TideStation ts = null;  
@@ -787,33 +788,27 @@ public class TideInternalFrame
         }
       }
     }
-  };    
+  };   
+  
   private TidePanel graphPanelExtended = new TidePanel() // Extended, user-tuned (non dynamic)
   {
     @Override
     public void mouseMoved(MouseEvent e)
     {
-      if (false) // oneDayRadioButton.isSelected())
-      {
-        double timeWidth = 24D; // One day
-        double widthRatio = (double)this.getWidth() / timeWidth;
-        double h = (e.getX() / widthRatio) + hourOffset;
-        double m = (h - (int)h) * 60;
-
-        Calendar cal = new GregorianCalendar(now.get(Calendar.YEAR),
-                                             now.get(Calendar.MONTH),
-                                             now.get(Calendar.DAY_OF_MONTH),
-                                             (int)h, (int)Math.round(m));
-        cal.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
-        double wh = 0;
-        try { wh = Utils.convert(TideUtilities.getWaterHeight(ts, constSpeed, cal), ts.getDisplayUnit(), currentUnit); } catch (Exception ex) {}
-
-
-        this.setToolTipText("<html>" + DF2.format((int)(h % 24)) + ":" + DF2.format(m) + "<br>" +
-                            TideUtilities.DF22PLUS.format(wh) + " " + currentUnit + "</html>");
-      }
-      else
-        this.setToolTipText(null);
+      double timeWidth = 24D * defaultWidth; 
+      double widthRatio = (double)this.getWidth() / timeWidth;
+      double h = (e.getX() / widthRatio) + hourOffset;
+      double m = (h - (int)h) * 60;
+      
+      // "now" is the first day, and it is in trhe middle of the fork
+      int nbDay = (int)(h / 24) - (defaultWidth / 2);
+      Calendar cal = (GregorianCalendar)now.clone();
+      cal.add(Calendar.DAY_OF_YEAR, nbDay);                      
+             
+      JUST_DATE_FORMAT_SMALL.setTimeZone(TimeZone.getTimeZone(timeZone2Use));       
+      this.setToolTipText("<html><center>" + JUST_DATE_FORMAT_SMALL.format(cal.getTime()) + 
+                          "<br>" + DF2.format((int)(h % 24)) + ":" + DF2.format(m) + "</center></html>");
+//    this.setToolTipText("<html>" + DF2.format((int)(h)) + ":" + DF2.format(m) + "</html>");
     }
 
     @Override
@@ -913,8 +908,6 @@ public class TideInternalFrame
             g.drawString(new GeoPos(ts.getLatitude(), ts.getLongitude()).toString() + " - Base Height : " + DF22.format(Utils.convert(ts.getBaseHeight(), ts.getDisplayUnit(), currentUnit)) + " " + currentUnit, _x, _y);
             _y += (fontSize + 2);
 
-            
-            double previousWH = Double.NaN;
             boolean keepLooping = true;
             Calendar reference = null; // (Calendar)now.clone();
             
@@ -2795,7 +2788,7 @@ public class TideInternalFrame
     { return name; }
   }
 
-  public static void main(String[] args)
+  public static void main1(String[] args)
   {
     String str = "Sun Rise :Thu 01-Dec-2011 07:09 (PST) Z:117, Set:Thu 01-Dec-2011 16:47 (PST) Z:243 - daylight:09:38";
     Pattern pattern = Pattern.compile("\\d{2}:\\d{2}");
