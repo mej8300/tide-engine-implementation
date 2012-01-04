@@ -17,6 +17,7 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,7 +46,7 @@ public class CommandPanel
   private JCheckBox mouseCheckBox;
   private JCheckBox withNameCheckBox;
   
-  private transient ArrayList<TideStation> stationData = null;
+  private transient List<TideStation> stationData = null;
 
   public CommandPanel()
   {
@@ -227,7 +228,7 @@ public class CommandPanel
   {
   }
 
-  public void setStationData(ArrayList<TideStation> stationData)
+  public void setStationData(List<TideStation> stationData)
   {
     this.stationData = stationData;
   }

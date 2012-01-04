@@ -13,6 +13,7 @@ import java.awt.event.ActionListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -324,9 +325,9 @@ public class CoeffTable
     table.repaint();
   }
 
-  public ArrayList<String> getSelectedCoeff()
+  public List<String> getSelectedCoeff()
   {
-    ArrayList<String> selected = null;
+    List<String> selected = null;
     int[] sr = table.getSelectedRows();
     if (sr.length > 0)
     {

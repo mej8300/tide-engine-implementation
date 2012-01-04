@@ -5,6 +5,8 @@ import java.awt.Dimension;
 
 import java.util.ArrayList;
 
+import java.util.List;
+
 import javax.swing.JFrame;
 
 import tideengine.BackEndTideComputer;
@@ -44,7 +46,7 @@ public class SampleFrame extends JFrame
           try
           { 
             System.out.println("Reading Station Data...");
-            ArrayList<TideStation> stationData = BackEndTideComputer.getStationData();
+            List<TideStation> stationData = BackEndTideComputer.getStationData();
             System.out.println("Done!");
             commandPanel.setStationData(stationData);
             commandPanel.repaint();

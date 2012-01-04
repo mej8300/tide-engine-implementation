@@ -14,6 +14,7 @@ import java.awt.event.MouseEvent;
 
 import java.util.ArrayList;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,7 +46,7 @@ import user.util.GeomUtil;
 public class FilterTable
      extends JPanel 
 {
-  private transient ArrayList<TideStation> stationData;
+  private transient List<TideStation> stationData;
   
   // Table Columns
   final static String STATION_NAME = "Station";
@@ -73,7 +74,7 @@ public class FilterTable
   private JLabel statusLabel = new JLabel();
   private BorderLayout borderLayout3 = new BorderLayout();
 
-  public FilterTable(ArrayList<TideStation> stationData)
+  public FilterTable(List<TideStation> stationData)
   {
     try
     {
@@ -307,7 +308,7 @@ public class FilterTable
     table.repaint();
   }
   
-  public void setStationData(ArrayList<TideStation> stationData)
+  public void setStationData(List<TideStation> stationData)
   {
     this.stationData = stationData;
     this.filterLabel.setEnabled(this.stationData != null);
@@ -315,7 +316,7 @@ public class FilterTable
     setValues();
   }
 
-  public ArrayList<TideStation> getStationData()
+  public List<TideStation> getStationData()
   {
     return stationData;
   }

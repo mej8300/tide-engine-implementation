@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.TimeZone;
 
 import tideengine.BackEndTideComputer;
@@ -77,7 +78,7 @@ public class TideForOneMonth
 //  long after = System.currentTimeMillis();
 //  if (verbose) System.out.println("DOM loading took " + Long.toString(after - before) + " ms");
 
-    ArrayList<Coefficient> constSpeed = BackEndTideComputer.buildSiteConstSpeed();
+    List<Coefficient> constSpeed = BackEndTideComputer.buildSiteConstSpeed();
 
     String location = "Oyster Point Marina";
 //  String location = "Adelaide";
@@ -92,7 +93,7 @@ public class TideForOneMonth
                                      int month, 
                                      String location, 
                                      String unitToUse, 
-                                     ArrayList<Coefficient> constSpeed) throws Exception
+                                     List<Coefficient> constSpeed) throws Exception
   {
     tideForOneMonth(out, timeZone, year, month, location, unitToUse, constSpeed, TEXT_FLAVOR);
   }
@@ -106,7 +107,7 @@ public class TideForOneMonth
                                      int month, 
                                      String location, 
                                      String unitToUse, 
-                                     ArrayList<Coefficient> constSpeed, 
+                                     List<Coefficient> constSpeed, 
                                      int flavor) throws Exception
   {
     int nextMonth = (month==12)?0:month;
@@ -123,7 +124,7 @@ public class TideForOneMonth
       if (now.get(Calendar.YEAR) != prevYear)
         ts = BackEndTideComputer.findTideStation(location, now.get(Calendar.YEAR)); 
       
-      ArrayList<TimedValue> timeAL = tideForOneDay(now, timeZone, ts, constSpeed, unitToUse);
+      List<TimedValue> timeAL = tideForOneDay(now, timeZone, ts, constSpeed, unitToUse);
       Calendar utcCal = (Calendar)now.clone();
       utcCal.setTimeZone(TimeZone.getTimeZone("Etc/UTC"));
       // System.out.println("UTC Date:" + utcCal.getTime());
@@ -158,23 +159,23 @@ public class TideForOneMonth
     }
   }
   
-  public static ArrayList<TimedValue> tideForOneDay(Calendar now, 
-                                                    String timeZone, 
-                                                    String location,                                      
-                                                    ArrayList<Coefficient> constSpeed, 
-                                                    String unitToUse) throws Exception
+  public static List<TimedValue> tideForOneDay(Calendar now, 
+                                               String timeZone, 
+                                               String location,                                      
+                                               List<Coefficient> constSpeed, 
+                                               String unitToUse) throws Exception
   {
     TideStation ts = BackEndTideComputer.findTideStation(location, now.get(Calendar.YEAR));    
     return tideForOneDay(now, timeZone, ts, constSpeed, unitToUse);
   }
   
-  public static ArrayList<TimedValue> tideForOneDay(Calendar now, 
-                                                    String timeZone, 
-                                                    TideStation ts,                                      
-                                                    ArrayList<Coefficient> constSpeed, 
-                                                    String unitToUse) throws Exception
+  public static List<TimedValue> tideForOneDay(Calendar now, 
+                                               String timeZone, 
+                                               TideStation ts,                                      
+                                               List<Coefficient> constSpeed, 
+                                               String unitToUse) throws Exception
   {
-    ArrayList<TimedValue> timeAL = null;
+    List<TimedValue> timeAL = null;
     final int RISING  =  1;
     final int FALLING = -1;
 

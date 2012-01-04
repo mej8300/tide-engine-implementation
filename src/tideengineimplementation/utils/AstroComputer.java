@@ -187,6 +187,11 @@ public class AstroComputer
     return d;
   }
   
+  public final static int SUN_ALT_IDX  = 0;
+  public final static int SUN_Z_IDX    = 1;  
+  public final static int MOON_ALT_IDX = 2;
+  public final static int MOON_Z_IDX   = 3;
+
   public static double[] getSunMoon(int y, int m, int d, int h, int mi, int s, double lat, double lng)
   {
     double[] values = new double[4];
@@ -206,14 +211,14 @@ public class AstroComputer
     sru.setAHG(Context.GHAsun);
     sru.setD(Context.DECsun);    
     sru.calculate();          
-    values[0] = sru.getHe();
-    values[1] = sru.getZ();
+    values[SUN_ALT_IDX] = sru.getHe();
+    values[SUN_Z_IDX] = sru.getZ();
     // Moon
     sru.setAHG(Context.GHAmoon);
     sru.setD(Context.DECmoon);    
     sru.calculate();          
-    values[2] = sru.getHe();
-    values[3] = sru.getZ();
+    values[MOON_ALT_IDX] = sru.getHe();
+    values[MOON_Z_IDX] = sru.getZ();
     
     return values;
   }
@@ -295,6 +300,24 @@ public class AstroComputer
     values[1] = sru.getHe();
     
     return values;
+  }
+
+  /**
+   * Warning: Context must have been initialized!
+   * @return
+   */
+  public static double getSunDecl()
+  {
+    return Context.DECsun;
+  }
+  
+  /**
+   * Warning: Context must have been initialized!
+   * @return
+   */
+  public static double getMoonDecl()
+  {
+    return Context.DECmoon;
   }
   
   public static void main(String[] args)
