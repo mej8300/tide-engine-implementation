@@ -2,6 +2,7 @@ package tideengineimplementation.gui.ctx;
 
 import java.util.ArrayList;
 import java.util.EventListener;
+import java.util.List;
 
 public abstract class TideEventListener implements EventListener
 {
@@ -11,7 +12,7 @@ public abstract class TideEventListener implements EventListener
   public void stationSelected(String stationName) {}
   public void filterList(String pattern) {}
   public void setDate(long date) {}
-  public void setCoeffToHighlight(ArrayList<String> names) {}
+  public void setCoeffToHighlight(List<String> names) {}
   public void showAllCurves(boolean b) {}
   public void showTideCurve(boolean b) {}
 }

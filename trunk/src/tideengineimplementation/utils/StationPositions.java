@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 
 import java.util.ArrayList;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,7 +29,7 @@ public class StationPositions
 {
   public static void main(String[] args) throws Exception
   {
-    ArrayList<TideStation> stationData = BackEndTideComputer.getStationData();
+    List<TideStation> stationData = BackEndTideComputer.getStationData();
     boolean display = false;
     if (display)
     {

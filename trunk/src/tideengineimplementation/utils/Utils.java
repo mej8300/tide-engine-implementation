@@ -11,9 +11,12 @@ import java.util.TimeZone;
 import tideengine.TideStation;
 import tideengine.TideUtilities;
 
-
 public class Utils
 {
+  public final static long NB_S_PER_MIN  = 60L;
+  public final static long NB_S_PER_HOUR = 60 * NB_S_PER_MIN;
+  public final static long NB_S_PER_DAY  = 24 * NB_S_PER_HOUR;
+  
   public static double convert(double value, String from, String to)
   {
     double d = value;
@@ -51,7 +54,39 @@ public class Utils
     return dstOffset + zoneOffset;
   }
   
+  public static String formatTimeDiff(Calendar from, Calendar to)
+  {
+    long diff = (to.getTimeInMillis() - from.getTimeInMillis()) / 1000L;
+    return formatTimeDiff(diff);  
+  }  
+  
+  /**
+   *
+   * @param diff in seconds
+   * @return
+   */
+  public static String formatTimeDiff(long diff)
+  {
+    String ret = "";
+    int nbDay  = (int)(diff / NB_S_PER_DAY);
+    int nbHour = (int)((diff - (nbDay * NB_S_PER_DAY)) / NB_S_PER_HOUR);
+    int nbMin  = (int)((diff - (nbDay * NB_S_PER_DAY) - (nbHour * NB_S_PER_HOUR)) / NB_S_PER_MIN);
+    if (nbDay > 0)
+      ret += (Integer.toString(nbDay) + " day" + ((nbDay>1)?"s ":" "));
+    if (nbHour > 0 || nbDay > 0)
+      ret += (Integer.toString(nbHour) + " hour" + ((nbHour>1)?"s ":" "));
+    if (nbMin > 0 || nbHour > 0 || nbDay > 0)
+      ret += (Integer.toString(nbMin) + " minute" + ((nbMin>1)?"s ":" "));
+//  System.out.println("Diff:" + diff + ", :" + ret);
+    return ret;
+  }
+  
   public static void main(String[] args)
+  {
+    System.out.println(formatTimeDiff(8094701L / 1000L));
+  }
+  
+  public static void main1(String[] args)
   {
     SimpleDateFormat sdf = new SimpleDateFormat("E dd-MMM-yyyy HH:mm Z (z)");
     Calendar cal = GregorianCalendar.getInstance();

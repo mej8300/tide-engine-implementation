@@ -1,11 +1,12 @@
 package tideengineimplementation.gui.ctx;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class TideContext
 {
   private static TideContext staticObjects = null;
-  private transient ArrayList<TideEventListener> tideListeners = null;
+  private transient List<TideEventListener> tideListeners = null;
   
   private TideContext()
   {
@@ -19,7 +20,7 @@ public class TideContext
     return staticObjects;
   }
   
-  public ArrayList<TideEventListener> getListeners()
+  public List<TideEventListener> getListeners()
   {
     return tideListeners;
   }
@@ -76,7 +77,7 @@ public class TideContext
       tel.filterList(pattern);
   }  
   
-  public void fireCoeffSelection(ArrayList<String> names)
+  public void fireCoeffSelection(List<String> names)
   {
     for (TideEventListener tel : tideListeners)
       tel.setCoeffToHighlight(names);
