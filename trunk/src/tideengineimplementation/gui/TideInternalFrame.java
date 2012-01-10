@@ -121,7 +121,6 @@ import tideengineimplementation.utils.Utils;
 
 import user.util.GeomUtil;
 
-
 public class TideInternalFrame
   extends JInternalFrame
 {
@@ -485,7 +484,6 @@ public class TideInternalFrame
                                                                 0, 
                                                                 ts.getLatitude(), 
                                                                 ts.getLongitude());
-                  
                   double value = values[0];  // Sun                  
                   int x = (int)((h + (double)(m / 60D)) * widthRatio);
                   int y = (this.getHeight() / 2) - (int)((value) * heightRatioAlt);
@@ -842,6 +840,11 @@ public class TideInternalFrame
               y -= (fontSize + 2);
               g.drawString("Sun D: " + GeomUtil.decToSex(AstroComputer.getSunDecl(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN), x, y);
               y -= (fontSize + 2);
+              // Tell the chart panel
+              chartCommandPanel.setSunD(AstroComputer.getSunDecl());
+              chartCommandPanel.setMoonD(AstroComputer.getMoonDecl());
+              chartCommandPanel.setSunGHA(AstroComputer.getSunGHA());
+              chartCommandPanel.setMoonGHA(AstroComputer.getMoonGHA());                    
             }
           }
         }

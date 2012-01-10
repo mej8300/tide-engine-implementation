@@ -19,7 +19,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.ButtonGroup;
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -34,7 +33,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 
 import tideengineimplementation.gui.TideInternalFrame;
@@ -73,7 +71,6 @@ public class CoeffTable
   private JRadioButton allCoeffRadioButton = new JRadioButton();
   private JRadioButton selectedCoeffRadioButton = new JRadioButton();
   private ButtonGroup bg = new ButtonGroup();
-  private JCheckBox showTideCurveCheckBox = new JCheckBox();
 
   public CoeffTable(HashMap<TideInternalFrame.ColoredCoeff, String> coeff)
   {
@@ -150,17 +147,7 @@ public class CoeffTable
           selectedCoeffRadioButton_actionPerformed(e);
         }
       });
-    showTideCurveCheckBox.setText("Tide Curve");
-    showTideCurveCheckBox.setToolTipText("<html>Show the tide curve<br>(sum of all)</html>");
 
-    showTideCurveCheckBox.setSelected(true);
-    showTideCurveCheckBox.addActionListener(new ActionListener()
-      {
-        public void actionPerformed(ActionEvent e)
-        {
-          showTideCurveCheckBox_actionPerformed(e);
-        }
-      });
     this.add(centerPanel, BorderLayout.CENTER);
     bottomPanel.add(statusLabel, BorderLayout.CENTER);
     this.add(bottomPanel, BorderLayout.SOUTH);
@@ -174,8 +161,7 @@ public class CoeffTable
           new Insets(0, 0, 0, 0), 0, 0));
     topPanel.add(selectedCoeffRadioButton, new GridBagConstraints(1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE,
           new Insets(0, 5, 0, 0), 0, 0));
-    topPanel.add(showTideCurveCheckBox, new GridBagConstraints(2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
-          new Insets(0, 0, 0, 0), 0, 0));
+
     filterTextField.addActionListener(new ActionListener()
       {
         public void actionPerformed(ActionEvent e) // [Return] in the field
@@ -410,11 +396,6 @@ public class CoeffTable
   private void selectedCoeffRadioButton_actionPerformed(ActionEvent e)
   {
     TideContext.getInstance().fireShowAllCurves(allCoeffRadioButton.isSelected());
-  }
-
-  private void showTideCurveCheckBox_actionPerformed(ActionEvent e)
-  {
-    TideContext.getInstance().fireShowTideCurve(showTideCurveCheckBox.isSelected());
   }
 
   public class SelectionListener
