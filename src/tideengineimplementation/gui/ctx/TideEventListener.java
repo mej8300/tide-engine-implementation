@@ -14,5 +14,4 @@ public abstract class TideEventListener implements EventListener
   public void setDate(long date) {}
   public void setCoeffToHighlight(List<String> names) {}
   public void showAllCurves(boolean b) {}
-  public void showTideCurve(boolean b) {}
 }

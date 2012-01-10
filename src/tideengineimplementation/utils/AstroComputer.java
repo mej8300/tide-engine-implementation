@@ -1,7 +1,5 @@
 package tideengineimplementation.utils;
 
-import app.almanac.AlmanacComputer;
-
 import calculation.SightReductionUtil;
 
 import java.text.SimpleDateFormat;
@@ -12,13 +10,12 @@ import java.util.TimeZone;
 import nauticalalmanac.Anomalies;
 import nauticalalmanac.Context;
 import nauticalalmanac.Core;
-// import nauticalalmanac.Jupiter;
-// import nauticalalmanac.Mars;
+import nauticalalmanac.Jupiter;
+import nauticalalmanac.Mars;
 import nauticalalmanac.Moon;
 
-import user.util.GeomUtil;
-// import nauticalalmanac.Saturn;
-// import nauticalalmanac.Venus;
+import nauticalalmanac.Saturn;
+import nauticalalmanac.Venus;
 
 public class AstroComputer
 {
@@ -62,10 +59,10 @@ public class AstroComputer
     
     Moon.compute();
     
- // Venus.compute();
- // Mars.compute();
- // Jupiter.compute();
- // Saturn.compute();    
+    Venus.compute();
+    Mars.compute();
+    Jupiter.compute();
+    Saturn.compute();    
  // Core.polaris();
     Core.moonPhase();
  // Core.weekDay();
@@ -160,22 +157,28 @@ public class AstroComputer
 
   public static final double getTimeZoneOffsetInHours(TimeZone tz)
   {
-    SimpleDateFormat sdf = new SimpleDateFormat("Z");
-    sdf.setTimeZone(tz);
-    String s = sdf.format(new Date());
-    if (s.startsWith("+"))
-      s = s.substring(1);
-    int i = Integer.parseInt(s);
     double d = 0;
-    d = (int)(i / 100);
-    int m = (int)(i % 100);
-    d += (m / 60d);
+    if (false)
+    {
+      SimpleDateFormat sdf = new SimpleDateFormat("Z");
+      sdf.setTimeZone(tz);
+      String s = sdf.format(new Date());
+      if (s.startsWith("+"))
+        s = s.substring(1);
+      int i = Integer.parseInt(s);
+      d = (int)(i / 100);
+      int m = (int)(i % 100);
+      d += (m / 60d);
+    }
+    else
+      d = (tz.getOffset(new Date().getTime()) / (3600d * 1000d));
+
     return d;
   }
   
   public static final double getTimeOffsetInHours(String timeOffset)
   {
-    System.out.println("Managing:" + timeOffset);
+//  System.out.println("Managing:" + timeOffset);
     double d = 0d;
     String[] hm = timeOffset.split(":");
     int h = Integer.parseInt(hm[0]);
@@ -212,13 +215,13 @@ public class AstroComputer
     sru.setD(Context.DECsun);    
     sru.calculate();          
     values[SUN_ALT_IDX] = sru.getHe();
-    values[SUN_Z_IDX] = sru.getZ();
+    values[SUN_Z_IDX]   = sru.getZ();
     // Moon
     sru.setAHG(Context.GHAmoon);
     sru.setD(Context.DECmoon);    
     sru.calculate();          
     values[MOON_ALT_IDX] = sru.getHe();
-    values[MOON_Z_IDX] = sru.getZ();
+    values[MOON_Z_IDX]   = sru.getZ();
     
     return values;
   }
@@ -311,6 +314,11 @@ public class AstroComputer
     return Context.DECsun;
   }
   
+  public static double getSunGHA()
+  {
+    return Context.GHAsun;
+  }
+
   /**
    * Warning: Context must have been initialized!
    * @return
@@ -320,6 +328,22 @@ public class AstroComputer
     return Context.DECmoon;
   }
   
+  public static double getMoonGHA()
+  {
+    return Context.GHAmoon;
+  }
+  
+  public static double getVenusDecl() { return Context.DECvenus; }
+  public static double getMarsDecl() { return Context.DECmars; }
+  public static double getJupiterDecl() { return Context.DECjupiter; }
+  public static double getSaturnDecl() { return Context.DECsaturn; }
+
+  public static double getVenusGHA() { return Context.GHAvenus; }
+  public static double getMarsGHA() { return Context.GHAmars; }
+  public static double getJupiterGHA() { return Context.GHAjupiter; }
+  public static double getSaturnGHA() { return Context.GHAsaturn; }
+  
+  
   public static void main(String[] args)
   {
     System.out.println("Moon phase:" + getMoonPhase(2011, 8, 22, 12, 00, 00));
@@ -327,5 +351,7 @@ public class AstroComputer
     String[] tz = new String[] { "Pacific/Marquesas", "America/Los_Angeles", "GMT", "Europe/Paris", "Europe/Moscow", "Australia/Sydney", "Australia/Adelaide" };
     for (int i=0; i<tz.length; i++)
       System.out.println("TimeOffset for " + tz[i] + ":" +  getTimeZoneOffsetInHours(TimeZone.getTimeZone(tz[i])));
+    
+    System.out.println("TZ:" + TimeZone.getTimeZone(tz[0]).getDisplayName() + ", " + (TimeZone.getTimeZone(tz[0]).getOffset(new Date().getTime()) / (3600d * 1000)));
   }
 }
