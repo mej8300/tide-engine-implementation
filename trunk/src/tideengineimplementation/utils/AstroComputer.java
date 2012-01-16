@@ -343,6 +343,15 @@ public class AstroComputer
   public static double getJupiterGHA() { return Context.GHAjupiter; }
   public static double getSaturnGHA() { return Context.GHAsaturn; }
   
+  public static double ghaToLongitude(double gha)
+  {
+    double longitude = 0;
+    if (gha < 180)
+      longitude = -gha;
+    if (gha >= 180)
+      longitude = 360 - gha;
+    return longitude;
+  }
   
   public static void main(String[] args)
   {

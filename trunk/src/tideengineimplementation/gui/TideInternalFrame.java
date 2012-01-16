@@ -215,6 +215,9 @@ public class TideInternalFrame
       if (!this.isVisible())
         return;
       
+      GradientPaint nightGradient = new GradientPaint(0, this.getHeight(), Color.WHITE, 0, 0, Color.BLACK); // vertical, bottom up
+      GradientPaint dayGradient   = new GradientPaint(0, this.getHeight(), Color.BLUE, 0, 0, Color.WHITE); // vertical, bottom up
+
       ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                                        RenderingHints.VALUE_TEXT_ANTIALIAS_ON);      
       ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
@@ -371,18 +374,38 @@ public class TideInternalFrame
             
             if (sunRise.before(sunSet))
             {
-              int x = (int)((sunRise.get(Calendar.HOUR_OF_DAY) - hourOffset + (double)(sunRise.get(Calendar.MINUTE) / 60D)) * widthRatio);
-              if (x > 0)
-                g.fillRect(0, 0, x, this.getHeight());
-              x = (int)((sunSet.get(Calendar.HOUR_OF_DAY) - hourOffset + (double)(sunSet.get(Calendar.MINUTE) / 60D)) * widthRatio);
-              if (x < this.getWidth())
-                g.fillRect(x, 0, this.getWidth() - x, this.getHeight());
+              int x1 = (int)((sunRise.get(Calendar.HOUR_OF_DAY) - hourOffset + (double)(sunRise.get(Calendar.MINUTE) / 60D)) * widthRatio);
+              int x2 = (int)((sunSet.get(Calendar.HOUR_OF_DAY) - hourOffset + (double)(sunSet.get(Calendar.MINUTE) / 60D)) * widthRatio);
+
+              Paint paint = ((Graphics2D)g).getPaint();
+              if (x1 > 0)
+              {
+                ((Graphics2D)g).setPaint(nightGradient);              
+                g.fillRect(0, 0, x1, this.getHeight());
+                ((Graphics2D)g).setPaint(paint);              
+              }
+              
+              paint = ((Graphics2D)g).getPaint();
+              ((Graphics2D)g).setPaint(dayGradient);              
+              g.fillRect(x1, 0, x2, this.getHeight());
+              ((Graphics2D)g).setPaint(paint);              
+              
+              if (x2 < this.getWidth())
+              {
+                paint = ((Graphics2D)g).getPaint();
+                ((Graphics2D)g).setPaint(nightGradient);              
+                g.fillRect(x2, 0, this.getWidth() - x2, this.getHeight());
+                ((Graphics2D)g).setPaint(paint);              
+              }
             }
             if (sunSet.before(sunRise))
             {
               int x1 = (int)((sunSet.get(Calendar.HOUR_OF_DAY) - hourOffset + (double)(sunSet.get(Calendar.MINUTE) / 60D)) * widthRatio);
               int x2 = (int)((sunRise.get(Calendar.HOUR_OF_DAY) - hourOffset + (double)(sunRise.get(Calendar.MINUTE) / 60D)) * widthRatio);
-                g.fillRect(x1, 0, x2 - x1, this.getHeight());
+              Paint paint = ((Graphics2D)g).getPaint();
+              ((Graphics2D)g).setPaint(nightGradient);              
+              g.fillRect(x1, 0, x2 - x1, this.getHeight());
+              ((Graphics2D)g).setPaint(paint);              
             }
             ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
 
@@ -836,9 +859,15 @@ public class TideInternalFrame
                 g.drawString("Sun : Alt=" + GeomUtil.decToSex(est[AstroComputer.SUN_ALT_IDX], GeomUtil.SWING, GeomUtil.NONE) + ", Z:" + GeomUtil.decToSex(est[AstroComputer.SUN_Z_IDX], GeomUtil.SWING, GeomUtil.NONE), x, y);
                 y -= (fontSize + 2);
               }
-              g.drawString("Moon D: " + GeomUtil.decToSex(AstroComputer.getMoonDecl(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN), x, y);
+              g.drawString("Moon D: " + GeomUtil.decToSex(AstroComputer.getMoonDecl(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN) + 
+                           " GHA:" + GeomUtil.decToSex(AstroComputer.getMoonGHA(), GeomUtil.SWING, GeomUtil.NONE) + 
+                           " (G: " + GeomUtil.decToSex(AstroComputer.ghaToLongitude(AstroComputer.getMoonGHA()), GeomUtil.SWING, GeomUtil.EW, GeomUtil.LEADING_SIGN) + ")", 
+                           x, y);
               y -= (fontSize + 2);
-              g.drawString("Sun D: " + GeomUtil.decToSex(AstroComputer.getSunDecl(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN), x, y);
+              g.drawString("Sun D: " + GeomUtil.decToSex(AstroComputer.getSunDecl(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN) + 
+                           " GHA:" + GeomUtil.decToSex(AstroComputer.getSunGHA(), GeomUtil.SWING, GeomUtil.NONE) + 
+                           " (G: " + GeomUtil.decToSex(AstroComputer.ghaToLongitude(AstroComputer.getSunGHA()), GeomUtil.SWING, GeomUtil.EW, GeomUtil.LEADING_SIGN) + ")", 
+                           x, y);
               y -= (fontSize + 2);
               // Tell the chart panel
               chartCommandPanel.setSunD(AstroComputer.getSunDecl());
@@ -890,6 +919,9 @@ public class TideInternalFrame
     {
       synchronized (g)
       {
+        GradientPaint nightGradient = new GradientPaint(0, this.getHeight(), Color.WHITE, 0, 0, Color.BLACK); // vertical, bottom up
+        GradientPaint dayGradient   = new GradientPaint(0, this.getHeight(), Color.BLUE, 0, 0, Color.WHITE); // vertical, bottom up
+
         ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                                          RenderingHints.VALUE_TEXT_ANTIALIAS_ON);      
         ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
@@ -1249,12 +1281,21 @@ public class TideInternalFrame
                           int x = (int)(((currDay * 24) + sunRise.get(Calendar.HOUR_OF_DAY) - hourOffset + (double)(sunRise.get(Calendar.MINUTE) / 60D)) * widthRatio);
                           if (x > 0)
                           {
+                            Paint paint = ((Graphics2D)g).getPaint();
+                            ((Graphics2D)g).setPaint(nightGradient);              
                             g.fillRect(prevSunRS, 0, (x - prevSunRS), this.getHeight()); // Left part
+                            ((Graphics2D)g).setPaint(paint);              
     //                      g.setColor(Color.PINK);
     //                      g.drawRect(prevSunRS, 0, (x - prevSunRS) - 2, this.getHeight() - 2);
     //                      g.setColor(c);
                           }
                           x = (int)(((currDay * 24) + sunSet.get(Calendar.HOUR_OF_DAY) - hourOffset + (double)(sunSet.get(Calendar.MINUTE) / 60D)) * widthRatio);
+                          // Day
+                          Paint paint = ((Graphics2D)g).getPaint();
+                          ((Graphics2D)g).setPaint(dayGradient);              
+                          g.fillRect(prevSunRS, 0, (x - prevSunRS), this.getHeight()); 
+                          ((Graphics2D)g).setPaint(paint);              
+                          
     //                    if (x < this.getWidth())
     //                      g.fillRect(x, 0, this.getWidth() - x, this.getHeight());  // Right part
                           prevSunRS = x;
@@ -1263,7 +1304,10 @@ public class TideInternalFrame
                         {
                           int x1 = (int)(((currDay * 24) + sunSet.get(Calendar.HOUR_OF_DAY) - hourOffset + (double)(sunSet.get(Calendar.MINUTE) / 60D)) * widthRatio);
                           int x2 = (int)(((currDay * 24) + sunRise.get(Calendar.HOUR_OF_DAY) - hourOffset + (double)(sunRise.get(Calendar.MINUTE) / 60D)) * widthRatio);
-                            g.fillRect(x1, 0, x2 - x1, this.getHeight());
+                          Paint paint = ((Graphics2D)g).getPaint();
+                          ((Graphics2D)g).setPaint(nightGradient);              
+                          g.fillRect(x1, 0, x2 - x1, this.getHeight());
+                          ((Graphics2D)g).setPaint(paint);              
                           prevSunRS = x2;
                         }
                         ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
