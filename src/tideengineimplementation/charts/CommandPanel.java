@@ -2,7 +2,7 @@ package tideengineimplementation.charts;
 
 import astro.calc.GeoPoint;
 import chart.components.ui.ChartPanel;
-import chart.components.ui.ChartPanelParentInterface;
+import chart.components.ui.ChartPanelParentInterface_II;
 import chart.components.util.World;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -13,11 +13,8 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
 
-import java.util.ArrayList;
 import java.util.EventObject;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,7 +35,7 @@ import tideengineimplementation.utils.AstroComputer;
 
 public class CommandPanel 
      extends JPanel
-  implements ChartPanelParentInterface
+  implements ChartPanelParentInterface_II
 {
   private String stationFilterPattern = "";
   
@@ -182,6 +179,7 @@ public class CommandPanel
   GeoPoint from = null;
   GeoPoint to   = null;
   
+  @Override
   public void chartPanelPaintComponent(Graphics gr)
   {
     Graphics2D g2d = null;
@@ -217,18 +215,6 @@ public class CommandPanel
         }
       }
     }
-    // Sun and Moon, Planets 
-    if (sunD != 0 && sunGHA != 0 && moonD != 0 && moonGHA != 0)
-    {
-      gr.setColor(Color.LIGHT_GRAY);
-      plotBody(gr, "Sun",  sunD,  sunGHA, sunSymbol);
-      plotBody(gr, "Moon", moonD, moonGHA, moonSymbol);
-
-      plotBody(gr, "Venus",   AstroComputer.getVenusDecl(),   AstroComputer.getVenusGHA(),   venusSymbol);
-      plotBody(gr, "Mars",    AstroComputer.getMarsDecl(),    AstroComputer.getMarsGHA(),    marsSymbol);
-      plotBody(gr, "Jupiter", AstroComputer.getJupiterDecl(), AstroComputer.getJupiterGHA(), jupiterSymbol);
-      plotBody(gr, "Saturn",  AstroComputer.getSaturnDecl(),  AstroComputer.getSaturnGHA(),  saturnSymbol);
-    }
   }
 
   private void plotBody(Graphics gr, String name, double decl, double gha)
@@ -238,12 +224,12 @@ public class CommandPanel
   
   private void plotBody(Graphics gr, String name, double decl, double gha, Image img)
   {
-    double _gha = 0;
+    double longitude = 0;
     if (gha < 180)
-      _gha = -gha;
+      longitude = -gha;
     if (gha >= 180)
-      _gha = 360 - gha;
-    GeoPoint p = new GeoPoint(decl, _gha);
+      longitude = 360 - gha;
+    GeoPoint p = new GeoPoint(decl, longitude);
 //  System.out.println(name + ":" + decl + " " + _gha);
     Point pt = chartPanel.getPanelPoint(p);
     if (img == null)
@@ -312,5 +298,25 @@ public class CommandPanel
   public void setMoonD(double moonD)
   {
     this.moonD = moonD;
+  }
+
+  public void chartPanelPaintComponentAfter(Graphics gr)
+  {
+    // Sun and Moon, Planets 
+    if (sunD != 0 && sunGHA != 0 && moonD != 0 && moonGHA != 0)
+    {
+      gr.setColor(Color.LIGHT_GRAY);
+      plotBody(gr, "Sun",  sunD,  sunGHA, sunSymbol);
+      plotBody(gr, "Moon", moonD, moonGHA, moonSymbol);
+
+      plotBody(gr, "Venus",   AstroComputer.getVenusDecl(),   AstroComputer.getVenusGHA(),   venusSymbol);
+      plotBody(gr, "Mars",    AstroComputer.getMarsDecl(),    AstroComputer.getMarsGHA(),    marsSymbol);
+      plotBody(gr, "Jupiter", AstroComputer.getJupiterDecl(), AstroComputer.getJupiterGHA(), jupiterSymbol);
+      plotBody(gr, "Saturn",  AstroComputer.getSaturnDecl(),  AstroComputer.getSaturnGHA(),  saturnSymbol);
+    }
+  }
+
+  public void afterEvent(EventObject eventObject, int i)
+  {
   }
 }
