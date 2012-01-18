@@ -300,6 +300,7 @@ public class CommandPanel
     this.moonD = moonD;
   }
 
+  @Override
   public void chartPanelPaintComponentAfter(Graphics gr)
   {
     // Sun and Moon, Planets 
