@@ -806,6 +806,9 @@ public class TideInternalFrame
               int phaseInDay = (int)Math.round(moonPhase / (360d / 28d)) + 1;
               if (phaseInDay > 28) phaseInDay = 28;
               if (phaseInDay < 1) phaseInDay = 1;
+              // Southern Hemisphere. Rotate Image.
+              if (ts.getLatitude() < 0)
+                phaseInDay = 29 - phaseInDay;
               String moonImageName = "img/phase" + DF2.format(phaseInDay) + ".gif"; // ".png"
   //            System.out.println("Image Name:" + moonImageName + " monn phase:" + moonPhase);
               URL imgUrl = this.getClass().getResource(moonImageName);
