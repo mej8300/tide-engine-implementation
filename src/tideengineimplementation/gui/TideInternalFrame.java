@@ -37,6 +37,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintStream;
 
+import java.io.PrintWriter;
+
 import java.net.URL;
 
 import java.sql.SQLException;
@@ -124,6 +126,12 @@ import user.util.GeomUtil;
 public class TideInternalFrame
   extends JInternalFrame
 {
+  public final static String TIDE_INTERNAL_FRAME_PROP_FILE = "internal.tide.frame.properties";
+  public final static String TOP_LEFT_X_PROP          = "top.left.x";
+  public final static String TOP_LEFT_Y_PROP          = "top.left.y";
+  public final static String WIDTH_PROP               = "width";
+  public final static String HEIGHT_PROP              = "height";
+  
   public final static String COMPUTER_TIME_ZONE = "Computer Time Zone";
   public final static String STATION_TIME_ZONE  = "Station Time Zone";
   public final static String SEPARATOR          = "------------------";
@@ -689,7 +697,7 @@ public class TideInternalFrame
               long daylight = (sunSet.getTimeInMillis() - sunRise.getTimeInMillis()) / 1000L;
               if (!Double.isNaN(rsSun[0]))
               {
-                String srs = "Sun Rise :" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + " Z:" + DF3.format(rsSun[2]) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()) + " Z:" + DF3.format(rsSun[3]) + (daylight>0?(" - daylight:" + DF2.format(daylight / 3600) + ":" + DF2.format((daylight % 3600) / 60L)):"");
+                String srs = "Sun Rise :" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + " Z:" + DF3.format(rsSun[2]) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()) + " Z:" + DF3.format(rsSun[3]) + (daylight>0?(" - daylight:" + DF2.format(daylight / 3600) + "h " + DF2.format((daylight % 3600) / 60L) + "m"):"");
                 // Isolate the hours in the string
   //            System.out.println(srs);
                 AttributedString astr = new AttributedString(srs);
@@ -2730,6 +2738,24 @@ public class TideInternalFrame
 
   private void this_internalFrameClosed(InternalFrameEvent e)
   {
+    // Store position
+    Point topLeft = this.getLocation();
+    Dimension dim = this.getSize();
+    Properties ifProps = new Properties();
+    ifProps.put(TOP_LEFT_X_PROP, Integer.toString(topLeft.x));
+    ifProps.put(TOP_LEFT_Y_PROP, Integer.toString(topLeft.y));
+    ifProps.put(WIDTH_PROP, Integer.toString(dim.width));
+    ifProps.put(HEIGHT_PROP, Integer.toString(dim.height));
+    try
+    {
+      PrintWriter pw = new PrintWriter(new File(TIDE_INTERNAL_FRAME_PROP_FILE));
+      ifProps.store(pw, "Internal Frame position and dimension");
+      pw.close();
+    }
+    catch (Exception ex)
+    {
+      ex.printStackTrace();
+    }
     TideContext.getInstance().fireInternalFrameClosed();
     TideContext.getInstance().removeTideListener(tideEventListener);
   }
