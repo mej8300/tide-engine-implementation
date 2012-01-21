@@ -196,6 +196,11 @@ public class TideInternalFrame
 
   private TidePanel graphPanelOneDay = new TidePanel() // Current Day, now.
   {
+    private boolean mouseIsIn = false;
+    private String postit = "";
+    private int mouseX = 0, mouseY = 0;
+    private double mouseWh = 0;
+    
     @Override
     public void mouseMoved(MouseEvent e)
     {
@@ -212,11 +217,25 @@ public class TideInternalFrame
       double wh = 0;
       try { wh = Utils.convert(TideUtilities.getWaterHeight(ts, constSpeed, cal), ts.getDisplayUnit(), currentUnit); } catch (Exception ex) {}
 
-
-      this.setToolTipText("<html>" + DF2.format((int)(h % 24)) + ":" + DF2.format(m) + "<br>" +
-                          TideUtilities.DF22PLUS.format(wh) + " " + currentUnit + "</html>");
+      postit = DF2.format((int)(h % 24)) + ":" + DF2.format(m) + "\n" + TideUtilities.DF22PLUS.format(wh) + " " + currentUnit;
+      mouseX = e.getX();
+      mouseY = e.getY();
+      mouseWh = wh;
+//    this.setToolTipText("<html>" + DF2.format((int)(h % 24)) + ":" + DF2.format(m) + "<br>" + TideUtilities.DF22PLUS.format(wh) + " " + currentUnit + "</html>");
     }
 
+    @Override
+    public void mouseEntered(MouseEvent e)
+    {
+      mouseIsIn = true;
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e)
+    {
+      mouseIsIn = false;
+    }
+    
     @Override
     protected void paintComponent(Graphics g)
     {
@@ -886,6 +905,16 @@ public class TideInternalFrame
               chartCommandPanel.setSunGHA(AstroComputer.getSunGHA());
               chartCommandPanel.setMoonGHA(AstroComputer.getMoonGHA());                    
             }
+            if (mouseIsIn)
+            {
+              g.setColor(Color.black);
+              float[] dashPattern = { 2, 2, 2, 2 };
+              ((Graphics2D)g).setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, dashPattern, 0));
+              g.drawLine(mouseX, 0, mouseX, this.getHeight());
+              int y = this.getHeight() - (int)((mouseWh - bottomValue) * heightRatio);
+              g.fillOval(mouseX - 2, y - 2, 4, 4);
+              postit(g, postit, mouseX, y, Color.black, Color.cyan, 0.50f);
+            }
           }
         }
         catch (Exception ex)
@@ -894,6 +923,81 @@ public class TideInternalFrame
           ex.printStackTrace();
         }
       }
+    }
+
+    public void postit(Graphics g, String s, int x, int y, Color bgcolor, Color fgcolor, Float transp)
+    {
+      int bevel = 2;
+      int postitOffset = 5;
+      
+      int startX = x;
+      int startY = y;
+      
+      Color origin = g.getColor();
+      g.setColor(Color.black);
+      Font f = g.getFont();
+      int nbCr = 0;
+      int crOffset;
+      for (crOffset = 0; (crOffset = s.indexOf("\n", crOffset) + 1) > 0;)
+        nbCr++;
+
+      String txt[] = new String[nbCr + 1];
+      int i = 0;
+      crOffset = 0;
+      for (i = 0; i < nbCr; i++)
+        txt[i] = s.substring(crOffset, (crOffset = s.indexOf("\n", crOffset) + 1) - 1);
+
+      txt[i] = s.substring(crOffset);
+      int strWidth = 0;
+      for (i = 0; i < nbCr + 1; i++)
+      {
+        if (g.getFontMetrics(f).stringWidth(txt[i]) > strWidth)
+          strWidth = g.getFontMetrics(f).stringWidth(txt[i]);
+      }
+      Color c = g.getColor(); // postitTextColor
+      g.setColor(bgcolor);
+      if (g instanceof Graphics2D)
+      {
+        // Transparency
+        Graphics2D g2 = (Graphics2D)g;
+        float alpha = (transp!=null?transp.floatValue():0.3f);
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+      }
+      // left or right, up or down...
+      Point topRightExtremity      = new Point(x + postitOffset + strWidth + (2 * bevel), (y - f.getSize()) + 1);
+      Point bottomRightExtremity   = new Point(x + postitOffset + strWidth + (2 * bevel), (nbCr + 1) * f.getSize());
+      Point bottomLeftExtremity    = new Point(x, (nbCr + 1) * f.getSize());
+      
+      if (!this.getVisibleRect().contains(topRightExtremity) && !this.getVisibleRect().contains(bottomRightExtremity))   
+      {
+        // This display left
+        startX = x - strWidth - (2 * bevel) - (2 * postitOffset);
+      }
+      if (!this.getVisibleRect().contains(bottomLeftExtremity))   
+      {
+        // This display up
+    //    startY = y - ((nbCr + 1) * f.getSize());
+        startY = y - ((nbCr) * f.getSize());
+    //    System.out.println("Up, y [" + y + "] becomes [" + startY + "]");
+      }
+      
+      g.fillRect(startX + postitOffset, (startY - f.getSize()) + 1, strWidth + (2 * bevel), (nbCr + 1) * f.getSize());
+      if (g instanceof Graphics2D)
+      {
+        // Reset Transparency
+        Graphics2D g2 = (Graphics2D)g;
+        float alpha = 1.0f;
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+      }
+      if (fgcolor != null)
+        g.setColor(fgcolor);
+      else
+        g.setColor(c);
+      
+      for(i = 0; i < nbCr + 1; i++)
+        g.drawString(txt[i], startX + bevel + postitOffset, startY + (i * f.getSize()));
+
+      g.setColor(origin);
     }
   };   
   
@@ -2910,7 +3014,7 @@ public class TideInternalFrame
     }
   }
       
-  private class TidePanel extends JPanel implements MouseMotionListener
+  private class TidePanel extends JPanel implements MouseMotionListener, MouseListener
   {
     public final static int RISING  =  1;
     public final static int FALLING = -1;
@@ -2921,6 +3025,7 @@ public class TideInternalFrame
     {
       super();
       addMouseMotionListener(this);  
+      addMouseListener(this);
       init();
     }
     
@@ -2950,6 +3055,26 @@ public class TideInternalFrame
     public void mouseMoved(MouseEvent e)
     {
       System.out.println("Mouse Moved: x=" + e.getX() + ", y=" + e.getY());
+    }
+
+    public void mouseClicked(MouseEvent e)
+    {
+    }
+
+    public void mousePressed(MouseEvent e)
+    {
+    }
+
+    public void mouseReleased(MouseEvent e)
+    {
+    }
+
+    public void mouseEntered(MouseEvent e)
+    {
+    }
+
+    public void mouseExited(MouseEvent e)
+    {
     }
   }  
   
