@@ -204,11 +204,16 @@ public class TideInternalFrame
     @Override
     public void mouseMoved(MouseEvent e)
     {
+      mouseDown(e);
+    }
+    
+    private void mouseDown(MouseEvent e)
+    {
       double timeWidth = 24D; // One day
       double widthRatio = (double)this.getWidth() / timeWidth;
       double h = (e.getX() / widthRatio) + hourOffset;
       double m = (h - (int)h) * 60;
-
+      
       Calendar cal = new GregorianCalendar(now.get(Calendar.YEAR),
                                            now.get(Calendar.MONTH),
                                            now.get(Calendar.DAY_OF_MONTH),
@@ -216,18 +221,56 @@ public class TideInternalFrame
       cal.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
       double wh = 0;
       try { wh = Utils.convert(TideUtilities.getWaterHeight(ts, constSpeed, cal), ts.getDisplayUnit(), currentUnit); } catch (Exception ex) {}
+      
 
-      postit = DF2.format((int)(h % 24)) + ":" + DF2.format(m) + "\n" + TideUtilities.DF22PLUS.format(wh) + " " + currentUnit;
-      mouseX = e.getX();
-      mouseY = e.getY();
-      mouseWh = wh;
-//    this.setToolTipText("<html>" + DF2.format((int)(h % 24)) + ":" + DF2.format(m) + "<br>" + TideUtilities.DF22PLUS.format(wh) + " " + currentUnit + "</html>");
+      if ((e.getModifiers() & MouseEvent.BUTTON1_MASK) != 0)
+      {
+        postit = DF2.format((int)(h % 24)) + ":" + DF2.format(m) + "\n" + TideUtilities.DF22PLUS.format(wh) + " " + currentUnit;
+        mouseX = e.getX();
+        mouseY = e.getY();
+        mouseWh = wh;
+        repaint();
+      }
+      else
+        this.setToolTipText("<html>" + DF2.format((int)(h % 24)) + ":" + DF2.format(m) + "<br>" + TideUtilities.DF22PLUS.format(wh) + " " + currentUnit + "</html>");
     }
 
     @Override
     public void mouseEntered(MouseEvent e)
     {
-      mouseIsIn = true;
+      if ((e.getModifiers() & MouseEvent.BUTTON1_MASK) != 0)
+      {
+        mouseIsIn = true;
+        repaint();
+      }
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e)
+    {
+      if ((e.getModifiers() & MouseEvent.BUTTON1_MASK) != 0)
+      {
+        mouseIsIn = true;
+        mouseDown(e);
+        repaint();
+      }
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e)
+    {
+      if ((e.getModifiers() & MouseEvent.BUTTON1_MASK) != 0)
+        mouseIsIn = true;
+      if (mouseIsIn)
+      {
+        mouseMoved(e);
+      }
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e)
+    {
+      mouseIsIn = false;
     }
 
     @Override
@@ -2255,7 +2298,8 @@ public class TideInternalFrame
         {
           while (true)
           {
-            graphPanelOneDay.repaint();
+            if (graphPanelOneDay.isVisible())
+              graphPanelOneDay.repaint();
             String title = FRAME_TITLE + " - System Date:" + LOCAL_DATE_FORMAT.format(now.getTime()) + ", UTC:" + UTC_DATE_FORMAT.format(now.getTime());
             setTitle(title);
             now.add(Calendar.SECOND, 1);
@@ -3049,16 +3093,16 @@ public class TideInternalFrame
         });
     }
     
-    public void mouseDragged(MouseEvent e)
-    {
-    }
-
     public void mouseMoved(MouseEvent e)
     {
       System.out.println("Mouse Moved: x=" + e.getX() + ", y=" + e.getY());
     }
 
     public void mouseClicked(MouseEvent e)
+    {
+    }
+
+    public void mouseDragged(MouseEvent e)
     {
     }
 
