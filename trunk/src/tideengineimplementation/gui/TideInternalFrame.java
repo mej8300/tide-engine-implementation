@@ -599,7 +599,7 @@ public class TideInternalFrame
               {
                 g.setColor(Color.RED);            
                 /* The curve */
-                Polygon curvePolygon = new Polygon();
+                Polygon curvePolygon = new Polygon(); // TODO Recalculate only if day has changed
                 for (int h=0; h<24; h++)
                 {
                   for (int m=0; m<60; m++)
@@ -612,55 +612,53 @@ public class TideInternalFrame
                     double wh = Utils.convert(TideUtilities.getWaterHeight(ts, constSpeed, cal), ts.getDisplayUnit(), currentUnit);
                     if (!Double.isNaN(previousWH))
                     {
+                      if (trend == 0)
                       {
-                        if (trend == 0)
+                        if (previousWH > wh)
+                          trend = TidePanel.FALLING;
+                        else if (previousWH < wh)
+                          trend = TidePanel.RISING;
+                      }
+                      else
+                      {
+                        switch (trend)
                         {
-                          if (previousWH > wh)
-                            trend = TidePanel.FALLING;
-                          else if (previousWH < wh)
-                            trend = TidePanel.RISING;
-                        }
-                        else
-                        {
-                          switch (trend)
-                          {
-                            case RISING:
-                              if (previousWH > wh) // Now going down
+                          case RISING:
+                            if (previousWH > wh) // Now going down
+                            {
+                              if (Double.isNaN(high1))
                               {
-                                if (Double.isNaN(high1))
-                                {
-                                  high1 = previousWH;
-                                  cal.add(Calendar.MINUTE, -1);
-                                  high1Cal = cal;
-                                }
-                                else
-                                {
-                                  high2 = previousWH;
-                                  cal.add(Calendar.MINUTE, -1);
-                                  high2Cal = cal;
-                                }
-                                trend = FALLING; // Now falling
+                                high1 = previousWH;
+                                cal.add(Calendar.MINUTE, -1);
+                                high1Cal = cal;
                               }
-                              break;
-                            case FALLING:
-                              if (previousWH < wh) // Now going up
+                              else
                               {
-                                if (Double.isNaN(low1))
-                                {
-                                  low1 = previousWH;
-                                  cal.add(Calendar.MINUTE, -1);
-                                  low1Cal = cal;
-                                }
-                                else
-                                {
-                                  low2 = previousWH;
-                                  cal.add(Calendar.MINUTE, -1);
-                                  low2Cal = cal;
-                                }
-                                trend = RISING; // Now rising
+                                high2 = previousWH;
+                                cal.add(Calendar.MINUTE, -1);
+                                high2Cal = cal;
                               }
-                              break;
-                          }
+                              trend = FALLING; // Now falling
+                            }
+                            break;
+                          case FALLING:
+                            if (previousWH < wh) // Now going up
+                            {
+                              if (Double.isNaN(low1))
+                              {
+                                low1 = previousWH;
+                                cal.add(Calendar.MINUTE, -1);
+                                low1Cal = cal;
+                              }
+                              else
+                              {
+                                low2 = previousWH;
+                                cal.add(Calendar.MINUTE, -1);
+                                low2Cal = cal;
+                              }
+                              trend = RISING; // Now rising
+                            }
+                            break;
                         }
                       }
                       int x = (int)((h + (double)(m / 60D)) * widthRatio);
@@ -1567,6 +1565,7 @@ public class TideInternalFrame
       }
     }
   };
+  
   private JTabbedPane tideTabPane = new JTabbedPane();
   
   private JPanel buttonPanel = new JPanel();
@@ -1643,7 +1642,7 @@ public class TideInternalFrame
       } 
       catch (FileNotFoundException fnfe)
       {
-        ;
+        ; // No Problem
       }
       catch (Exception ex) 
       { ex.printStackTrace(); }
@@ -1688,7 +1687,8 @@ public class TideInternalFrame
         public void setDate(long date)
         {
           now.setTime(new Date(date));
-          graphPanelOneDay.repaint();          
+          if (graphPanelOneDay.isVisible())
+            graphPanelOneDay.repaint();          
         }
         @Override
         public void setCoeffToHighlight(List<String> names) 
@@ -1706,12 +1706,13 @@ public class TideInternalFrame
           graphPanelOneDay.repaint();
           graphPanelExtended.repaint();
         }
-        public void showTideCurve(boolean b)
-        {
-          showTideCurve = b;
-          graphPanelOneDay.repaint();
-          graphPanelExtended.repaint();
-        }
+
+//        public void showTideCurve(boolean b)
+//        {
+//          showTideCurve = b;
+//          graphPanelOneDay.repaint();
+//          graphPanelExtended.repaint();
+//        }
       };
     TideContext.getInstance().addTideListener(tideEventListener);
 
