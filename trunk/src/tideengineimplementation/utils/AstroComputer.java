@@ -31,7 +31,7 @@ public class AstroComputer
    * @param s second
    * @return Phase in Degrees
    */
-  public static double getMoonPhase(int y, int m, int d, int h, int mi, int s)
+  public static synchronized double getMoonPhase(int y, int m, int d, int h, int mi, int s)
   {
     double phase = 0f;
     year = y;
@@ -47,7 +47,7 @@ public class AstroComputer
     return phase;
   }
   
-  public static void calculate()
+  public static synchronized void calculate()
   {
     deltaT = Double.parseDouble(System.getProperty("deltaT", Double.toString(deltaT)));
     Core.julianDate(year, month, day, hour, minute, second, deltaT);
@@ -77,7 +77,7 @@ public class AstroComputer
    * @see http://aa.usno.navy.mil/data/docs/RS_OneYear.php
    * @see http://www.jgiesen.de/SunMoonHorizon/
    */
-  public static double[] sunRiseAndSet(double latitude, double longitude)
+  public static synchronized double[] sunRiseAndSet(double latitude, double longitude)
   {
   //  out.println("Sun HP:" + Context.HPsun);
   //  out.println("Sun SD:" + Context.SDsun);
@@ -99,7 +99,7 @@ public class AstroComputer
     return new double[] { utRise, utSet, Z, 360d - Z };    
   }
 
-  public static double[] sunRiseAndSet_wikipedia(double latitude, double longitude)
+  public static synchronized double[] sunRiseAndSet_wikipedia(double latitude, double longitude)
   {
     double cost = Math.tan(Math.toRadians(latitude)) * Math.tan(Math.toRadians(Context.DECsun));
     double t    = Math.acos(cost);
@@ -118,7 +118,7 @@ public class AstroComputer
    * @see http://aa.usno.navy.mil/data/docs/RS_OneYear.php
    * @see http://www.jgiesen.de/SunMoonHorizon/
    */
-  public static double[] moonRiseAndSet(double latitude, double longitude)
+  public static synchronized double[] moonRiseAndSet(double latitude, double longitude)
   {    
   //  out.println("Moon HP:" + (Context.HPmoon / 60) + "'");
   //  out.println("Moon SD:" + (Context.SDmoon / 60) + "'");
@@ -144,18 +144,18 @@ public class AstroComputer
     return new double[] { utRise, utSet };    
   }
 
-  public static double getMoonIllum()
+  public static synchronized double getMoonIllum()
   {
     return Context.k_moon;
   }
   
-  public static void setDeltaT(double deltaT)
+  public static synchronized void setDeltaT(double deltaT)
   {
     System.out.println("...DeltaT set to " + deltaT);
     AstroComputer.deltaT = deltaT;
   }
 
-  public static final double getTimeZoneOffsetInHours(TimeZone tz)
+  public static final synchronized double getTimeZoneOffsetInHours(TimeZone tz)
   {
     double d = 0;
     if (false)
@@ -176,7 +176,7 @@ public class AstroComputer
     return d;
   }
   
-  public static final double getTimeOffsetInHours(String timeOffset)
+  public static final synchronized double getTimeOffsetInHours(String timeOffset)
   {
 //  System.out.println("Managing:" + timeOffset);
     double d = 0d;
@@ -195,7 +195,7 @@ public class AstroComputer
   public final static int MOON_ALT_IDX = 2;
   public final static int MOON_Z_IDX   = 3;
 
-  public static double[] getSunMoon(int y, int m, int d, int h, int mi, int s, double lat, double lng)
+  public static synchronized double[] getSunMoon(int y, int m, int d, int h, int mi, int s, double lat, double lng)
   {
     double[] values = new double[4];
     year = y;
@@ -226,7 +226,7 @@ public class AstroComputer
     return values;
   }
   
-  public static double getSunAlt(int y, int m, int d, int h, int mi, int s, double lat, double lng)
+  public static synchronized double getSunAlt(int y, int m, int d, int h, int mi, int s, double lat, double lng)
   {
     double value = 0d;
     year = y;
@@ -250,7 +250,7 @@ public class AstroComputer
     return value;
   }
   
-  public static double getMoonAlt(int y, int m, int d, int h, int mi, int s, double lat, double lng)
+  public static synchronized double getMoonAlt(int y, int m, int d, int h, int mi, int s, double lat, double lng)
   {
     double value = 0d;
     year = y;
@@ -274,7 +274,7 @@ public class AstroComputer
     return value;
   }
   
-  public static double[] getSunMoonAlt(int y, int m, int d, int h, int mi, int s, double lat, double lng)
+  public static synchronized double[] getSunMoonAlt(int y, int m, int d, int h, int mi, int s, double lat, double lng)
   {
     double[] values = new double[2];
     year = y;
@@ -309,12 +309,12 @@ public class AstroComputer
    * Warning: Context must have been initialized!
    * @return
    */
-  public static double getSunDecl()
+  public static synchronized double getSunDecl()
   {
     return Context.DECsun;
   }
   
-  public static double getSunGHA()
+  public static synchronized double getSunGHA()
   {
     return Context.GHAsun;
   }
@@ -323,27 +323,27 @@ public class AstroComputer
    * Warning: Context must have been initialized!
    * @return
    */
-  public static double getMoonDecl()
+  public static synchronized double getMoonDecl()
   {
     return Context.DECmoon;
   }
   
-  public static double getMoonGHA()
+  public static synchronized double getMoonGHA()
   {
     return Context.GHAmoon;
   }
   
-  public static double getVenusDecl() { return Context.DECvenus; }
-  public static double getMarsDecl() { return Context.DECmars; }
-  public static double getJupiterDecl() { return Context.DECjupiter; }
-  public static double getSaturnDecl() { return Context.DECsaturn; }
+  public static synchronized double getVenusDecl() { return Context.DECvenus; }
+  public static synchronized double getMarsDecl() { return Context.DECmars; }
+  public static synchronized double getJupiterDecl() { return Context.DECjupiter; }
+  public static synchronized double getSaturnDecl() { return Context.DECsaturn; }
 
-  public static double getVenusGHA() { return Context.GHAvenus; }
-  public static double getMarsGHA() { return Context.GHAmars; }
-  public static double getJupiterGHA() { return Context.GHAjupiter; }
-  public static double getSaturnGHA() { return Context.GHAsaturn; }
+  public static synchronized double getVenusGHA() { return Context.GHAvenus; }
+  public static synchronized double getMarsGHA() { return Context.GHAmars; }
+  public static synchronized double getJupiterGHA() { return Context.GHAjupiter; }
+  public static synchronized double getSaturnGHA() { return Context.GHAsaturn; }
   
-  public static double ghaToLongitude(double gha)
+  public static synchronized double ghaToLongitude(double gha)
   {
     double longitude = 0;
     if (gha < 180)
