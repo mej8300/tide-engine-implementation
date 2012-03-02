@@ -15,6 +15,7 @@ public class SpecialProgressBar
   private String label = "";
   private boolean move = true;
   private transient SpecialThread thread = null;
+  private boolean stringPainted = true;
   
   public SpecialProgressBar()
   {
@@ -65,6 +66,11 @@ public class SpecialProgressBar
       }
     }
   }
+  
+  public void setStringPainted(boolean b)
+  {
+    this.stringPainted = b;
+  }
 
   @Override
   public void paintComponent(Graphics g)
@@ -84,17 +90,31 @@ public class SpecialProgressBar
 //    System.out.println("X:" + x);
       g.drawLine(x, 0, x, this.getHeight());
     }
-    if (this.move && label != null && label.trim().length() > 0)
+    if (this.stringPainted && this.move && label != null && label.trim().length() > 0)
     {
+      g.setColor(Color.WHITE);
       Font f = g.getFont();
       int l  = g.getFontMetrics(f).stringWidth(label);
       g.drawString(label, (this.getWidth() / 2) - (l/2), (this.getHeight() / 2) + (f.getSize() / 2));      
     }
   }
 
+  public void setString(String str)
+  {
+    setLabel(str);
+  }
+  
   public void setLabel(String label)
   {
     this.label = label;
+  }
+  
+  public void setIndeterminate(boolean b)
+  {
+    if (b)
+      start();
+    else
+      stop();
   }
   
   private class SpecialThread extends Thread

@@ -114,6 +114,7 @@ import tideengineimplementation.gui.ctx.TideContext;
 import tideengineimplementation.gui.ctx.TideEventListener;
 import tideengineimplementation.gui.dialog.PrintDialog;
 import tideengineimplementation.gui.dialog.SearchPanel;
+import tideengineimplementation.gui.dialog.SpecialProgressBar;
 import tideengineimplementation.gui.main.splash.SplashWindow;
 import tideengineimplementation.gui.main.splash.Splasher;
 import tideengineimplementation.gui.table.CoeffTable;
@@ -516,6 +517,7 @@ public class TideInternalFrame
                   {
                     public void run()
                     {
+                      long before = System.currentTimeMillis();
                       instance.setHarmonicsReady(false);
                       harmonicCurves = new Hashtable<String, List<DataPoint>>();              
                       int k = lookBusy("Computing Harmonic curves");
@@ -550,8 +552,9 @@ public class TideInternalFrame
                           harmonicCurves.put(coeffColor[j].name, lp);
                         }
                       }     
+                      long after = System.currentTimeMillis();
                       coolDown(k);
-                      System.out.println("1 - Harmonic computation completed");
+                      System.out.println("1 - Harmonic computation completed in " + Long.toString(after - before) + " ms");
                       instance.setHarmonicsReady(true);
                       instance.repaint();
                     }
@@ -605,6 +608,7 @@ public class TideInternalFrame
                   {
                     public void run()
                     {
+                      long before = System.currentTimeMillis();
                       instance.setAstroReady(false);
                       System.out.println("Calculating Sun and Moon altitudes");
                       int k = lookBusy("Calculating Sun and Moon altitudes");
@@ -635,14 +639,29 @@ public class TideInternalFrame
                           double value = values[0];  // Sun                  
                           double x = (h + (double)(m / 60D));
                           double y = value;
-                          sunAltitudes.add(new DataPoint(x, y));
+                          try
+                          {
+                            sunAltitudes.add(new DataPoint(x, y));
+                          }
+                          catch (NullPointerException npe)
+                          {
+                            System.err.println("Wierd:" + npe.getLocalizedMessage());
+                          }
                           
                           value = values[1]; // Moon
                           y = value;
-                          moonAltitudes.add(new DataPoint(x, y));
+                          try
+                          {
+                            moonAltitudes.add(new DataPoint(x, y));
+                          }
+                          catch (NullPointerException npe)
+                          {
+                            System.err.println("Wierd:" + npe.getLocalizedMessage());
+                          }
                         }
                       }
-                      System.out.println("1 - Sun & Moon Calculation completed.");
+                      long after = System.currentTimeMillis();
+                      System.out.println("1 - Sun & Moon Calculation completed in " + Long.toString(after - before) + " ms");
                       coolDown(k);
                       instance.setAstroReady(true);
                       instance.repaint();
@@ -723,6 +742,7 @@ public class TideInternalFrame
                     {
                       public void run()
                       {                        
+                        long before = System.currentTimeMillis();
                         instance.setMainCurveReady(false);
                         System.out.println("1 - Calculating main Curve, " + new Date().toString());
                         int k = lookBusy("Calculating main curve");
@@ -804,12 +824,17 @@ public class TideInternalFrame
                               }
                               double x = (h + (double)(m / 60D));
                               double y = (wh - _bottomValue);
-                              mainCurve.add(new DataPoint(x, y));
+                              try { mainCurve.add(new DataPoint(x, y)); }
+                              catch (NullPointerException npe)
+                              {
+                                System.err.println("Wierd:" + npe.getLocalizedMessage());
+                              }
                             }
                             previousWH = wh;
                           }
                         }
-                        System.out.println("1 - Main curve computation completed");
+                        long after = System.currentTimeMillis();
+                        System.out.println("1 - Main curve computation completed in " + Long.toString(after - before) + " ms");
                         coolDown(k);
                         instance.setMainCurveReady(true);
                         instance.repaint();
@@ -917,6 +942,12 @@ public class TideInternalFrame
               }
               double prevHeight = -Double.MAX_VALUE;
               int diffOffset = -1;
+              
+              // Add the sun rise and set for the next event
+              timeAL.add(new TimedValue("SR", sunRise, (double)sunRise.getTimeInMillis()));
+              timeAL.add(new TimedValue("SS", sunSet, (double)sunSet.getTimeInMillis()));
+              Collections.sort(timeAL);
+              
               TimedValue nextEvent = null;
               for (TimedValue tv : timeAL)
               {
@@ -924,26 +955,37 @@ public class TideInternalFrame
                 {
                   nextEvent = tv;
                 }
-                String dataStr = tv.getType() + " " + TIME_FORMAT.format(tv.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(tv.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit;
-                if (diffOffset == -1)
+                String dataStr = "";
+                if (!tv.getType().equals("SS") && !tv.getType().equals("SR"))
                 {
-                  int len = g.getFontMetrics(g.getFont()).stringWidth(dataStr);
-                  int tabSize = 50;
-                  diffOffset = (int)((len / tabSize) + 1) * tabSize;
+              //  dataStr = (tv.getType().equals("SR")?"Sun Rise":"Sun Set") + " " + TIME_FORMAT.format(tv.getCalendar().getTime());
+                  dataStr = tv.getType() + " " + TIME_FORMAT.format(tv.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(tv.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit;
+                  if (diffOffset == -1)
+                  {
+                    int len = g.getFontMetrics(g.getFont()).stringWidth(dataStr);
+                    int tabSize = 50;
+                    diffOffset = (int)((len / tabSize) + 1) * tabSize;
+                  }
+                  g.drawString(dataStr, x, y);
+                  if (prevHeight != -Double.MAX_VALUE && currentUnit != null && !currentUnit.startsWith("knots"))
+                  {
+                    double ampl = Math.abs(prevHeight - tv.getValue());
+                    String diffStr = "\u0394 : " + TideUtilities.DF22.format(ampl) + " " + currentUnit; // \u0394 : Delta
+                    g.drawString(diffStr, x + diffOffset, y - (fontSize / 2));
+                  }
+                  y += (fontSize + 2);    
+                  if (!tv.getType().equals("SS") && !tv.getType().equals("SR"))
+                    prevHeight = tv.getValue();
                 }
-                g.drawString(dataStr, x, y);
-                if (prevHeight != -Double.MAX_VALUE && currentUnit != null && !currentUnit.startsWith("knots"))
-                {
-                  double ampl = Math.abs(prevHeight - tv.getValue());
-                  String diffStr = "\u0394 : " + TideUtilities.DF22.format(ampl) + " " + currentUnit; // \u0394 : Delta
-                  g.drawString(diffStr, x + diffOffset, y - (fontSize / 2));
-                }
-                y += (fontSize + 2);                
-                prevHeight = tv.getValue();
               }
               if (nextEvent != null)
               {
-                String dataStr = "- Next event:" + nextEvent.getType() + " " + TIME_FORMAT.format(nextEvent.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(nextEvent.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit + " (in " + Utils.formatTimeDiff(now, nextEvent.getCalendar()) + ")";
+                String dataStr = "- Next event:"; // + nextEvent.getType() + " " + TIME_FORMAT.format(nextEvent.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(nextEvent.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit + " (in " + Utils.formatTimeDiff(now, nextEvent.getCalendar()) + ")";
+                if (nextEvent.getType().equals("SS") || nextEvent.getType().equals("SR"))
+                  dataStr += (nextEvent.getType().equals("SR")?"Sun Rise":"Sun Set") + " " + TIME_FORMAT.format(nextEvent.getCalendar().getTime()) + " (in " + Utils.formatTimeDiff(now, nextEvent.getCalendar()) + ")";
+                else
+                  dataStr += nextEvent.getType() + " " + TIME_FORMAT.format(nextEvent.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(nextEvent.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit + " (in " + Utils.formatTimeDiff(now, nextEvent.getCalendar()) + ")";
+
                 AttributedString astr = new AttributedString(dataStr);
                 Pattern pattern = Pattern.compile("Next event");
                 Matcher matcher = pattern.matcher(dataStr);
@@ -1167,6 +1209,7 @@ public class TideInternalFrame
     private transient List<LabeledValue> noonLabel = null;
     private transient List<MoonPhaseValue> moonPhaseList = null;
     private transient List<DayNight> dayNight = null;
+    private transient List<DataPoint> moonDeclination = null;
     
     private transient GradientPaint nightGradient = null;
     private transient GradientPaint dayGradient   = null;
@@ -1184,9 +1227,26 @@ public class TideInternalFrame
       Calendar cal = (GregorianCalendar)now.clone();
       cal.add(Calendar.DAY_OF_YEAR, nbDay);                      
              
-      JUST_DATE_FORMAT_SMALL.setTimeZone(TimeZone.getTimeZone(timeZone2Use));       
-      this.setToolTipText("<html><center>" + JUST_DATE_FORMAT_SMALL.format(cal.getTime()) + 
-                          "<br>" + DF2.format((int)(h % 24)) + ":" + DF2.format(m) + "</center></html>");
+      String moonDeclValue = "";       
+      if (moonDeclination != null)
+      {
+        moonDeclValue = "<br>Moon Decl: ";
+        for (DataPoint dp : moonDeclination)
+        {
+          if (e.getX() == (int)Math.round(dp.getX() * widthRatio))
+          {
+            moonDeclValue += GeomUtil.decToSex(dp.getY(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN);
+            break;
+          }
+        }
+      }
+      JUST_DATE_FORMAT_SMALL.setTimeZone(TimeZone.getTimeZone(timeZone2Use));    
+      String toolTipMess = "<html><center>" + 
+                           JUST_DATE_FORMAT_SMALL.format(cal.getTime()) + 
+                           "<br>" + DF2.format((int)(h % 24)) + ":" + DF2.format(m) +
+                           moonDeclValue +
+                           "</center></html>";
+      this.setToolTipText(toolTipMess);
 //    this.setToolTipText("<html>" + DF2.format((int)(h)) + ":" + DF2.format(m) + "</html>");
     }
 
@@ -1307,6 +1367,7 @@ public class TideInternalFrame
                     {
                       public void run()
                       {
+                        long before = System.currentTimeMillis();
                         instance.setHarmonicsReady(false);
                         harmonicCurves = new Hashtable<String, List<DataPoint>>();
                         int k = lookBusy("Calculating Harmonics");
@@ -1363,8 +1424,9 @@ public class TideInternalFrame
                             harmonicCurves.put(coeffColor[j].name, lp);
                           }
                         }
+                        long after = System.currentTimeMillis();
                         coolDown(k);
-                        System.out.println("2 - Harmonic computation completed");
+                        System.out.println("2 - Harmonic computation completed in " + Long.toString(after - before) + " ms");
                         instance.setHarmonicsReady(true);
                         instance.repaint();
                       }
@@ -1419,11 +1481,13 @@ public class TideInternalFrame
                     {
                       public void run()
                       {
+                        long before = System.currentTimeMillis();
                         instance.setAstroReady(false);
                         System.out.println("Calculating Sun and Moon altitudes");
                         int k = lookBusy("Calculating Sun and Moon altitudes");
                         sunAltitudes  = new ArrayList<DataPoint>();
                         moonAltitudes = new ArrayList<DataPoint>();
+                        moonDeclination = new ArrayList<DataPoint>();
                         int currDay = 0;
                         Calendar reference = (Calendar)_from.clone();  
                         boolean keepLooping = true;
@@ -1435,7 +1499,7 @@ public class TideInternalFrame
                           }
                           for (int h=0; h<24; h++)
                           {
-                            for (int m=0; m<60; m+=5)
+                            for (int m=0; m<60; m+=5) // every five minutes
                             {
                               Calendar cal = new GregorianCalendar(reference.get(Calendar.YEAR),
                                                                    reference.get(Calendar.MONTH),
@@ -1455,23 +1519,44 @@ public class TideInternalFrame
                                                                             0, 
                                                                             ts.getLatitude(), 
                                                                             ts.getLongitude());
-                              
+                              double moonDecl = AstroComputer.getMoonDecl();
                               double value = values[0];  // Sun                  
                               double x = ((currDay * 24) + h + (double)(m / 60D));
                               double y = value; // (this.getHeight() / 2) - (int)((value) * heightRatioAlt);
-                              sunAltitudes.add(new DataPoint(x, y));
+                              try { sunAltitudes.add(new DataPoint(x, y)); }
+                              catch (NullPointerException npe)
+                              {
+                                System.err.println("Wierd:" + npe.getLocalizedMessage());
+                              }
                               
                               value = values[1]; // Moon
                               y = value; // (this.getHeight() / 2) - (int)((value) * heightRatioAlt);
-                              moonAltitudes.add(new DataPoint(x, y));
+                              try
+                              {
+                                moonAltitudes.add(new DataPoint(x, y));
+                              }
+                              catch (NullPointerException npe)
+                              {
+                                System.err.println("Wierd:" + npe.getLocalizedMessage());
+                              }
+                              
+                              try
+                              {
+                                moonDeclination.add(new DataPoint(x, moonDecl));
+                              }
+                              catch (NullPointerException npe)
+                              {
+                                System.err.println("Wierd:" + npe.getLocalizedMessage());
+                              }
                             }
                           }
                           reference.add(Calendar.DAY_OF_YEAR, 1);
                           currDay++;
                         //                System.out.println("Day " + currDay + " widthRatio:" + widthRatio);
                         }
+                        long after = System.currentTimeMillis();
                         coolDown(k);
-                        System.out.println("2 - Sun & Moon computation completed");
+                        System.out.println("2 - Sun & Moon computation completed in " + Long.toString(after - before) + " ms");
                         instance.setAstroReady(true);
                         instance.repaint();
                       }
@@ -1498,7 +1583,7 @@ public class TideInternalFrame
                   ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
                   
                   // Sun
-                  g.setColor(Color.DARK_GRAY);
+                  g.setColor(Color.BLACK);
                   Point previousPt = null;
                   for (DataPoint dp : sunAltitudes)
                   {
@@ -1519,6 +1604,23 @@ public class TideInternalFrame
                       g.drawLine(previousPt.x, previousPt.y, p.x, p.y);
                     previousPt = p;
                   }
+                  // Moon decl.
+                  g.setColor(Color.BLUE);
+                  previousPt = null;
+                  Stroke origStroke = ((Graphics2D)g).getStroke();
+                  Stroke moonDeclStroke = null;
+             //   float[] dashPattern = { 1, 1, 1, 1 };
+                  moonDeclStroke = new BasicStroke(2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER); //, 10, dashPattern, 0);
+                  ((Graphics2D) g).setStroke(moonDeclStroke);
+                  for (DataPoint dp : moonDeclination)
+                  {
+                    Point p = new Point((int)((dp.getX()) * widthRatio),
+                                        (this.getHeight() / 2) - (int)(dp.getY() * heightRatioAlt));
+                    if (previousPt != null)
+                      g.drawLine(previousPt.x, previousPt.y, p.x, p.y);
+                    previousPt = p;
+                  }
+                  ((Graphics2D) g).setStroke(origStroke);
                 }
               }
               
@@ -1551,8 +1653,8 @@ public class TideInternalFrame
                       {
                         public void run()
                         {
+                          long before = System.currentTimeMillis();
                           instance.setMainCurveReady(false);
-
                           System.out.println("1- Calculating main Curve, " + new Date().toString());
                           int k = lookBusy("Calculating main Curve");
                           zeroUTC = new ArrayList<Double>();
@@ -1667,7 +1769,14 @@ public class TideInternalFrame
                                 catch (Exception ex) { ex.printStackTrace(); }
                                 double x = (currDay * 24) + (h + (double)(m / 60D));
                                 double y = (wh - _bottomValue);
-                                mainCurve.add(new DataPoint(x, y));
+                                try
+                                {
+                                  mainCurve.add(new DataPoint(x, y));
+                                }
+                                catch (NullPointerException npe)
+                                {
+                                  System.err.println("Wierd:" + npe.getLocalizedMessage());
+                                }
                                 
                                 if (h == 0 && m == 0) // Vertical grid at 00:00 each day
                                   zeroUTC.add(x);
@@ -1675,7 +1784,14 @@ public class TideInternalFrame
                                 if (h == 12 && m == 0) // Local Noon, display day label
                                 {
                                   String dStr = DATE_FORMAT.format(cal.getTime());
-                                  noonLabel.add(new LabeledValue(x, dStr));
+                                  try
+                                  {
+                                    noonLabel.add(new LabeledValue(x, dStr));
+                                  }
+                                  catch (NullPointerException npe)
+                                  {
+                                    System.err.println("Wierd:" + npe.getLocalizedMessage());
+                                  }
                                 }
                                 Calendar currentDate = GregorianCalendar.getInstance();
                                 currentDate.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
@@ -1724,7 +1840,14 @@ public class TideInternalFrame
                                     default:
                                       break;
                                   }
-                                  moonPhaseList.add(new MoonPhaseValue(x, moonPhase, phaseStr));
+                                  try
+                                  {
+                                    moonPhaseList.add(new MoonPhaseValue(x, moonPhase, phaseStr));
+                                  }
+                                  catch (NullPointerException npe)
+                                  {
+                                    System.err.println("Wierd:" + npe.getLocalizedMessage());
+                                  }
                                   prevPhase = (int)Math.round(moonPhase);
                                 }
                               }
@@ -1733,8 +1856,9 @@ public class TideInternalFrame
                             currDay++;
                   //        System.out.println("Day " + currDay + " widthRatio:" + widthRatio);
                           }
+                          long after = System.currentTimeMillis();
                           coolDown(k);     
-                          System.out.println("2 _ Main curve computation completed");
+                          System.out.println("2 _ Main curve computation completed in " + Long.toString(after - before) + " ms");
                           instance.setMainCurveReady(true);
                           instance.repaint();
                         }
@@ -1912,7 +2036,7 @@ public class TideInternalFrame
   private transient TideEventListener tideEventListener = null;
   private List<String> coeffToHighlight = null;
   private JPanel bottomPanel = new JPanel();
-  private JProgressBar statusIndicator = new JProgressBar();
+  private SpecialProgressBar statusIndicator = new SpecialProgressBar();
   private BorderLayout borderLayout1 = new BorderLayout();
 
   public TideInternalFrame()
@@ -2307,6 +2431,7 @@ public class TideInternalFrame
 
     bottomPanel.add(statusIndicator, BorderLayout.EAST);
     statusIndicator.setEnabled(false);
+    statusIndicator.setIndeterminate(false);
     this.getContentPane().add(bottomPanel, BorderLayout.SOUTH);
     Thread sdThread = new Thread()
       {
@@ -3259,7 +3384,7 @@ public class TideInternalFrame
   private int nbBusyThread = 0;
   private Map<Integer, String> busyMap = null;
   
-  private int lookBusy(final String label)
+  private synchronized int lookBusy(final String label)
   {
     if (nbBusyThread == 0)
       busyMap = new Hashtable<Integer, String>();
@@ -3276,6 +3401,7 @@ public class TideInternalFrame
               statusIndicator.setStringPainted(true);
               statusIndicator.setEnabled(true);
               statusIndicator.setIndeterminate(true);
+
               statusIndicator.repaint();
             }
           }
@@ -3306,7 +3432,7 @@ public class TideInternalFrame
     return nbBusyThread;
   }
   
-  private void coolDown(int i)
+  private synchronized void coolDown(int i)
   {
     nbBusyThread--;
     busyMap.remove(new Integer(i));
@@ -3340,7 +3466,7 @@ public class TideInternalFrame
     }
   }
   
-  private void updateBusyLook(String label, int k)
+  private synchronized void updateBusyLook(String label, int k)
   {
     synchronized (statusIndicator)
     {
