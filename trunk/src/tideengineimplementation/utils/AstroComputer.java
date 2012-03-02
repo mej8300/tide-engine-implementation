@@ -68,6 +68,10 @@ public class AstroComputer
  // Core.weekDay();
   }
 
+  public final static int UTC_RISE_IDX = 0;
+  public final static int UTC_SET_IDX  = 1;
+  public final static int RISE_Z_IDX   = 2;
+  public final static int SET_Z_IDX    = 3;
   /**
    * The calculate() method must have been invoked before.
    * 
@@ -274,9 +278,14 @@ public class AstroComputer
     return value;
   }
   
-  public static synchronized double[] getSunMoonAlt(int y, int m, int d, int h, int mi, int s, double lat, double lng)
+  public final static int HE_SUN_IDX   = 0;
+  public final static int HE_MOON_IDX  = 1;
+  public final static int DEC_SUN_IDX  = 2;
+  public final static int DEC_MOON_IDX = 3;
+                      
+  public static synchronized double[] getSunMoonAltDecl(int y, int m, int d, int h, int mi, int s, double lat, double lng)
   {
-    double[] values = new double[2];
+    double[] values = new double[4];
     year = y;
     month = m;
     day = d;
@@ -295,12 +304,15 @@ public class AstroComputer
     sru.setAHG(Context.GHAsun);
     sru.setD(Context.DECsun);    
     sru.calculate();          
-    values[0] = sru.getHe();
+    values[HE_SUN_IDX] = sru.getHe();
     // Moon
     sru.setAHG(Context.GHAmoon);
     sru.setD(Context.DECmoon);    
     sru.calculate();          
-    values[1] = sru.getHe();
+    values[HE_MOON_IDX] = sru.getHe();
+    
+    values[DEC_SUN_IDX] = Context.DECsun;
+    values[DEC_MOON_IDX] = Context.DECmoon;
     
     return values;
   }
