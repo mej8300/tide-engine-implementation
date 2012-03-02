@@ -419,7 +419,7 @@ public class TideInternalFrame
             sunRise.set(Calendar.DAY_OF_MONTH, now.get(Calendar.DAY_OF_MONTH));
             sunRise.set(Calendar.SECOND, 0);
                           
-            double r = rsSun[0] + Utils.daylightOffset(sunRise) + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use /*ts.getTimeZone()*/));
+            double r = rsSun[AstroComputer.UTC_RISE_IDX] + Utils.daylightOffset(sunRise) + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use /*ts.getTimeZone()*/));
             int min = (int)((r - ((int)r)) * 60);
             sunRise.set(Calendar.MINUTE, min);
             sunRise.set(Calendar.HOUR_OF_DAY, (int)r);
@@ -430,7 +430,7 @@ public class TideInternalFrame
             sunSet.set(Calendar.MONTH, now.get(Calendar.MONTH));
             sunSet.set(Calendar.DAY_OF_MONTH, now.get(Calendar.DAY_OF_MONTH));
             sunSet.set(Calendar.SECOND, 0);
-            r = rsSun[1] + Utils.daylightOffset(sunSet) + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use/*ts.getTimeZone()*/));
+            r = rsSun[AstroComputer.UTC_SET_IDX] + Utils.daylightOffset(sunSet) + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use/*ts.getTimeZone()*/));
             min = (int)((r - ((int)r)) * 60);
             sunSet.set(Calendar.MINUTE, min);
             sunSet.set(Calendar.HOUR_OF_DAY, (int)r);
@@ -628,15 +628,15 @@ public class TideInternalFrame
                           cal.setTimeZone(TimeZone.getTimeZone("Etc/UTC"));
                       //  date = cal.getTime(); 
                           // Sun & Moon altitudes
-                          double[] values = AstroComputer.getSunMoonAlt(cal.get(Calendar.YEAR), 
-                                                                        cal.get(Calendar.MONTH) + 1, 
-                                                                        cal.get(Calendar.DAY_OF_MONTH), 
-                                                                        cal.get(Calendar.HOUR_OF_DAY), 
-                                                                        cal.get(Calendar.MINUTE), 
-                                                                        0, 
-                                                                        ts.getLatitude(), 
-                                                                        ts.getLongitude());
-                          double value = values[0];  // Sun                  
+                          double[] values = AstroComputer.getSunMoonAltDecl(cal.get(Calendar.YEAR), 
+                                                                            cal.get(Calendar.MONTH) + 1, 
+                                                                            cal.get(Calendar.DAY_OF_MONTH), 
+                                                                            cal.get(Calendar.HOUR_OF_DAY), 
+                                                                            cal.get(Calendar.MINUTE), 
+                                                                            0, 
+                                                                            ts.getLatitude(), 
+                                                                            ts.getLongitude());
+                          double value = values[AstroComputer.HE_SUN_IDX];  // Sun                  
                           double x = (h + (double)(m / 60D));
                           double y = value;
                           try
@@ -648,7 +648,7 @@ public class TideInternalFrame
                             System.err.println("Wierd:" + npe.getLocalizedMessage());
                           }
                           
-                          value = values[1]; // Moon
+                          value = values[AstroComputer.HE_MOON_IDX]; // Moon
                           y = value;
                           try
                           {
@@ -899,9 +899,9 @@ public class TideInternalFrame
               // Sun rise & set
               SUN_RISE_SET_SDF.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
               long daylight = (sunSet.getTimeInMillis() - sunRise.getTimeInMillis()) / 1000L;
-              if (!Double.isNaN(rsSun[0]))
+              if (!Double.isNaN(rsSun[AstroComputer.UTC_RISE_IDX]))
               {
-                String srs = "Sun Rise :" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + " Z:" + DF3.format(rsSun[2]) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()) + " Z:" + DF3.format(rsSun[3]) + (daylight>0?(" - daylight:" + DF2.format(daylight / 3600) + "h " + DF2.format((daylight % 3600) / 60L) + "m"):"");
+                String srs = "Sun Rise :" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + " Z:" + DF3.format(rsSun[AstroComputer.RISE_Z_IDX]) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()) + " Z:" + DF3.format(rsSun[AstroComputer.SET_Z_IDX]) + (daylight>0?(" - daylight:" + DF2.format(daylight / 3600) + "h " + DF2.format((daylight % 3600) / 60L) + "m"):"");
                 // Isolate the hours in the string
   //            System.out.println(srs);
                 AttributedString astr = new AttributedString(srs);
@@ -1511,16 +1511,15 @@ public class TideInternalFrame
                               cal.setTimeZone(TimeZone.getTimeZone("Etc/UTC"));
                           //  date = cal.getTime(); 
                               // Sun & Moon altitudes
-                              double[] values = AstroComputer.getSunMoonAlt(cal.get(Calendar.YEAR), 
-                                                                            cal.get(Calendar.MONTH) + 1, 
-                                                                            cal.get(Calendar.DAY_OF_MONTH), 
-                                                                            cal.get(Calendar.HOUR_OF_DAY), 
-                                                                            cal.get(Calendar.MINUTE), 
-                                                                            0, 
-                                                                            ts.getLatitude(), 
-                                                                            ts.getLongitude());
-                              double moonDecl = AstroComputer.getMoonDecl();
-                              double value = values[0];  // Sun                  
+                              double[] values = AstroComputer.getSunMoonAltDecl(cal.get(Calendar.YEAR), 
+                                                                                cal.get(Calendar.MONTH) + 1, 
+                                                                                cal.get(Calendar.DAY_OF_MONTH), 
+                                                                                cal.get(Calendar.HOUR_OF_DAY), 
+                                                                                cal.get(Calendar.MINUTE), 
+                                                                                0, 
+                                                                                ts.getLatitude(), 
+                                                                                ts.getLongitude());
+                              double value = values[AstroComputer.HE_SUN_IDX];  // Sun                  
                               double x = ((currDay * 24) + h + (double)(m / 60D));
                               double y = value; // (this.getHeight() / 2) - (int)((value) * heightRatioAlt);
                               try { sunAltitudes.add(new DataPoint(x, y)); }
@@ -1529,7 +1528,7 @@ public class TideInternalFrame
                                 System.err.println("Wierd:" + npe.getLocalizedMessage());
                               }
                               
-                              value = values[1]; // Moon
+                              value = values[AstroComputer.HE_MOON_IDX]; // Moon
                               y = value; // (this.getHeight() / 2) - (int)((value) * heightRatioAlt);
                               try
                               {
@@ -1540,9 +1539,11 @@ public class TideInternalFrame
                                 System.err.println("Wierd:" + npe.getLocalizedMessage());
                               }
                               
+                              value = values[AstroComputer.DEC_MOON_IDX];
+                              y = value;
                               try
                               {
-                                moonDeclination.add(new DataPoint(x, moonDecl));
+                                moonDeclination.add(new DataPoint(x, y));
                               }
                               catch (NullPointerException npe)
                               {
@@ -1712,7 +1713,7 @@ public class TideInternalFrame
                                 sunRise.set(Calendar.DAY_OF_MONTH, now.get(Calendar.DAY_OF_MONTH));
                                 sunRise.set(Calendar.SECOND, 0);
                                               
-                                double r = rsSun[0] + Utils.daylightOffset(sunRise) + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use /*ts.getTimeZone()*/));
+                                double r = rsSun[AstroComputer.UTC_RISE_IDX] + Utils.daylightOffset(sunRise) + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use /*ts.getTimeZone()*/));
                                 int min = (int)((r - ((int)r)) * 60);
                                 sunRise.set(Calendar.MINUTE, min);
                                 sunRise.set(Calendar.HOUR_OF_DAY, (int)r);
@@ -1723,7 +1724,7 @@ public class TideInternalFrame
                                 sunSet.set(Calendar.MONTH, now.get(Calendar.MONTH));
                                 sunSet.set(Calendar.DAY_OF_MONTH, now.get(Calendar.DAY_OF_MONTH));
                                 sunSet.set(Calendar.SECOND, 0);
-                                r = rsSun[1] + Utils.daylightOffset(sunSet) + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use/*ts.getTimeZone()*/));
+                                r = rsSun[AstroComputer.UTC_SET_IDX] + Utils.daylightOffset(sunSet) + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use/*ts.getTimeZone()*/));
                                 min = (int)((r - ((int)r)) * 60);
                                 sunSet.set(Calendar.MINUTE, min);
                                 sunSet.set(Calendar.HOUR_OF_DAY, (int)r);
