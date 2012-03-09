@@ -78,7 +78,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
+// import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSlider;
@@ -1230,13 +1230,16 @@ public class TideInternalFrame
       String moonDeclValue = "";       
       if (moonDeclination != null)
       {
-        moonDeclValue = "<br>Moon Decl: ";
-        for (DataPoint dp : moonDeclination)
+        moonDeclValue = "";
+        synchronized (moonDeclination)
         {
-          if (e.getX() == (int)Math.round(dp.getX() * widthRatio))
+          for (DataPoint dp : moonDeclination)
           {
-            moonDeclValue += GeomUtil.decToSex(dp.getY(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN);
-            break;
+            if (e.getX() == (int)Math.round(dp.getX() * widthRatio))
+            {
+              moonDeclValue += ("<br>Moon Decl: " + GeomUtil.decToSex(dp.getY(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN));
+              break;
+            }
           }
         }
       }
