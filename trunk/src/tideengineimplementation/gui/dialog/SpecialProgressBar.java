@@ -6,16 +6,23 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
 public class SpecialProgressBar
   extends JPanel
+//implements ActionListener
 {
   private final SpecialProgressBar instance = this;
   private String label = "";
   private boolean move = true;
   private transient SpecialThread thread = null;
   private boolean stringPainted = true;
+  
+//private static Timer timer = null;
   
   public SpecialProgressBar()
   {
@@ -24,6 +31,12 @@ public class SpecialProgressBar
   
   public SpecialProgressBar(boolean b)
   {
+//    if (timer == null || (timer != null && !timer.isRunning()))
+//    {
+//      timer = new Timer(1000, this);
+//      timer.start();
+//    }
+    
     this.move = b;
     this.setEnabled(b);
     try
@@ -116,7 +129,12 @@ public class SpecialProgressBar
     else
       stop();
   }
-  
+
+//  public void actionPerformed(ActionEvent e)
+//  {
+//    this.repaint();
+//  }
+
   private class SpecialThread extends Thread
   {
     private boolean move = true;
