@@ -81,12 +81,12 @@ public class Utils
     return ret;
   }
   
-  public static void main(String[] args)
+  public static void main1(String[] args)
   {
     System.out.println(formatTimeDiff(8094701L / 1000L));
   }
   
-  public static void main1(String[] args)
+  public static void main(String[] args)
   {
     SimpleDateFormat sdf = new SimpleDateFormat("E dd-MMM-yyyy HH:mm Z (z)");
     Calendar cal = GregorianCalendar.getInstance();
@@ -110,6 +110,7 @@ public class Utils
     tz = "America/Los_Angeles";
     sdf.setTimeZone(TimeZone.getTimeZone(tz));
     cal.setTimeZone(TimeZone.getTimeZone(tz));
+    
     cal.set(Calendar.YEAR, 2011);
     cal.set(Calendar.MONTH, 7);
     cal.set(Calendar.DAY_OF_MONTH, 30);
