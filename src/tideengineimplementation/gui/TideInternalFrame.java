@@ -759,6 +759,8 @@ public class TideInternalFrame
                         high2Cal = null;
                         trend = 0;
                         
+                        double previousUTCOffset = Double.NaN;
+                        
                         for (int h=0; h<24; h++)
                         {
                           for (int m=0; m<60; m++)
@@ -771,6 +773,15 @@ public class TideInternalFrame
                             double wh = 0;
                             try { wh = Utils.convert(TideUtilities.getWaterHeight(ts, constSpeed, cal), ts.getDisplayUnit(), currentUnit); }
                             catch (Exception ex) { ex.printStackTrace(); }
+                            double offset = AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use), cal.getTime());
+                            if (Double.isNaN(previousUTCOffset))
+                              previousUTCOffset = offset;
+                            if (offset != previousUTCOffset)
+                            {
+                              System.out.println("TimeOffset change at " + cal.getTime() + ", offset was " + previousUTCOffset + ", now " + offset);
+                              System.out.println("Previous WH:" + previousWH + ", WH:" + wh);
+                              System.out.println("Trend:" + (trend==FALLING?"Falling":"Rising"));
+                            }
                             if (!Double.isNaN(previousWH))
                             {
                               if (trend == 0)
@@ -785,37 +796,53 @@ public class TideInternalFrame
                                 switch (trend)
                                 {
                                   case RISING:
-                                    if (previousWH > wh) // Now going down
+                                    if (previousWH > wh && offset == previousUTCOffset) // Now going down
                                     {
-                                      if (Double.isNaN(high1))
+                                      Calendar prev = (Calendar)cal.clone();
+                                      prev.add(Calendar.MINUTE, -1);                                      
+                                      if (AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use), cal.getTime()) == 
+                                          AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use), prev.getTime()))
                                       {
-                                        high1 = previousWH;
-                                        cal.add(Calendar.MINUTE, -1);
-                                        high1Cal = cal;
-                                      }
-                                      else
-                                      {
-                                        high2 = previousWH;
-                                        cal.add(Calendar.MINUTE, -1);
-                                        high2Cal = cal;
+                                        if (Double.isNaN(high1))
+                                        {                                          
+                                          high1 = previousWH;
+                                          cal.add(Calendar.MINUTE, -1);
+                                          high1Cal = cal;
+//                                        System.out.println("High Tide (1) detected [" + previousWH + "] at " + cal.getTime());
+                                        }
+                                        else
+                                        {
+                                          high2 = previousWH;
+                                          cal.add(Calendar.MINUTE, -1);
+                                          high2Cal = cal;
+//                                        System.out.println("High Tide (2) detected [" + previousWH + "] at " + cal.getTime());
+                                        }
                                       }
                                       trend = FALLING; // Now falling
                                     }
                                     break;
                                   case FALLING:
-                                    if (previousWH < wh) // Now going up
+                                    if (previousWH < wh && offset == previousUTCOffset) // Now going up
                                     {
-                                      if (Double.isNaN(low1))
+                                      Calendar prev = (Calendar)cal.clone();
+                                      prev.add(Calendar.MINUTE, -1);                                      
+                                      if (AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use), cal.getTime()) == 
+                                          AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use), prev.getTime()))
                                       {
-                                        low1 = previousWH;
-                                        cal.add(Calendar.MINUTE, -1);
-                                        low1Cal = cal;
-                                      }
-                                      else
-                                      {
-                                        low2 = previousWH;
-                                        cal.add(Calendar.MINUTE, -1);
-                                        low2Cal = cal;
+                                        if (Double.isNaN(low1))
+                                        {
+                                          low1 = previousWH;
+                                          cal.add(Calendar.MINUTE, -1);
+                                          low1Cal = cal;
+//                                        System.out.println("Low Tide (1) detected [" + previousWH + "] at " + cal.getTime());
+                                        }
+                                        else
+                                        {
+                                          low2 = previousWH;
+                                          cal.add(Calendar.MINUTE, -1);
+                                          low2Cal = cal;
+//                                        System.out.println("Low Tide (2) detected [" + previousWH + "] at " + cal.getTime());
+                                        }
                                       }
                                       trend = RISING; // Now rising
                                     }
@@ -831,6 +858,7 @@ public class TideInternalFrame
                               }
                             }
                             previousWH = wh;
+                            previousUTCOffset = offset;
                           }
                         }
                         long after = System.currentTimeMillis();
