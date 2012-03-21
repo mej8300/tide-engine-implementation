@@ -987,7 +987,10 @@ public class TideInternalFrame
                 if (!tv.getType().equals("SS") && !tv.getType().equals("SR"))
                 {
               //  dataStr = (tv.getType().equals("SR")?"Sun Rise":"Sun Set") + " " + TIME_FORMAT.format(tv.getCalendar().getTime());
-                  dataStr = tv.getType() + " " + TIME_FORMAT.format(tv.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(tv.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit;
+                  if (currentUnit.equals(TideStation.KNOTS)) // Current, in knots
+                    dataStr = (tv.getType().equals("HW")?"Max Flood":"Max Ebb  ") + " " + TIME_FORMAT.format(tv.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(tv.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit;
+                  else
+                    dataStr = tv.getType() + " " + TIME_FORMAT.format(tv.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(tv.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit;
                   if (diffOffset == -1)
                   {
                     int len = g.getFontMetrics(g.getFont()).stringWidth(dataStr);
@@ -1012,8 +1015,12 @@ public class TideInternalFrame
                 if (nextEvent.getType().equals("SS") || nextEvent.getType().equals("SR"))
                   dataStr += (nextEvent.getType().equals("SR")?"Sun Rise":"Sun Set") + " " + TIME_FORMAT.format(nextEvent.getCalendar().getTime()) + " (in " + Utils.formatTimeDiff(now, nextEvent.getCalendar()) + ")";
                 else
-                  dataStr += nextEvent.getType() + " " + TIME_FORMAT.format(nextEvent.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(nextEvent.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit + " (in " + Utils.formatTimeDiff(now, nextEvent.getCalendar()) + ")";
-
+                {
+                  if (currentUnit.equals(TideStation.KNOTS))
+                    dataStr += (nextEvent.getType().equals("HW")?"Max Flood":"Max Ebb  ") + " " + TIME_FORMAT.format(nextEvent.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(nextEvent.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit + " (in " + Utils.formatTimeDiff(now, nextEvent.getCalendar()) + ")";
+                  else
+                    dataStr += nextEvent.getType() + " " + TIME_FORMAT.format(nextEvent.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(nextEvent.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit + " (in " + Utils.formatTimeDiff(now, nextEvent.getCalendar()) + ")";
+                }
                 AttributedString astr = new AttributedString(dataStr);
                 Pattern pattern = Pattern.compile("Next event");
                 Matcher matcher = pattern.matcher(dataStr);
