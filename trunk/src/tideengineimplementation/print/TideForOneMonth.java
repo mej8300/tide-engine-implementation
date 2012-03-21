@@ -217,39 +217,55 @@ public class TideForOneMonth
             switch (trend)
             {
               case RISING:
-                if (previousWH > wh) // Now going down
                 {
-                  if (Double.isNaN(high1))
+                  Calendar prev = (Calendar)cal.clone();
+                  prev.add(Calendar.MINUTE, -1);                                      
+                  if (AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone), cal.getTime()) == 
+                      AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone), prev.getTime()))
                   {
-                    high1 = previousWH;
-                    cal.add(Calendar.MINUTE, -1);
-                    high1Cal = cal;
+                    if (previousWH > wh) // Now going down
+                    {
+                      if (Double.isNaN(high1))
+                      {
+                        high1 = previousWH;
+                        cal.add(Calendar.MINUTE, -1);
+                        high1Cal = cal;
+                      }
+                      else
+                      {
+                        high2 = previousWH;
+                        cal.add(Calendar.MINUTE, -1);
+                        high2Cal = cal;
+                      }
+                      trend = FALLING; // Now falling
+                    }
                   }
-                  else
-                  {
-                    high2 = previousWH;
-                    cal.add(Calendar.MINUTE, -1);
-                    high2Cal = cal;
-                  }
-                  trend = FALLING; // Now falling
                 }
                 break;
               case FALLING:
-                if (previousWH < wh) // Now going up
                 {
-                  if (Double.isNaN(low1))
+                  Calendar prev = (Calendar)cal.clone();
+                  prev.add(Calendar.MINUTE, -1);                                      
+                  if (AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone), cal.getTime()) == 
+                      AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone), prev.getTime()))
                   {
-                    low1 = previousWH;
-                    cal.add(Calendar.MINUTE, -1);
-                    low1Cal = cal;
+                    if (previousWH < wh) // Now going up
+                    {
+                      if (Double.isNaN(low1))
+                      {
+                        low1 = previousWH;
+                        cal.add(Calendar.MINUTE, -1);
+                        low1Cal = cal;
+                      }
+                      else
+                      {
+                        low2 = previousWH;
+                        cal.add(Calendar.MINUTE, -1);
+                        low2Cal = cal;
+                      }
+                      trend = RISING; // Now rising
+                    }
                   }
-                  else
-                  {
-                    low2 = previousWH;
-                    cal.add(Calendar.MINUTE, -1);
-                    low2Cal = cal;
-                  }
-                  trend = RISING; // Now rising
                 }
                 break;
             }
