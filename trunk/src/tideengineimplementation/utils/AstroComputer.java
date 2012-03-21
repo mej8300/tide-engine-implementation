@@ -4,7 +4,9 @@ import calculation.SightReductionUtil;
 
 import java.text.SimpleDateFormat;
 
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import nauticalalmanac.Anomalies;
@@ -161,6 +163,11 @@ public class AstroComputer
 
   public static final synchronized double getTimeZoneOffsetInHours(TimeZone tz)
   {
+    return getTimeZoneOffsetInHours(tz, new Date());
+  }
+  
+  public static final synchronized double getTimeZoneOffsetInHours(TimeZone tz, Date when)
+  {
     double d = 0;
     if (false)
     {
@@ -175,7 +182,7 @@ public class AstroComputer
       d += (m / 60d);
     }
     else
-      d = (tz.getOffset(new Date().getTime()) / (3600d * 1000d));
+      d = (tz.getOffset(when.getTime()) / (3600d * 1000d));
 
     return d;
   }
@@ -374,5 +381,16 @@ public class AstroComputer
       System.out.println("TimeOffset for " + tz[i] + ":" +  getTimeZoneOffsetInHours(TimeZone.getTimeZone(tz[i])));
     
     System.out.println("TZ:" + TimeZone.getTimeZone(tz[0]).getDisplayName() + ", " + (TimeZone.getTimeZone(tz[0]).getOffset(new Date().getTime()) / (3600d * 1000)));
+
+    String timeZone = "America/Los_Angeles";
+    Calendar cal = GregorianCalendar.getInstance();
+    System.out.println("On " + cal.getTime() + ", TimeOffset for " + timeZone + ":" +  getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone), cal.getTime()));
+    double d = TimeZone.getTimeZone(timeZone).getOffset(cal.getTime().getTime()) / (3600d * 1000d);
+//  System.out.println("TimeOffset for " + timeZone + ":" +  d);
+    cal.set(Calendar.MONTH, Calendar.DECEMBER);
+    cal.getTime();
+    System.out.println("On " + cal.getTime() + ", TimeOffset for " + timeZone + ":" +  getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone), cal.getTime()));
+    d = TimeZone.getTimeZone(timeZone).getOffset(cal.getTime().getTime()) / (3600d * 1000d);
+//  System.out.println("TimeOffset for " + timeZone + ":" +  d);
   }
 }

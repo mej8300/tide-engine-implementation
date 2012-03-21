@@ -419,7 +419,7 @@ public class TideInternalFrame
             sunRise.set(Calendar.DAY_OF_MONTH, now.get(Calendar.DAY_OF_MONTH));
             sunRise.set(Calendar.SECOND, 0);
                           
-            double r = rsSun[AstroComputer.UTC_RISE_IDX] + Utils.daylightOffset(sunRise) + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use /*ts.getTimeZone()*/));
+            double r = rsSun[AstroComputer.UTC_RISE_IDX] /* + Utils.daylightOffset(sunRise) */ + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use /*ts.getTimeZone()*/), sunRise.getTime());
             int min = (int)((r - ((int)r)) * 60);
             sunRise.set(Calendar.MINUTE, min);
             sunRise.set(Calendar.HOUR_OF_DAY, (int)r);
@@ -430,7 +430,7 @@ public class TideInternalFrame
             sunSet.set(Calendar.MONTH, now.get(Calendar.MONTH));
             sunSet.set(Calendar.DAY_OF_MONTH, now.get(Calendar.DAY_OF_MONTH));
             sunSet.set(Calendar.SECOND, 0);
-            r = rsSun[AstroComputer.UTC_SET_IDX] + Utils.daylightOffset(sunSet) + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use/*ts.getTimeZone()*/));
+            r = rsSun[AstroComputer.UTC_SET_IDX] /* + Utils.daylightOffset(sunSet) */ + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use/*ts.getTimeZone()*/), sunSet.getTime());
             min = (int)((r - ((int)r)) * 60);
             sunSet.set(Calendar.MINUTE, min);
             sunSet.set(Calendar.HOUR_OF_DAY, (int)r);
@@ -1697,11 +1697,11 @@ public class TideInternalFrame
                                                                       0, 
                                                                       0);
                               utcCal.setTimeZone(TimeZone.getTimeZone("Etc/UTC"));
-                              utcCal.getTime();
+                              Date d = utcCal.getTime();
                               moonPhase = AstroComputer.getMoonPhase(utcCal.get(Calendar.YEAR), 
                                                                      utcCal.get(Calendar.MONTH) + 1, 
                                                                      utcCal.get(Calendar.DAY_OF_MONTH), 
-                                                                     h + hourOffset - (int)Math.round(AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(ts.getTimeZone()))), 
+                                                                     h + hourOffset - (int)Math.round(AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(ts.getTimeZone()), d)), 
                                                                      0, 
                                                                      0);
                               if (h == 0) // Sun rise and set
@@ -1711,23 +1711,34 @@ public class TideInternalFrame
                                 rsSun  = AstroComputer.sunRiseAndSet(ts.getLatitude(), ts.getLongitude());
                                 Calendar sunRise = new GregorianCalendar();
                                 sunRise.setTimeZone(TimeZone.getTimeZone(ts.getTimeZone()));
-                                sunRise.set(Calendar.YEAR, now.get(Calendar.YEAR));
-                                sunRise.set(Calendar.MONTH, now.get(Calendar.MONTH));
-                                sunRise.set(Calendar.DAY_OF_MONTH, now.get(Calendar.DAY_OF_MONTH));
+//                                sunRise.set(Calendar.YEAR, now.get(Calendar.YEAR));
+//                                sunRise.set(Calendar.MONTH, now.get(Calendar.MONTH));
+//                                sunRise.set(Calendar.DAY_OF_MONTH, now.get(Calendar.DAY_OF_MONTH));
+                                sunRise.set(Calendar.YEAR, reference.get(Calendar.YEAR));
+                                sunRise.set(Calendar.MONTH, reference.get(Calendar.MONTH));
+                                sunRise.set(Calendar.DAY_OF_MONTH, reference.get(Calendar.DAY_OF_MONTH));
                                 sunRise.set(Calendar.SECOND, 0);
                                               
-                                double r = rsSun[AstroComputer.UTC_RISE_IDX] + Utils.daylightOffset(sunRise) + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use /*ts.getTimeZone()*/));
+//                              System.out.println("Now      :" + now.getTime());
+//                              System.out.println("Reference:" + reference.getTime());
+//                              System.out.println("Rise: TZ offset at " + sunRise.getTime() + " is " + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use /*ts.getTimeZone()*/), sunRise.getTime()));              
+                                double r = rsSun[AstroComputer.UTC_RISE_IDX] /*+ Utils.daylightOffset(sunRise)*/ + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use /*ts.getTimeZone()*/), sunRise.getTime());
                                 int min = (int)((r - ((int)r)) * 60);
                                 sunRise.set(Calendar.MINUTE, min);
                                 sunRise.set(Calendar.HOUR_OF_DAY, (int)r);
                                 
                                 Calendar sunSet = new GregorianCalendar();
                                 sunSet.setTimeZone(TimeZone.getTimeZone(ts.getTimeZone()));
-                                sunSet.set(Calendar.YEAR, now.get(Calendar.YEAR));
-                                sunSet.set(Calendar.MONTH, now.get(Calendar.MONTH));
-                                sunSet.set(Calendar.DAY_OF_MONTH, now.get(Calendar.DAY_OF_MONTH));
+//                                sunSet.set(Calendar.YEAR, now.get(Calendar.YEAR));
+//                                sunSet.set(Calendar.MONTH, now.get(Calendar.MONTH));
+//                                sunSet.set(Calendar.DAY_OF_MONTH, now.get(Calendar.DAY_OF_MONTH));
+                                sunSet.set(Calendar.YEAR, reference.get(Calendar.YEAR));
+                                sunSet.set(Calendar.MONTH, reference.get(Calendar.MONTH));
+                                sunSet.set(Calendar.DAY_OF_MONTH, reference.get(Calendar.DAY_OF_MONTH));
                                 sunSet.set(Calendar.SECOND, 0);
-                                r = rsSun[AstroComputer.UTC_SET_IDX] + Utils.daylightOffset(sunSet) + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use/*ts.getTimeZone()*/));
+
+//                              System.out.println("Set : TZ offset at " + sunSet.getTime() + " is " + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use /*ts.getTimeZone()*/), sunSet.getTime()));              
+                                r = rsSun[AstroComputer.UTC_SET_IDX] /*+ Utils.daylightOffset(sunSet)*/ + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use/*ts.getTimeZone()*/), sunSet.getTime());
                                 min = (int)((r - ((int)r)) * 60);
                                 sunSet.set(Calendar.MINUTE, min);
                                 sunSet.set(Calendar.HOUR_OF_DAY, (int)r);
