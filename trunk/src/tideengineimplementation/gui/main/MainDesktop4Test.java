@@ -14,7 +14,7 @@ import javax.swing.UIManager;
 import tideengineimplementation.gui.TideInternalFrame;
 
 public class MainDesktop4Test
-  extends JFrame
+     extends JFrame
 {
   public MainDesktop4Test()
   {
@@ -47,7 +47,8 @@ public class MainDesktop4Test
   
   public static void main(String[] args)
   {
-    String lnf = System.getProperty("swing.defaultlaf");
+    String lnf = null;
+    try { lnf = System.getProperty("swing.defaultlaf"); } catch (Exception ignore) {}
     //  System.out.println("LnF:" + lnf);
     if (lnf == null) // Let the -Dswing.defaultlaf do the job.
     {

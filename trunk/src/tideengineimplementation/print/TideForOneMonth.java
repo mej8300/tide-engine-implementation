@@ -33,7 +33,7 @@ public class TideForOneMonth
 //private final static String STATION_FILE     = BackEndTideComputer.getStationFileLocation(); // ".." + File.separator + "TideEngine" + File.separator + "xml.data" + File.separator + "stations.xml";
   
   private final static SimpleDateFormat SDF = new SimpleDateFormat("EEE dd MMM yyyy");
-  public final static SimpleDateFormat TF  = new SimpleDateFormat("HH:mm");
+  public final static SimpleDateFormat TF  = new SimpleDateFormat("HH:mm z");
   
   private final static NumberFormat DF2 = new DecimalFormat("00");
   

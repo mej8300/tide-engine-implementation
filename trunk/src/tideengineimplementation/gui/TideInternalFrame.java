@@ -129,7 +129,7 @@ import tideengineimplementation.utils.Utils;
 import user.util.GeomUtil;
 
 public class TideInternalFrame
-  extends JInternalFrame
+     extends JInternalFrame
 {
   public final static String TIDE_INTERNAL_FRAME_PROP_FILE = "internal.tide.frame.properties";
   public final static String TOP_LEFT_X_PROP          = "top.left.x";
@@ -188,6 +188,8 @@ public class TideInternalFrame
   
   private transient Image sunSymbol  = new ImageIcon(this.getClass().getResource("sun.png")).getImage();
   private transient Image moonSymbol = new ImageIcon(this.getClass().getResource("moon.png")).getImage();
+//private transient Image sunSymbol  = new ImageIcon(TideInternalFrame.class.getResource("sun.png")).getImage();
+//private transient Image moonSymbol = new ImageIcon(TideInternalFrame.class.getResource("moon.png")).getImage();
   
   private int hourOffset = 0;
   private CoeffTable ct = null;
@@ -2142,10 +2144,18 @@ public class TideInternalFrame
   {
     try
     {
-      if (System.getProperty("tide.flavor", "xml").equals("xml"))
+      String flavor = "sqlite"; 
+      try { flavor = System.getProperty("tide.flavor", "xml"); } 
+      catch (Exception ignore)
+      {        
+        System.err.println("Are you an Applet? " + ignore.getLocalizedMessage() + " (Ok)");
+      }
+      if (flavor.equals("xml"))
         BackEndTideComputer.connect(BackEndTideComputer.XML_OPTION);
-      else
+      else if (flavor.equals("sql"))
         BackEndTideComputer.connect(BackEndTideComputer.SQL_OPTION);
+      else
+        BackEndTideComputer.connect(BackEndTideComputer.SQLITE_OPTION);
     }
     catch (Exception ex)
     {

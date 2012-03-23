@@ -118,11 +118,21 @@ public class SplashWindow extends JWindow
     copyrightLabel.setText((char)169  + " " + "OlivSoft, 2011");
     copyrightLabel.setForeground(Color.red);
 
-    String flavor = "XML";
-    if (System.getProperty("tide.flavor", "xml").equals("xml"))
-      flavor = "XML";
-    else
-      flavor = "SQL";
+    String flavor = "SQLITE";
+    try
+    {
+      String tideFlavor = System.getProperty("tide.flavor", "xml"); 
+      if (tideFlavor.equals("xml"))
+        flavor = "XML";
+      else if (tideFlavor.equals("sqllite"))
+        flavor = "SQLITE";
+      else
+        flavor = "SQL";
+    }
+    catch (Exception ex)
+    {
+      System.err.println("You're an Applet, hey? " + ex.getLocalizedMessage() + " (OK).");
+    }
     loadingLabel.setText("Loading " + "(" + flavor + ")");
     loadingLabel.setForeground(Color.red);
     itemHolder.add(loadingLabel, new GridBagConstraints(0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(140, 0, 0, 0), 0, 0));
