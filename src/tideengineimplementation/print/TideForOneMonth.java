@@ -21,7 +21,7 @@ import tideengine.TideUtilities;
 import tideengineimplementation.utils.AstroComputer;
 import tideengineimplementation.utils.Utils;
 
-// TASK Add rise and set times for Sun and Moon
+// TASK Add rise and set times for Sun
 
 /**
  * Tide Publisher
@@ -134,11 +134,36 @@ public class TideForOneMonth
                                                    utcCal.get(Calendar.HOUR_OF_DAY), 
                                                    utcCal.get(Calendar.MINUTE), 
                                                    utcCal.get(Calendar.SECOND));
+      double[] rsSun  = AstroComputer.sunRiseAndSet(ts.getLatitude(), ts.getLongitude());
+      Calendar sunRise = new GregorianCalendar();
+      sunRise.setTimeZone(TimeZone.getTimeZone(ts.getTimeZone()));
+      sunRise.set(Calendar.YEAR, now.get(Calendar.YEAR));
+      sunRise.set(Calendar.MONTH, now.get(Calendar.MONTH));
+      sunRise.set(Calendar.DAY_OF_MONTH, now.get(Calendar.DAY_OF_MONTH));
+      sunRise.set(Calendar.SECOND, 0);
+                    
+      double r = rsSun[AstroComputer.UTC_RISE_IDX] /* + Utils.daylightOffset(sunRise) */ + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone /*ts.getTimeZone()*/), sunRise.getTime());
+      int min = (int)((r - ((int)r)) * 60);
+      sunRise.set(Calendar.MINUTE, min);
+      sunRise.set(Calendar.HOUR_OF_DAY, (int)r);
+      
+      Calendar sunSet = new GregorianCalendar();
+      sunSet.setTimeZone(TimeZone.getTimeZone(ts.getTimeZone()));
+      sunSet.set(Calendar.YEAR, now.get(Calendar.YEAR));
+      sunSet.set(Calendar.MONTH, now.get(Calendar.MONTH));
+      sunSet.set(Calendar.DAY_OF_MONTH, now.get(Calendar.DAY_OF_MONTH));
+      sunSet.set(Calendar.SECOND, 0);
+      r = rsSun[AstroComputer.UTC_SET_IDX] /* + Utils.daylightOffset(sunSet) */ + AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone/*ts.getTimeZone()*/), sunSet.getTime());
+      min = (int)((r - ((int)r)) * 60);
+      sunSet.set(Calendar.MINUTE, min);
+      sunSet.set(Calendar.HOUR_OF_DAY, (int)r);
+
       int phaseInDay = (int)Math.round(moonPhase / (360d / 28d)) + 1;
       if (phaseInDay > 28) phaseInDay = 28;
       if (phaseInDay < 1) phaseInDay = 1;
       if (timeZone != null)
         TF.setTimeZone(TimeZone.getTimeZone(timeZone));
+            
       if (flavor == TEXT_FLAVOR)
       {
         out.println("- " + SDF.format(now.getTime()) + " - Moon Age:" + DF2.format(phaseInDay));
@@ -147,7 +172,7 @@ public class TideForOneMonth
       }
       else if (flavor == XML_FLAVOR)
       {
-        out.println("<date val='" + SDF.format(now.getTime()) + "' moon-phase='" + DF2.format(phaseInDay) + "'>");
+        out.println("<date val='" + SDF.format(now.getTime()) + "' moon-phase='" + DF2.format(phaseInDay) + "' sun-rise='" + TF.format(sunRise.getTime()) + "' sun-set='" + TF.format(sunSet.getTime()) + "'>");
         for (TimedValue tv : timeAL)
           out.println("  <plot type='" + tv.getType() + "' date='" + TF.format(tv.getCalendar().getTime()) + "' height='" + TideUtilities.DF22.format(tv.getValue()) + "' unit='" + unitToUse + "'/>");
         out.println("</date>");

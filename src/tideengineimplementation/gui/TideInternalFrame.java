@@ -156,6 +156,7 @@ public class TideInternalFrame
   {
     UTC_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("Etc/UTC"));
   }
+  private final static SimpleDateFormat SOLAR_DATE_FORMAT = new SimpleDateFormat("dd MMMM yyyy HH:mm:ss");
   private final static SimpleDateFormat SUITABLE_DATE_FORMAT = new SimpleDateFormat("EEEE dd MMMM yyyy HH:mm (Z) z");
   private final static SimpleDateFormat JUST_DATE_FORMAT = new SimpleDateFormat("EEEE dd MMMM yyyy");
   private final static SimpleDateFormat JUST_DATE_FORMAT_SMALL = new SimpleDateFormat("E dd MMM yyyy z (Z)");
@@ -919,7 +920,13 @@ public class TideInternalFrame
               g.setFont(g.getFont().deriveFont(Font.PLAIN, fontSize));
               Font f = g.getFont();
               g.setFont(f.deriveFont(Font.BOLD, f.getSize()));
-              g.drawString(ts.getFullName() + ", " + FULL_DATE_FORMAT.format(now.getTime()), x, y);
+              Calendar solar = (Calendar)now.clone();
+              solar.setTimeZone(TimeZone.getTimeZone("etc/UTC"));
+              SOLAR_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("etc/UTC"));
+              long time = solar.getTime().getTime();
+              double offset = (ts.getLongitude() / 15d) * 3600d * 1000d; // in milliseconds
+              time += offset;
+              g.drawString(ts.getFullName() + ", " + FULL_DATE_FORMAT.format(now.getTime()) + " (Solar " + SOLAR_DATE_FORMAT.format(new Date(time)) + ")", x, y);
               g.setFont(f);
               y += (fontSize + 2);
               
