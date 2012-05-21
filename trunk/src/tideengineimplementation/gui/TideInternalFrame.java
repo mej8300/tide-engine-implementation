@@ -142,6 +142,8 @@ public class TideInternalFrame
   public final static String SEPARATOR          = "------------------";
   
   private final static SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm (z) Z ");
+  private final static SimpleDateFormat UTC_TIME_FORMAT = new SimpleDateFormat("HH:mm ('UTC')");
+  static { UTC_TIME_FORMAT.setTimeZone(TimeZone.getTimeZone("etc/UTC")); }
   private final static DecimalFormat DF2 = new DecimalFormat("00");
   private final static DecimalFormat DF22 = new DecimalFormat("#0.00");
   private final static DecimalFormat DF3 = new DecimalFormat("##0");
@@ -239,17 +241,21 @@ public class TideInternalFrame
       double wh = 0;
       try { wh = Utils.convert(TideUtilities.getWaterHeight(ts, constSpeed, cal), ts.getDisplayUnit(), currentUnit); } catch (Exception ex) {}
       
-
+      String thisTime = TIME_FORMAT.format(cal.getTime());
+      String thisUTCTime = UTC_TIME_FORMAT.format(cal.getTime());
+      
       if ((e.getModifiers() & MouseEvent.BUTTON1_MASK) != 0)
       {
-        postit = DF2.format((int)(h % 24)) + ":" + DF2.format(m) + "\n" + TideUtilities.DF22PLUS.format(wh) + " " + currentUnit;
+//      postit = DF2.format((int)(h % 24)) + ":" + DF2.format(m) + "\n" + TideUtilities.DF22PLUS.format(wh) + " " + currentUnit;
+        postit = thisTime + "\n" +  thisUTCTime + "\n" + TideUtilities.DF22PLUS.format(wh) + " " + currentUnit;
         mouseX = e.getX();
         mouseY = e.getY();
         mouseWh = wh;
         repaint();
       }
       else
-        this.setToolTipText("<html>" + DF2.format((int)(h % 24)) + ":" + DF2.format(m) + "<br>" + TideUtilities.DF22PLUS.format(wh) + " " + currentUnit + "</html>");
+//      this.setToolTipText("<html>" + DF2.format((int)(h % 24)) + ":" + DF2.format(m) + "<br>" + TideUtilities.DF22PLUS.format(wh) + " " + currentUnit + "</html>");
+        this.setToolTipText("<html>" + thisTime + "<br>" +  thisUTCTime + "<br>" + TideUtilities.DF22PLUS.format(wh) + " " + currentUnit + "</html>");
     }
 
     @Override
