@@ -4,6 +4,8 @@ import astro.calc.GeoPoint;
 import chart.components.ui.ChartPanel;
 import chart.components.ui.ChartPanelParentInterface_II;
 import chart.components.util.World;
+
+import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -11,11 +13,20 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.Polygon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EventObject;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -314,7 +325,74 @@ public class CommandPanel
       plotBody(gr, "Mars",    AstroComputer.getMarsDecl(),    AstroComputer.getMarsGHA(),    marsSymbol);
       plotBody(gr, "Jupiter", AstroComputer.getJupiterDecl(), AstroComputer.getJupiterGHA(), jupiterSymbol);
       plotBody(gr, "Saturn",  AstroComputer.getSaturnDecl(),  AstroComputer.getSaturnGHA(),  saturnSymbol);
+      
+      // Day/Night limit
+      double sunLongitude = 0;
+      if (sunGHA < 180)
+        sunLongitude = -sunGHA;
+      if (sunGHA >= 180)
+        sunLongitude = 360 - sunGHA;
+      gr.setColor(Color.darkGray);
+      GeoPoint sunPos = new GeoPoint(sunD, sunLongitude);
+//    System.out.println("Sun Position:" + sunPos.toString());
+      Map<Double, Double> nightMap = new HashMap<Double, Double>();
+      int leftLng = (int)Math.round(chartPanel.getWestG());
+      for (int i=0; i<360; i++)
+      {
+        GeoPoint gp = deadReckoning(sunPos, 90 * 60, i);
+        double lng = gp.getG();
+        if (lng < -180)
+          lng += 360;
+        if (lng > 180)
+          lng -= 360;
+        nightMap.put(lng, gp.getL());
+      }
+      SortedSet<Double> sortedLng= new TreeSet<Double>(nightMap.keySet());
+      Polygon night = new Polygon();
+      for (Double d : sortedLng)
+      {
+        double lat = nightMap.get(d).doubleValue();
+        Point pp = chartPanel.getPanelPoint(new GeoPoint(lat, d));
+        night.addPoint(pp.x, pp.y);
+      }
+      if (sunD > 0) // Then night is south
+      {
+        night.addPoint(chartPanel.getW(), chartPanel.getH());  
+        night.addPoint(0, chartPanel.getH());  
+      }
+      else // Night is north
+      {
+        night.addPoint(chartPanel.getW(), 0);  
+        night.addPoint(0, 0);          
+      }
+      // Now fill the night polygon
+      ((Graphics2D)gr).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
+       gr.fillPolygon(night);
+      ((Graphics2D)gr).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
     }
+  }
+
+  /**
+   * Spherical Model used here
+   *
+   * @param start in degrees
+   * @param dist in nautical miles
+   * @param bearing in degrees
+   * @return
+   */
+  private static GeoPoint deadReckoning(GeoPoint start, double dist, double bearing)
+  {
+    GeoPoint reached = null;
+    double radianDistance = Math.toRadians(dist / 60d);
+    double finalLat = (Math.asin((Math.sin(Math.toRadians(start.getL())) * Math.cos(radianDistance)) +
+                                  (Math.cos(Math.toRadians(start.getL())) * Math.sin(radianDistance) * Math.cos(Math.toRadians(bearing))))); 
+    double finalLng = Math.toRadians(start.getG()) + Math.atan2(Math.sin(Math.toRadians(bearing)) * Math.sin(radianDistance) * Math.cos(Math.toRadians(start.getL())), 
+                                                                Math.cos(radianDistance) - Math.sin(Math.toRadians(start.getL())) * Math.sin(finalLat));
+    finalLat = Math.toDegrees(finalLat);
+    finalLng = Math.toDegrees(finalLng);
+    
+    reached = new GeoPoint(finalLat, finalLng);
+    return reached;
   }
 
   public void afterEvent(EventObject eventObject, int i)
