@@ -1,5 +1,9 @@
 package tideengineimplementation.gui;
 
+import astro.calc.GeoPoint;
+
+import astro.calc.GreatCircle;
+
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
@@ -50,6 +54,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -100,6 +105,10 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
+import nmea.server.ctx.NMEAContext;
+
+import nmea.server.ctx.NMEADataCache;
+
 import ocss.nmea.parser.GeoPos;
 
 import tideengine.BackEndTideComputer;
@@ -112,6 +121,8 @@ import tideengineimplementation.charts.CommandPanel;
 
 import tideengineimplementation.gui.ctx.TideContext;
 import tideengineimplementation.gui.ctx.TideEventListener;
+import tideengineimplementation.gui.dialog.ClosestStationPanel;
+import tideengineimplementation.gui.dialog.FoundStationPanel;
 import tideengineimplementation.gui.dialog.PrintDialog;
 import tideengineimplementation.gui.dialog.SearchPanel;
 import tideengineimplementation.gui.dialog.SpecialProgressBar;
@@ -132,10 +143,10 @@ public class TideInternalFrame
      extends JInternalFrame
 {
   public final static String TIDE_INTERNAL_FRAME_PROP_FILE = "internal.tide.frame.properties";
-  public final static String TOP_LEFT_X_PROP          = "top.left.x";
-  public final static String TOP_LEFT_Y_PROP          = "top.left.y";
-  public final static String WIDTH_PROP               = "width";
-  public final static String HEIGHT_PROP              = "height";
+  public final static String TOP_LEFT_X_PROP               = "top.left.x";
+  public final static String TOP_LEFT_Y_PROP               = "top.left.y";
+  public final static String WIDTH_PROP                    = "width";
+  public final static String HEIGHT_PROP                   = "height";
   
   public final static String COMPUTER_TIME_ZONE = "Computer Time Zone";
   public final static String STATION_TIME_ZONE  = "Station Time Zone";
@@ -144,9 +155,9 @@ public class TideInternalFrame
   private final static SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm (z) Z ");
   private final static SimpleDateFormat UTC_TIME_FORMAT = new SimpleDateFormat("HH:mm ('UTC')");
   static { UTC_TIME_FORMAT.setTimeZone(TimeZone.getTimeZone("etc/UTC")); }
-  private final static DecimalFormat DF2 = new DecimalFormat("00");
+  private final static DecimalFormat DF2  = new DecimalFormat("00");
   private final static DecimalFormat DF22 = new DecimalFormat("#0.00");
-  private final static DecimalFormat DF3 = new DecimalFormat("##0");
+  private final static DecimalFormat DF3  = new DecimalFormat("##0");
   private final static SimpleDateFormat SUN_RISE_SET_SDF = new SimpleDateFormat("E dd-MMM-yyyy HH:mm (z)");
 
   private final static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("d-MMM");
@@ -176,6 +187,7 @@ public class TideInternalFrame
   private JMenuItem menuFileExit = new JMenuItem();
   private JMenuItem menuFilePrint = new JMenuItem();
   private JMenuItem menuFileSearch = new JMenuItem();
+  private JMenuItem menuFileFindClosest = new JMenuItem();
   private JMenuItem menuFileGoogle = new JMenuItem();
   private JMenu menuHelp = new JMenu();
   private JMenuItem menuHelpAbout = new JMenuItem();
@@ -1873,7 +1885,7 @@ public class TideInternalFrame
                                   {
                                     Color c = g.getColor();
                                     g.setColor(Color.GREEN);
-                          //                          g.drawLine(x, 0, x, height);
+                          //        g.drawLine(x, 0, x, height);
                                     g.setColor(c);
                                   }
                                 }
@@ -2233,6 +2245,9 @@ public class TideInternalFrame
     menuFileSearch.setText("Search");
     menuFileSearch.setEnabled(false);
     menuFileSearch.addActionListener( new ActionListener() { public void actionPerformed( ActionEvent ae ) { fileSearch_ActionPerformed( ae ); } } );
+    menuFileFindClosest.setText("Find closest stations");
+    menuFileFindClosest.setEnabled(false);
+    menuFileFindClosest.addActionListener( new ActionListener() { public void actionPerformed( ActionEvent ae ) { fileFindClosest_ActionPerformed( ae ); } } );
     menuFileGoogle.setText("Google Map");
     menuFileGoogle.setEnabled(false);
     menuFileGoogle.addActionListener( new ActionListener() { public void actionPerformed( ActionEvent ae ) { fileGoogle_ActionPerformed( ae ); } } );    
@@ -2243,6 +2258,7 @@ public class TideInternalFrame
     menuHelpAbout.addActionListener( new ActionListener() { public void actionPerformed( ActionEvent ae ) { helpAbout_ActionPerformed( ae ); } } );
     menuFile.add( menuFilePrint );
     menuFile.add( menuFileSearch );
+    menuFile.add( menuFileFindClosest );
     menuFile.add( menuFileGoogle );
     menuFile.add(new JSeparator());
     menuFile.add( menuFileExit );
@@ -2836,6 +2852,7 @@ public class TideInternalFrame
             {
               menuFilePrint.setEnabled(true);
               menuFileSearch.setEnabled(true);
+              menuFileFindClosest.setEnabled(true);
               menuFileGoogle.setEnabled(true);
               String stationUnit = ts.getDisplayUnit();
               unitComboBox.removeAllItems();
@@ -2857,6 +2874,8 @@ public class TideInternalFrame
             {
               menuFilePrint.setEnabled(false);
               menuFileSearch.setEnabled(false);
+              menuFileFindClosest.setEnabled(false);
+              menuFileGoogle.setEnabled(false);
             }
             graphPanelOneDay.repaint();
             graphPanelExtended.repaint();
@@ -3236,6 +3255,95 @@ public class TideInternalFrame
           }
         };
       searchThread.start();
+    }
+  }
+  
+  private void fileFindClosest_ActionPerformed(ActionEvent e)
+  {
+    GeoPos gps = null;
+    try { gps = (GeoPos)NMEAContext.getInstance().getCache().get(NMEADataCache.POSITION); } catch (Exception ex) {}
+    if (gps == null)
+    {
+      System.out.println("Using current tide station position");
+      gps = new GeoPos(this.ts.getLatitude(), this.ts.getLongitude());
+    }
+    else
+    {
+      System.out.println("Finding station from current position " + gps.toString());
+    }
+    final GeoPoint origin = new GeoPoint(gps.lat, gps.lng);
+
+    /* 
+     * A dialog with the position read from the NMEA Cache (if no cache, take the position of the current station)
+     * Prompt the user for a radius
+     */
+    final ClosestStationPanel csp = new ClosestStationPanel(origin.toString());
+    
+    int resp = JOptionPane.showConfirmDialog(this, csp, "Find closest stations", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+    if (resp == JOptionPane.OK_OPTION)
+    {
+      final TideInternalFrame instance = this;
+      Thread findClosestStationsThread = new Thread()
+        {
+          public void run()
+          {
+            System.out.println("Working...");
+            List<TideStation> tideStations = null;
+            try { tideStations = BackEndTideComputer.getStationData(); } catch (Exception ex) {}
+            if (tideStations != null)
+            {
+              System.out.println("Found " + Integer.toString(tideStations.size()) + " station(s)");
+              List<StationDistance> stationMap = new ArrayList<StationDistance>();
+              // Populate
+              for (TideStation tideStation : tideStations)
+              {
+                double dist = GreatCircle.getDistanceInNM(origin, new GeoPoint(tideStation.getLatitude(), tideStation.getLongitude()));
+                stationMap.add(new StationDistance(tideStation.getFullName(), dist));
+              }               
+              // Sort
+              Collections.sort(stationMap, new Comparator<StationDistance>()
+              {
+                public int compare(TideInternalFrame.StationDistance o1, TideInternalFrame.StationDistance o2)
+                {
+                  // Sort on distance
+                  int cmp = 0;
+                  if (o1.getDistance() > o2.getDistance())
+                    cmp = 1;
+                  else if (o1.getDistance() < o2.getDistance())
+                    cmp = -1;
+                  return cmp;
+                }
+              });               
+              // Display
+              if (false)
+              {
+                int nbs = 0;
+                for (StationDistance tideStation : stationMap)
+                {
+                  System.out.println(tideStation.getStationName() + " at " + tideStation.getDistance() + " nm");
+                  nbs++;
+                  if (nbs > csp.getNbStation()) // Limit display
+                    break;
+                }
+              }
+              // Populate a table for the user to select one station.
+              FoundStationPanel fsp = new FoundStationPanel();
+              fsp.setStationData(stationMap, csp.getNbStation());
+              int resp = JOptionPane.showConfirmDialog(instance, fsp, "Nearest Stations", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+              if (resp == JOptionPane.OK_OPTION)
+              {
+                String sName = fsp.getSelectedStation();
+                if (sName != null)
+                {
+                  TideContext.getInstance().fireStationSelected(sName);
+                }
+              }
+            }
+            else
+              System.out.println("Not station found...");
+          }
+        };
+      findClosestStationsThread.start();
     }
   }
   
@@ -3858,6 +3966,38 @@ public class TideInternalFrame
     public GradientPaint getGradient()
     {
       return gradient;
+    }
+  }
+  
+  public class StationDistance
+  {
+    private String stationName = "";
+    private double distance = 0D;
+    
+    public StationDistance(String name, double d)
+    {
+      this.stationName = name;
+      this.distance = d;
+    }
+
+    public void setStationName(String stationName)
+    {
+      this.stationName = stationName;
+    }
+
+    public String getStationName()
+    {
+      return stationName;
+    }
+
+    public void setDistance(double distance)
+    {
+      this.distance = distance;
+    }
+
+    public double getDistance()
+    {
+      return distance;
     }
   }
   
