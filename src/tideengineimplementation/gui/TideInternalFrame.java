@@ -253,7 +253,7 @@ public class TideInternalFrame
       double wh = 0;
       try { wh = Utils.convert(TideUtilities.getWaterHeight(ts, constSpeed, cal), ts.getDisplayUnit(), currentUnit); } catch (Exception ex) {}
       
-      String thisTime = TIME_FORMAT.format(cal.getTime());
+      String thisTime    = TIME_FORMAT.format(cal.getTime());
       String thisUTCTime = UTC_TIME_FORMAT.format(cal.getTime());
       
       if ((e.getModifiers() & MouseEvent.BUTTON1_MASK) != 0)
