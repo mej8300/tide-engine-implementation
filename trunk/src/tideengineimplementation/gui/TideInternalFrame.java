@@ -2204,6 +2204,8 @@ public class TideInternalFrame
         @Override
         public void setDate(long date)
         {
+          if (now.getTime().getTime() != date)
+            resetData();
           now.setTime(new Date(date));
           if (graphPanelOneDay.isVisible())
             graphPanelOneDay.repaint();          
@@ -3792,7 +3794,7 @@ public class TideInternalFrame
     
     public void resetData()
     {
-      mainCurve= null;
+      mainCurve = null;
       harmonicCurves = null;
       sunAltitudes = null;
       moonAltitudes = null;
