@@ -53,6 +53,12 @@ public class TideContext
     }
   }
   
+  public void fireSetBusy(boolean b)
+  {
+    for (TideEventListener tel : tideListeners)
+      tel.setBusy(b);
+  }
+
   public void fireStationSelected(String sn)
   {
     for (TideEventListener tel : tideListeners)

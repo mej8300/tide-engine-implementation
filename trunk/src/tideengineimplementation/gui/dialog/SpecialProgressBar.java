@@ -68,7 +68,7 @@ public class SpecialProgressBar
   
   public void stop()
   {
-    System.out.println("Stop looking busy");
+    System.out.println("Stop looking busy.");
     this.move = false;
     if (thread != null)
     {
@@ -122,6 +122,11 @@ public class SpecialProgressBar
     this.label = label;
   }
   
+  public String getLabel()
+  {
+    return this.label;
+  }
+  
   public void setIndeterminate(boolean b)
   {
     if (b)
@@ -142,12 +147,13 @@ public class SpecialProgressBar
     @Override
     public void run()
     {
+      String display = instance.getLabel();
       while (move)
       {
         instance.repaint();
         try { Thread.sleep(100L); } catch (Exception ex) { ex.printStackTrace(); }
       }
-      System.out.println("Stop!");
+      System.out.println("Stop moving." + (display != null && display.trim().length() > 0?" (" + display + ")":""));
       instance.repaint();
     }
     
@@ -156,5 +162,4 @@ public class SpecialProgressBar
       this.move = false;
     }
   }
-
 }
