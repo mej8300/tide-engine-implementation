@@ -2793,7 +2793,7 @@ public class TideInternalFrame
         }
       });
     
-    refreshButton.setIcon(new ImageIcon(this.getClass().getResource("img/refresh.png")));
+    try { refreshButton.setIcon(new ImageIcon(this.getClass().getResource("img/refresh.png"))); } catch (Exception ex) { System.err.println(ex.getLocalizedMessage()); }
     refreshButton.setToolTipText("Refresh");
     refreshButton.setMargin(new Insets(1, 1, 1, 1));
     refreshButton.setMaximumSize(new Dimension(21, 21));
