@@ -2087,13 +2087,24 @@ public class TideInternalFrame
   private JButton forwardOneMonthButton = new JButton();
   private JButton forwardOneYearButton = new JButton();
   private JButton nowButton = new JButton();
+  private JButton refreshButton = new JButton();
+  
   private JSlider widthSlideBar = new JSlider();
   private JComboBox unitComboBox = new JComboBox();
   
   private CommandPanel chartCommandPanel = new CommandPanel();
   private JTabbedPane tabbedPane = new JTabbedPane();
   private GridBagLayout gridBagLayout1 = new GridBagLayout();
-  private JPanel topButtonPanel = new JPanel();
+  private JPanel topButtonPanel = new JPanel()
+  {
+    @Override
+    public void setEnabled(boolean enabled)
+    {
+      super.setEnabled(enabled);
+      for (Component component : this.getComponents())
+        component.setEnabled(enabled);
+    }
+  };
   private JPanel bottomButtonPanel = new JPanel();
   private JLabel useUnitLabel = new JLabel();
   private JLabel stationTZLabel = new JLabel();
@@ -2233,6 +2244,12 @@ public class TideInternalFrame
 //          graphPanelOneDay.repaint();
 //          graphPanelExtended.repaint();
 //        }
+        
+        @Override
+        public void setBusy(boolean b)
+        {
+          topButtonPanel.setEnabled(!b);
+        }
       };
     TideContext.getInstance().addTideListener(tideEventListener);
 
@@ -2297,6 +2314,7 @@ public class TideInternalFrame
     buttonPanel.setLayout(gridBagLayout1);
     bottomButtonPanel.setLayout(gridBagLayout2);
     topButtonPanel.setLayout(gridBagLayout3);
+    
     useUnitLabel.setText("Use Unit");
     stationTZLabel.setText("Station Time Zone");
     stationTimeZoneLabel.setText("Etc/UTC");
@@ -2349,7 +2367,7 @@ public class TideInternalFrame
         }
       });
     decomposeCheckBox.setText("Decompose");
-    decomposeCheckBox.setToolTipText("<html><b>Warning:</b><br>This is a demanding operation...</html>");
+    decomposeCheckBox.setToolTipText("Show curves for each coefficient");
     decomposeCheckBox.addActionListener(new ActionListener()
       {
         public void actionPerformed(ActionEvent e)
@@ -2368,7 +2386,7 @@ public class TideInternalFrame
         }
       });
     showAltitudesCheckBox.setText("Alt");
-    showAltitudesCheckBox.setToolTipText("Show Sun and Moon altitude curves");
+    showAltitudesCheckBox.setToolTipText("<html>Show Sun and Moon altitude curves<br><b>Warning:</b><br>This is a demanding operation...</html>");
     showAltitudesCheckBox.addActionListener(new ActionListener()
       {
         public void actionPerformed(ActionEvent e)
@@ -2402,6 +2420,9 @@ public class TideInternalFrame
           new Insets(5, 0, 5, 0), 0, 0));
     topButtonPanel.add(forwardOneYearButton, new GridBagConstraints(11, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
           new Insets(5, 0, 5, 0), 0, 0));
+
+    topButtonPanel.add(refreshButton, new GridBagConstraints(12, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
+          new Insets(5, 5, 5, 0), 0, 0));
 
     topButtonPanel.add(showBaseHeightCheckBox, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
           new Insets(0, 0, 0, 5), 0, 0));
@@ -2771,6 +2792,22 @@ public class TideInternalFrame
           nowButton_actionPerformed(e);
         }
       });
+    
+    refreshButton.setIcon(new ImageIcon(this.getClass().getResource("img/refresh.png")));
+    refreshButton.setToolTipText("Refresh");
+    refreshButton.setMargin(new Insets(1, 1, 1, 1));
+    refreshButton.setMaximumSize(new Dimension(21, 21));
+    refreshButton.setMinimumSize(new Dimension(21, 21));
+    refreshButton.setPreferredSize(new Dimension(21, 21));
+    refreshButton.setBorderPainted(false);
+    refreshButton.addActionListener(new ActionListener()
+      {
+        public void actionPerformed(ActionEvent e)
+        {
+          refreshButton_actionPerformed(e);
+        }
+      });
+    
     widthSlideBar.setMinimumSize(new Dimension(200, 30));
     widthSlideBar.setValue(3);
     widthSlideBar.setMaximum(31);
@@ -3480,6 +3517,13 @@ public class TideInternalFrame
     graphPanelExtended.repaint();
   }
 
+  private void refreshButton_actionPerformed(ActionEvent e)
+  {
+    resetData();
+    graphPanelOneDay.repaint();
+    graphPanelExtended.repaint();
+  }
+  
   private void this_internalFrameClosed(InternalFrameEvent e)
   {
     // Store position
@@ -3608,6 +3652,8 @@ public class TideInternalFrame
             return null;
           }
         };
+      TideContext.getInstance().fireSetBusy(true);
+//    System.out.println("... Locking");
       swingWorker.execute();
     }
     nbBusyThread++;
@@ -3628,6 +3674,9 @@ public class TideInternalFrame
         statusIndicator.setEnabled(false);
         statusIndicator.setIndeterminate(false);
         statusIndicator.repaint();
+        // Broadcast release
+        TideContext.getInstance().fireSetBusy(false);
+//      System.out.println("... Releasing");
       }
     }
     else
@@ -3641,7 +3690,8 @@ public class TideInternalFrame
           firstKey = k;
           break;
         }
-        String newLabel = busyMap.get(firstKey);
+        String newLabel = "";
+        try { newLabel = busyMap.get(firstKey); } catch (Exception ex) { System.err.println(ex.getLocalizedMessage()); }
 //      System.out.println("  -> New Label: [" + newLabel + "]");
         statusIndicator.setString(newLabel);
         statusIndicator.repaint();
