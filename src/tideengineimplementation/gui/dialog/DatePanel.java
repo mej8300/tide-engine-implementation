@@ -9,6 +9,10 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import java.awt.event.MouseWheelEvent;
+
+import java.awt.event.MouseWheelListener;
+
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
@@ -43,7 +47,16 @@ public class DatePanel
   {
     SpinnerModel sm = new SpinnerNumberModel(GregorianCalendar.getInstance().get(Calendar.YEAR), 1970, 2037, 1);
     yearSpinner = new JSpinner(sm);
-    
+    yearSpinner.addMouseWheelListener(new MouseWheelListener()
+      {
+        public void mouseWheelMoved(MouseWheelEvent e)
+        {
+          int notches = e.getWheelRotation();
+          Integer ds = (Integer)yearSpinner.getValue();
+          yearSpinner.setValue(new Integer(ds.intValue() + (notches * -1)));
+        }
+      });
+
     monthComboBox.removeAllItems();
     monthComboBox.addItem("Jan");
     monthComboBox.addItem("Feb");

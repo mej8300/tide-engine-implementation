@@ -6,6 +6,10 @@ import java.awt.GridBagLayout;
 
 import java.awt.Insets;
 
+import java.awt.event.MouseWheelEvent;
+
+import java.awt.event.MouseWheelListener;
+
 import java.text.SimpleDateFormat;
 
 import java.util.Calendar;
@@ -73,9 +77,27 @@ public class PrintDialog
     startLabel.setText("Start ");
     SpinnerModel sm = new SpinnerNumberModel(1, 1, 100, 1);
     nbSpinner = new JSpinner(sm);
+    nbSpinner.addMouseWheelListener(new MouseWheelListener()
+      {
+        public void mouseWheelMoved(MouseWheelEvent e)
+        {
+          int notches = e.getWheelRotation();
+          Integer ds = (Integer)nbSpinner.getValue();
+          nbSpinner.setValue(new Integer(ds.intValue() + (notches * -1)));
+        }
+      });
 
     SpinnerModel sm2 = new SpinnerNumberModel(GregorianCalendar.getInstance().get(Calendar.YEAR), 1970, 2037, 1);
     yearSpinner = new JSpinner(sm2);
+    yearSpinner.addMouseWheelListener(new MouseWheelListener()
+      {
+        public void mouseWheelMoved(MouseWheelEvent e)
+        {
+          int notches = e.getWheelRotation();
+          Integer ds = (Integer)yearSpinner.getValue();
+          yearSpinner.setValue(new Integer(ds.intValue() + (notches * -1)));
+        }
+      });
 
     this.add(stationNameLabel, new GridBagConstraints(0, 0, 3, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
           new Insets(0, 0, 10, 0), 0, 0));
