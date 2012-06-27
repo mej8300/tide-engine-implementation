@@ -11,6 +11,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
@@ -110,6 +111,8 @@ extends JPanel
     table.getSelectionModel().addListSelectionListener(listener);
     table.getColumnModel().getSelectionModel().addListSelectionListener(listener);
     table.getColumn(STATIONS).setPreferredWidth(300);
+    
+    table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
   }
 
   private void addLineInTable(String a,

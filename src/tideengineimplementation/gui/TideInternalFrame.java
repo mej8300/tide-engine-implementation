@@ -1024,7 +1024,10 @@ public class TideInternalFrame
                     int tabSize = 50;
                     diffOffset = (int)((len / tabSize) + 1) * tabSize;
                   }
-                  g.drawString(dataStr, x, y);
+                  AttributedString as = new AttributedString(dataStr);
+                  as.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), 0, dataStr.length());
+                  g.drawString(as.getIterator(), x, y);
+                  
                   if (prevHeight != -Double.MAX_VALUE && currentUnit != null && !currentUnit.startsWith("knots"))
                   {
                     double ampl = Math.abs(prevHeight - tv.getValue());
@@ -1059,7 +1062,7 @@ public class TideInternalFrame
                   nbMatch++;
                   int start = matcher.start();
                   int end   = matcher.end();
-                  astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), start, end);
+                  astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD | Font.ITALIC, g.getFont().getSize()), start, end);
                   found = matcher.find();
                 }
                 // Type
@@ -1072,7 +1075,7 @@ public class TideInternalFrame
                   nbMatch++;
                   int start = matcher.start();
                   int end   = matcher.end();
-                  astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), start, end);
+                  astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD | Font.ITALIC, g.getFont().getSize()), start, end);
                   found = matcher.find();
                 }              
                 pattern = Pattern.compile("LW");
@@ -1084,7 +1087,7 @@ public class TideInternalFrame
                   nbMatch++;
                   int start = matcher.start();
                   int end   = matcher.end();
-                  astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), start, end);
+                  astr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD | Font.ITALIC, g.getFont().getSize()), start, end);
                   found = matcher.find();
                 }              
                 g.drawString(astr.getIterator(), x, y);

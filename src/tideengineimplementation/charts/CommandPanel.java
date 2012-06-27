@@ -9,6 +9,7 @@ import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -36,6 +37,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+import nauticalalmanac.Context;
+
 import tideengine.TideStation;
 
 import tideengineimplementation.gui.TideInternalFrame;
@@ -43,6 +46,8 @@ import tideengineimplementation.gui.ctx.TideContext;
 import tideengineimplementation.gui.ctx.TideEventListener;
 
 import tideengineimplementation.utils.AstroComputer;
+
+import user.util.GeomUtil;
 
 public class CommandPanel 
      extends JPanel
@@ -58,6 +63,7 @@ public class CommandPanel
   private JButton zoomOutButton;
   private JCheckBox mouseCheckBox;
   private JCheckBox withNameCheckBox;
+  private JCheckBox withAstroCheckBox;
   
   private transient List<TideStation> stationData = null;
   
@@ -85,6 +91,8 @@ public class CommandPanel
     mouseCheckBox.setSelected(false);
     withNameCheckBox = new JCheckBox("With Station Names");
     withNameCheckBox.setSelected(false);
+    withAstroCheckBox = new JCheckBox("With Astro Data");
+    withAstroCheckBox.setSelected(false);
     
     try
     {
@@ -142,12 +150,20 @@ public class CommandPanel
                                            chartPanel.repaint();
                                          }
                                        });
+    withAstroCheckBox.addActionListener(new ActionListener()
+                                       {
+                                         public void actionPerformed(ActionEvent e)
+                                         {
+                                           chartPanel.repaint();
+                                         }
+                                       });
     jScrollPane1.getViewport().add(chartPanel, null);
     add(jScrollPane1, BorderLayout.CENTER);
     bottomPanel.add(zoomInButton, null);
     bottomPanel.add(zoomOutButton, null);
     bottomPanel.add(mouseCheckBox, null);
     bottomPanel.add(withNameCheckBox, null);
+    bottomPanel.add(withAstroCheckBox, null);
     add(bottomPanel, BorderLayout.SOUTH);
     double nLat  =  83D;
     double sLat  = -80D;
@@ -369,6 +385,44 @@ public class CommandPanel
       ((Graphics2D)gr).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
        gr.fillPolygon(night);
       ((Graphics2D)gr).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+    }
+    if (withAstroCheckBox.isSelected())
+    {
+      // Drawing astro data
+      if (sunD != 0 && sunGHA != 0 && moonD != 0 && moonGHA != 0)
+      {
+        gr.setColor(Color.blue);
+        Font f = gr.getFont();
+        gr.setFont(new Font("courier new", Font.PLAIN, 12));
+        int _x = 10;
+        int _y = 20;
+        gr.drawString("Sun GHA     = " + GeomUtil.decToSex(sunGHA, GeomUtil.SWING, GeomUtil.NONE), _x, _y);
+        _y += gr.getFont().getSize();
+        gr.drawString("Sun D       = " + GeomUtil.decToSex(sunD, GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN), _x, _y);
+        _y += gr.getFont().getSize();
+        gr.drawString("Moon GHA    = " + GeomUtil.decToSex(moonGHA, GeomUtil.SWING, GeomUtil.NONE), _x, _y);
+        _y += gr.getFont().getSize();
+        gr.drawString("Moon D      = " + GeomUtil.decToSex(moonD, GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN), _x, _y);
+        _y += gr.getFont().getSize();
+        gr.drawString("Venus GHA   = " + GeomUtil.decToSex(AstroComputer.getVenusGHA(), GeomUtil.SWING, GeomUtil.NONE), _x, _y);
+        _y += gr.getFont().getSize();
+        gr.drawString("Venus D     = " + GeomUtil.decToSex(AstroComputer.getVenusDecl(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN), _x, _y);
+        _y += gr.getFont().getSize();
+        gr.drawString("Mars GHA    = " + GeomUtil.decToSex(AstroComputer.getMarsGHA(), GeomUtil.SWING, GeomUtil.NONE), _x, _y);
+        _y += gr.getFont().getSize();
+        gr.drawString("Mars D      = " + GeomUtil.decToSex(AstroComputer.getMarsDecl(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN), _x, _y);
+        _y += gr.getFont().getSize();
+        gr.drawString("Jupiter GHA = " + GeomUtil.decToSex(AstroComputer.getJupiterGHA(), GeomUtil.SWING, GeomUtil.NONE), _x, _y);
+        _y += gr.getFont().getSize();
+        gr.drawString("Jupiter D   = " + GeomUtil.decToSex(AstroComputer.getJupiterDecl(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN), _x, _y);
+        _y += gr.getFont().getSize();
+        gr.drawString("Saturn GHA  = " + GeomUtil.decToSex(AstroComputer.getSaturnGHA(), GeomUtil.SWING, GeomUtil.NONE), _x, _y);
+        _y += gr.getFont().getSize();
+        gr.drawString("Saturn D    = " + GeomUtil.decToSex(AstroComputer.getSaturnDecl(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN), _x, _y);
+        _y += gr.getFont().getSize();
+        
+        gr.setFont(f);
+      }
     }
   }
 
