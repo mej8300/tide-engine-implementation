@@ -5,6 +5,8 @@ import chart.components.ui.ChartPanel;
 import chart.components.ui.ChartPanelParentInterface_II;
 import chart.components.util.World;
 
+import coreutilities.Utilities;
+
 import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -392,36 +394,23 @@ public class CommandPanel
       if (sunD != 0 && sunGHA != 0 && moonD != 0 && moonGHA != 0)
       {
         gr.setColor(Color.blue);
-        Font f = gr.getFont();
-        gr.setFont(new Font("courier new", Font.PLAIN, 12));
-        int _x = 10;
-        int _y = 20;
-        gr.drawString("Sun GHA     = " + GeomUtil.decToSex(sunGHA, GeomUtil.SWING, GeomUtil.NONE), _x, _y);
-        _y += gr.getFont().getSize();
-        gr.drawString("Sun D       = " + GeomUtil.decToSex(sunD, GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN), _x, _y);
-        _y += gr.getFont().getSize();
-        gr.drawString("Moon GHA    = " + GeomUtil.decToSex(moonGHA, GeomUtil.SWING, GeomUtil.NONE), _x, _y);
-        _y += gr.getFont().getSize();
-        gr.drawString("Moon D      = " + GeomUtil.decToSex(moonD, GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN), _x, _y);
-        _y += gr.getFont().getSize();
-        gr.drawString("Venus GHA   = " + GeomUtil.decToSex(AstroComputer.getVenusGHA(), GeomUtil.SWING, GeomUtil.NONE), _x, _y);
-        _y += gr.getFont().getSize();
-        gr.drawString("Venus D     = " + GeomUtil.decToSex(AstroComputer.getVenusDecl(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN), _x, _y);
-        _y += gr.getFont().getSize();
-        gr.drawString("Mars GHA    = " + GeomUtil.decToSex(AstroComputer.getMarsGHA(), GeomUtil.SWING, GeomUtil.NONE), _x, _y);
-        _y += gr.getFont().getSize();
-        gr.drawString("Mars D      = " + GeomUtil.decToSex(AstroComputer.getMarsDecl(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN), _x, _y);
-        _y += gr.getFont().getSize();
-        gr.drawString("Jupiter GHA = " + GeomUtil.decToSex(AstroComputer.getJupiterGHA(), GeomUtil.SWING, GeomUtil.NONE), _x, _y);
-        _y += gr.getFont().getSize();
-        gr.drawString("Jupiter D   = " + GeomUtil.decToSex(AstroComputer.getJupiterDecl(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN), _x, _y);
-        _y += gr.getFont().getSize();
-        gr.drawString("Saturn GHA  = " + GeomUtil.decToSex(AstroComputer.getSaturnGHA(), GeomUtil.SWING, GeomUtil.NONE), _x, _y);
-        _y += gr.getFont().getSize();
-        gr.drawString("Saturn D    = " + GeomUtil.decToSex(AstroComputer.getSaturnDecl(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN), _x, _y);
-        _y += gr.getFont().getSize();
+        String[][] data = new String[][]
+          {
+            { "Sun GHA",     GeomUtil.decToSex(sunGHA, GeomUtil.SWING, GeomUtil.NONE) },
+            { "Sun D",       GeomUtil.decToSex(sunD, GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN) },
+            { "Moon GHA",    GeomUtil.decToSex(moonGHA, GeomUtil.SWING, GeomUtil.NONE) },
+            { "Moon D",      GeomUtil.decToSex(moonD, GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN) }, 
+            { "Venus GHA",   GeomUtil.decToSex(AstroComputer.getVenusGHA(), GeomUtil.SWING, GeomUtil.NONE) },
+            { "Venus D",     GeomUtil.decToSex(AstroComputer.getVenusDecl(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN) },
+            { "Mars GHA",    GeomUtil.decToSex(AstroComputer.getMarsGHA(), GeomUtil.SWING, GeomUtil.NONE) },
+            { "Mars D",      GeomUtil.decToSex(AstroComputer.getMarsDecl(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN) },
+            { "Jupiter GHA", GeomUtil.decToSex(AstroComputer.getJupiterGHA(), GeomUtil.SWING, GeomUtil.NONE) },
+            { "Jupiter D",   GeomUtil.decToSex(AstroComputer.getJupiterDecl(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN) },
+            { "Saturn GHA",  GeomUtil.decToSex(AstroComputer.getSaturnGHA(), GeomUtil.SWING, GeomUtil.NONE) },
+            { "Saturn D",    GeomUtil.decToSex(AstroComputer.getSaturnDecl(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN) }
+          };
+        Utilities.drawPanelTable(data, gr, new Point(10, 20), 10, 2, new int[] { Utilities.LEFT_ALIGNED, Utilities.RIGHT_ALIGNED });
         
-        gr.setFont(f);
       }
     }
   }
