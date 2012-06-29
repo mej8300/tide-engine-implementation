@@ -33,10 +33,12 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 
 import nauticalalmanac.Context;
@@ -66,6 +68,9 @@ public class CommandPanel
   private JCheckBox mouseCheckBox;
   private JCheckBox withNameCheckBox;
   private JCheckBox withAstroCheckBox;
+  private JRadioButton sunLightRadioButton;
+  private JRadioButton moonLightRadioButton;
+  private ButtonGroup lightGroup = new ButtonGroup();
   
   private transient List<TideStation> stationData = null;
   
@@ -95,6 +100,14 @@ public class CommandPanel
     withNameCheckBox.setSelected(false);
     withAstroCheckBox = new JCheckBox("With Astro Data");
     withAstroCheckBox.setSelected(false);
+    
+    sunLightRadioButton = new JRadioButton("Sun Light");
+    sunLightRadioButton.setSelected(true);
+    moonLightRadioButton = new JRadioButton("Moon Light");
+    moonLightRadioButton.setSelected(false);
+    
+    lightGroup.add(sunLightRadioButton);
+    lightGroup.add(moonLightRadioButton);
     
     try
     {
@@ -159,8 +172,25 @@ public class CommandPanel
                                            chartPanel.repaint();
                                          }
                                        });
+    sunLightRadioButton.addActionListener(new ActionListener()
+                                       {
+                                         public void actionPerformed(ActionEvent e)
+                                         {
+                                           chartPanel.repaint();
+                                         }
+                                       });
+    moonLightRadioButton.addActionListener(new ActionListener()
+                                       {
+                                         public void actionPerformed(ActionEvent e)
+                                         {
+                                           chartPanel.repaint();
+                                         }
+                                       });
+    
     jScrollPane1.getViewport().add(chartPanel, null);
     add(jScrollPane1, BorderLayout.CENTER);
+    bottomPanel.add(sunLightRadioButton, null);
+    bottomPanel.add(moonLightRadioButton, null);
     bottomPanel.add(zoomInButton, null);
     bottomPanel.add(zoomOutButton, null);
     bottomPanel.add(mouseCheckBox, null);
@@ -345,13 +375,27 @@ public class CommandPanel
       plotBody(gr, "Saturn",  AstroComputer.getSaturnDecl(),  AstroComputer.getSaturnGHA(),  saturnSymbol);
       
       // Day/Night limit
-      double sunLongitude = 0;
-      if (sunGHA < 180)
-        sunLongitude = -sunGHA;
-      if (sunGHA >= 180)
-        sunLongitude = 360 - sunGHA;
+      double dayCenterLongitude = 0;
+      double dayCenterLatitude = 0;
+      if (sunLightRadioButton.isSelected())
+      {
+        if (sunGHA < 180)
+          dayCenterLongitude = -sunGHA;
+        if (sunGHA >= 180)
+          dayCenterLongitude = 360 - sunGHA;
+        dayCenterLatitude = sunD;
+      }
+      if (moonLightRadioButton.isSelected())
+      {
+        if (moonGHA < 180)
+          dayCenterLongitude = -moonGHA;
+        if (moonGHA >= 180)
+          dayCenterLongitude = 360 - moonGHA;
+        dayCenterLatitude = moonD;
+      }
+      
       gr.setColor(Color.darkGray);
-      GeoPoint sunPos = new GeoPoint(sunD, sunLongitude);
+      GeoPoint sunPos = new GeoPoint(dayCenterLatitude, dayCenterLongitude);
 //    System.out.println("Sun Position:" + sunPos.toString());
       Map<Double, Double> nightMap = new HashMap<Double, Double>();
 //    int leftLng = (int)Math.round(chartPanel.getWestG());
@@ -373,7 +417,7 @@ public class CommandPanel
         Point pp = chartPanel.getPanelPoint(new GeoPoint(lat, d));
         night.addPoint(pp.x, pp.y);
       }
-      if (sunD > 0) // Then night is south
+      if (dayCenterLatitude > 0) // Then night is south
       {
         night.addPoint(chartPanel.getW(), chartPanel.getH());  
         night.addPoint(0, chartPanel.getH());  
@@ -388,6 +432,7 @@ public class CommandPanel
        gr.fillPolygon(night);
       ((Graphics2D)gr).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
     }
+    
     if (withAstroCheckBox.isSelected())
     {
       // Drawing astro data
