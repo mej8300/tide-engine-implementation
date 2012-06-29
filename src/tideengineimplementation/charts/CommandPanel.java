@@ -354,7 +354,7 @@ public class CommandPanel
       GeoPoint sunPos = new GeoPoint(sunD, sunLongitude);
 //    System.out.println("Sun Position:" + sunPos.toString());
       Map<Double, Double> nightMap = new HashMap<Double, Double>();
-      int leftLng = (int)Math.round(chartPanel.getWestG());
+//    int leftLng = (int)Math.round(chartPanel.getWestG());
       for (int i=0; i<360; i++)
       {
         GeoPoint gp = deadReckoning(sunPos, 90 * 60, i);
