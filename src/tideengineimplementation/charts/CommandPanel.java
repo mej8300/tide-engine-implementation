@@ -43,6 +43,11 @@ import javax.swing.JScrollPane;
 
 import nauticalalmanac.Context;
 
+import nmea.server.ctx.NMEAContext;
+import nmea.server.ctx.NMEADataCache;
+
+import ocss.nmea.parser.GeoPos;
+
 import tideengine.TideStation;
 
 import tideengineimplementation.gui.TideInternalFrame;
@@ -433,6 +438,16 @@ public class CommandPanel
       ((Graphics2D)gr).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
     }
     
+    GeoPos gps = null;    
+    try { gps = (GeoPos)NMEAContext.getInstance().getCache().get(NMEADataCache.POSITION); } catch (Exception ex) {}
+    if (gps != null)
+    {
+      Point gpsPt = chartPanel.getPanelPoint(gps.lat, gps.lng);
+      gr.setColor(Color.blue);
+      gr.fillOval(gpsPt.x - 3, gpsPt.y - 3,  6,  6);
+      gr.drawOval(gpsPt.x - 5, gpsPt.y - 5, 10, 10);
+    }
+    
     if (withAstroCheckBox.isSelected())
     {
       // Drawing astro data
@@ -454,8 +469,7 @@ public class CommandPanel
             { "Saturn GHA",  GeomUtil.decToSex(AstroComputer.getSaturnGHA(), GeomUtil.SWING, GeomUtil.NONE) },
             { "Saturn D",    GeomUtil.decToSex(AstroComputer.getSaturnDecl(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN) }
           };
-        Utilities.drawPanelTable(data, gr, new Point(10, 20), 10, 2, new int[] { Utilities.LEFT_ALIGNED, Utilities.RIGHT_ALIGNED });
-        
+        Utilities.drawPanelTable(data, gr, new Point(10, 20), 10, 2, new int[] { Utilities.LEFT_ALIGNED, Utilities.RIGHT_ALIGNED });        
       }
     }
   }
