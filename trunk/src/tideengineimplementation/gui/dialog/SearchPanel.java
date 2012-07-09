@@ -131,6 +131,7 @@ public class SearchPanel
   public void setStation(TideStation ts)
   {
     this.station = ts;
+    stationNameLabel.setText(this.station.getFullName());
   }
   
   public int getFromHour()
