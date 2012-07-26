@@ -45,6 +45,8 @@ import java.io.PrintWriter;
 
 import java.net.URL;
 
+import java.net.URLEncoder;
+
 import java.sql.SQLException;
 
 import java.text.AttributedString;
@@ -251,7 +253,11 @@ public class TideInternalFrame
                                            (int)h, (int)Math.round(m));
       cal.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
       double wh = 0;
-      try { wh = Utils.convert(TideUtilities.getWaterHeight(ts, constSpeed, cal), ts.getDisplayUnit(), currentUnit); } catch (Exception ex) {}
+      try { wh = Utils.convert(TideUtilities.getWaterHeight(ts, constSpeed, cal), ts.getDisplayUnit(), currentUnit); } 
+      catch (Exception ex) 
+      {
+        System.err.println("MouseDown:" + ex.getLocalizedMessage());
+      }
       
       String thisTime    = TIME_FORMAT.format(cal.getTime());
       String thisUTCTime = UTC_TIME_FORMAT.format(cal.getTime());
@@ -3018,7 +3024,14 @@ public class TideInternalFrame
               return;
             }
             
-            out.println("<tide station='" + ts.getFullName() + "' station-time-zone='" + ts.getTimeZone() + "' print-time-zone='" + tz + "'>");                        
+            try
+            {
+              out.println("<tide station='" + ts.getFullName().replace("'", "&apos;") + "' station-time-zone='" + ts.getTimeZone() + "' print-time-zone='" + tz + "'>");
+            }
+            catch (Exception ex)
+            {
+              ex.printStackTrace();
+            }
             while (loop)
             {
               if (start.equals(end))
