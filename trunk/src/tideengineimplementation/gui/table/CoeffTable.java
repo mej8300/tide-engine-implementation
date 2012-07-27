@@ -14,6 +14,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -72,7 +73,7 @@ public class CoeffTable
   private JRadioButton selectedCoeffRadioButton = new JRadioButton();
   private ButtonGroup bg = new ButtonGroup();
 
-  public CoeffTable(HashMap<TideInternalFrame.ColoredCoeff, String> coeff)
+  public CoeffTable(Map<TideInternalFrame.ColoredCoeff, String> coeff)
   {
     try
     {
@@ -360,7 +361,7 @@ public class CoeffTable
     table.repaint();
   }
 
-  public void setCoeffData(HashMap<TideInternalFrame.ColoredCoeff, String> coeff)
+  public void setCoeffData(Map<TideInternalFrame.ColoredCoeff, String> coeff)
   {
     Object[][] cd = new Object[coeff.size()][2];
     Set<TideInternalFrame.ColoredCoeff> keys = coeff.keySet();
