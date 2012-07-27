@@ -61,6 +61,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -3592,8 +3593,28 @@ public class TideInternalFrame
      // String coeffName = coeffColor[i].name; // TideUtilities.getHarmonicCoeffName(ts, constSpeed, i);
         coeffData.put(coeffColor[i], TideUtilities.getHarmonicCoeffDefinition(coeffColor[i].name)); 
       }
+      // Ordered based on TideUtilities.ORDERED_COEFF
+      Map<ColoredCoeff, String> tempCoeffData = new LinkedHashMap<ColoredCoeff, String>(coeffData.size());
+      for (String s : TideUtilities.ORDERED_COEFF)
+      {
+        Set<ColoredCoeff> keys = coeffData.keySet();
+        for (ColoredCoeff cc : keys)
+        {
+          if (cc.name.equals(s))
+          {
+            tempCoeffData.put(cc, coeffData.get(cc));
+            coeffData.remove(cc);
+            break;
+          }
+        }
+      }
+      if (coeffData.size() > 0)
+      {
+        tempCoeffData.putAll(coeffData);
+      }
+      
       // Create coeff table
-      ct = new CoeffTable(coeffData);
+      ct = new CoeffTable(tempCoeffData);
       rightPanel.add(ct, BorderLayout.EAST);
     }
     else
