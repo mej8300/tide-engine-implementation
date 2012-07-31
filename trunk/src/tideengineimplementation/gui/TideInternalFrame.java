@@ -3593,9 +3593,9 @@ public class TideInternalFrame
      // String coeffName = coeffColor[i].name; // TideUtilities.getHarmonicCoeffName(ts, constSpeed, i);
         coeffData.put(coeffColor[i], TideUtilities.getHarmonicCoeffDefinition(coeffColor[i].name)); 
       }
-      // Ordered based on TideUtilities.ORDERED_COEFF
+      // Order it, based on TideUtilities.ORDERED_COEFF
       Map<ColoredCoeff, String> tempCoeffData = new LinkedHashMap<ColoredCoeff, String>(coeffData.size());
-      for (String s : TideUtilities.ORDERED_COEFF)
+      for (String s : TideUtilities.getOrderedCoeff())
       {
         Set<ColoredCoeff> keys = coeffData.keySet();
         for (ColoredCoeff cc : keys)
