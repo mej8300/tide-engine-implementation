@@ -26,6 +26,8 @@ import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -103,6 +105,8 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -187,6 +191,7 @@ public class TideInternalFrame
 
   private JMenuBar menuBar = new JMenuBar();
   private JMenu menuFile = new JMenu();
+  private JMenu menuFileRecent = new JMenu();
   private JMenuItem menuFileExit = new JMenuItem();
   private JMenuItem menuFilePrint = new JMenuItem();
   private JMenuItem menuFileSearch = new JMenuItem();
@@ -2169,7 +2174,23 @@ public class TideInternalFrame
         prop.load(new FileReader("tidestation.properties")); 
         String sn = prop.getProperty("tide.station");
         if (sn != null)
+        {
+          TideContext.getInstance().getRecentStations().add(sn);
           displayTide(sn);
+        }
+        boolean loop = true;
+        int idx = 0;
+        while (loop)
+        {
+          String s = prop.getProperty("recent." + Integer.toString(++idx));
+          if (s == null)
+            loop = false;
+          else
+          {
+            if (!TideContext.getInstance().getRecentStations().contains(s))
+              TideContext.getInstance().getRecentStations().add(s);
+          }
+        }
       } 
       catch (FileNotFoundException fnfe)
       {
@@ -2219,6 +2240,13 @@ public class TideInternalFrame
           displayTide(stationName);
           Properties prop = new Properties();
           prop.setProperty("tide.station", stationName);
+          int idx = 0;
+          
+          if (!TideContext.getInstance().getRecentStations().contains(stationName))
+            TideContext.getInstance().getRecentStations().add(stationName);
+          
+          for (String s : TideContext.getInstance().getRecentStations())
+            prop.setProperty("recent." + Integer.toString(++idx), s);
           try { prop.store(new FileOutputStream("tidestation.properties"), null); } catch (Exception ex) 
           { ex.printStackTrace(); }
         }
@@ -2282,6 +2310,36 @@ public class TideInternalFrame
     menuFileGoogle.addActionListener( new ActionListener() { public void actionPerformed( ActionEvent ae ) { fileGoogle_ActionPerformed( ae ); } } );    
     menuFileExit.setText("Exit");
     menuFileExit.addActionListener( new ActionListener() { public void actionPerformed( ActionEvent ae ) { fileExit_ActionPerformed( ae ); } } );
+    
+    menuFileRecent.setText("Recent Stations");
+    menuFileRecent.addMenuListener(new MenuListener()
+      {
+        public void menuSelected(MenuEvent e)
+        {
+          menuFileRecent.removeAll();
+          for (final String s : TideContext.getInstance().getRecentStations())
+          {
+            JMenuItem jmi = new JMenuItem(s);
+            jmi.addActionListener(new ActionListener() 
+              { 
+                public void actionPerformed( ActionEvent ae ) 
+                { 
+                  TideContext.getInstance().fireStationSelected(s); 
+                } 
+              });
+            menuFileRecent.add(jmi);
+          }
+        }
+
+        public void menuDeselected(MenuEvent e)
+        {
+        }
+
+        public void menuCanceled(MenuEvent e)
+        {
+        }
+      });
+    
     menuHelp.setText("Help");
     menuHelpAbout.setText("About");
     menuHelpAbout.addActionListener( new ActionListener() { public void actionPerformed( ActionEvent ae ) { helpAbout_ActionPerformed( ae ); } } );
@@ -2289,6 +2347,8 @@ public class TideInternalFrame
     menuFile.add( menuFileSearch );
     menuFile.add( menuFileFindClosest );
     menuFile.add( menuFileGoogle );
+    menuFile.add(new JSeparator());
+    menuFile.add( menuFileRecent );
     menuFile.add(new JSeparator());
     menuFile.add( menuFileExit );
     menuBar.add( menuFile );
@@ -2670,6 +2730,8 @@ public class TideInternalFrame
                   {
                     TideUtilities.StationTreeNode stn = (TideUtilities.StationTreeNode)o;
                     TideContext.getInstance().fireStationSelected(stn.getFullStationName());
+                    if (!TideContext.getInstance().getRecentStations().contains(stn.getFullStationName()))
+                      TideContext.getInstance().getRecentStations().add(stn.getFullStationName());
                   }
                 }
               }
@@ -3392,6 +3454,8 @@ public class TideInternalFrame
                 if (sName != null)
                 {
                   TideContext.getInstance().fireStationSelected(sName);
+                  if (!TideContext.getInstance().getRecentStations().contains(sName))
+                    TideContext.getInstance().getRecentStations().add(sName);
                 }
               }
             }
