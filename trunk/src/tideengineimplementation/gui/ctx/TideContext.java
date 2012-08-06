@@ -3,11 +3,14 @@ package tideengineimplementation.gui.ctx;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class TideContext
 {
   private static TideContext staticObjects = null;
   private transient List<TideEventListener> tideListeners = null;
   
+  private transient List<String> recentStations = new ArrayList<String>();
+
   private TideContext()
   {
     tideListeners = new ArrayList<TideEventListener>(2); // 2: Initial Capacity
@@ -81,5 +84,10 @@ public class TideContext
   {
     for (TideEventListener tel : tideListeners)
       tel.setCoeffToHighlight(names);
+  }
+
+  public List<String> getRecentStations()
+  {
+    return recentStations;
   }
 }

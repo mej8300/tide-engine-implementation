@@ -182,6 +182,8 @@ public class FilterTable
                if (sd.getFullName().equals(data[sr][0]))
                {
                  TideContext.getInstance().fireStationSelected(sd.getFullName());
+                 if (!TideContext.getInstance().getRecentStations().contains(sd.getFullName()))
+                   TideContext.getInstance().getRecentStations().add(sd.getFullName());
                  break;
                }
              }
