@@ -2191,6 +2191,9 @@ public class TideInternalFrame
               TideContext.getInstance().getRecentStations().add(s);
           }
         }
+        int maxRecent = Integer.parseInt(System.getProperty("max.recent.stations", "5"));
+        while (TideContext.getInstance().getRecentStations().size() > maxRecent)
+          TideContext.getInstance().getRecentStations().remove(0);
       } 
       catch (FileNotFoundException fnfe)
       {
@@ -2244,6 +2247,10 @@ public class TideInternalFrame
           
           if (!TideContext.getInstance().getRecentStations().contains(stationName))
             TideContext.getInstance().getRecentStations().add(stationName);
+
+          int maxRecent = Integer.parseInt(System.getProperty("max.recent.stations", "5"));
+          while (TideContext.getInstance().getRecentStations().size() > maxRecent)
+            TideContext.getInstance().getRecentStations().remove(0);
           
           for (String s : TideContext.getInstance().getRecentStations())
             prop.setProperty("recent." + Integer.toString(++idx), s);
@@ -2732,6 +2739,10 @@ public class TideInternalFrame
                     TideContext.getInstance().fireStationSelected(stn.getFullStationName());
                     if (!TideContext.getInstance().getRecentStations().contains(stn.getFullStationName()))
                       TideContext.getInstance().getRecentStations().add(stn.getFullStationName());
+
+                    int maxRecent = Integer.parseInt(System.getProperty("max.recent.stations", "5"));
+                    while (TideContext.getInstance().getRecentStations().size() > maxRecent)
+                      TideContext.getInstance().getRecentStations().remove(0);
                   }
                 }
               }
@@ -3456,6 +3467,10 @@ public class TideInternalFrame
                   TideContext.getInstance().fireStationSelected(sName);
                   if (!TideContext.getInstance().getRecentStations().contains(sName))
                     TideContext.getInstance().getRecentStations().add(sName);
+
+                  int maxRecent = Integer.parseInt(System.getProperty("max.recent.stations", "5"));
+                  while (TideContext.getInstance().getRecentStations().size() > maxRecent)
+                    TideContext.getInstance().getRecentStations().remove(0);
                 }
               }
             }
