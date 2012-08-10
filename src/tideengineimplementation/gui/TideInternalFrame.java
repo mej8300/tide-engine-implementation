@@ -1,7 +1,7 @@
 package tideengineimplementation.gui;
 
-import astro.calc.GeoPoint;
 
+import astro.calc.GeoPoint;
 import astro.calc.GreatCircle;
 
 import java.awt.AlphaComposite;
@@ -26,13 +26,10 @@ import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-
 import java.awt.font.TextAttribute;
 
 import java.io.BufferedWriter;
@@ -42,12 +39,9 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintStream;
-
 import java.io.PrintWriter;
 
 import java.net.URL;
-
-import java.net.URLEncoder;
 
 import java.sql.SQLException;
 
@@ -70,7 +64,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeMap;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -88,7 +81,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-// import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSlider;
@@ -113,7 +105,6 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
 import nmea.server.ctx.NMEAContext;
-
 import nmea.server.ctx.NMEADataCache;
 
 import ocss.nmea.parser.GeoPos;
@@ -145,6 +136,10 @@ import tideengineimplementation.utils.AstroComputer;
 import tideengineimplementation.utils.Utils;
 
 import user.util.GeomUtil;
+
+
+// import javax.swing.JProgressBar;
+
 
 public class TideInternalFrame
      extends JInternalFrame
@@ -956,7 +951,22 @@ public class TideInternalFrame
               long time = solar.getTime().getTime();
               double offset = (ts.getLongitude() / 15d) * 3600d * 1000d; // in milliseconds
               time += offset;
-              g.drawString(ts.getFullName() + ", " + FULL_DATE_FORMAT.format(now.getTime()) + " (Solar " + SOLAR_DATE_FORMAT.format(new Date(time)) + ")", x, y);
+              String snstr = ts.getFullName() + ", " + FULL_DATE_FORMAT.format(now.getTime()) + " (Solar " + SOLAR_DATE_FORMAT.format(new Date(time)) + ")";
+              AttributedString aSnStr = new AttributedString(snstr);
+              aSnStr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), 0, snstr.length());
+              
+              Pattern pattern = Pattern.compile(ts.getFullName());
+              Matcher matcher = pattern.matcher(snstr);
+              if (matcher.find())
+              {
+                int start = matcher.start();
+                int end   = matcher.end();
+                aSnStr.addAttribute(TextAttribute.BACKGROUND, Color.YELLOW, start, end);                
+                aSnStr.addAttribute(TextAttribute.FOREGROUND, Color.RED, start, end);                
+              }
+              // else weird...
+
+              g.drawString(aSnStr.getIterator(), x, y);
               g.setFont(f);
               y += (fontSize + 2);
               
@@ -972,8 +982,8 @@ public class TideInternalFrame
                 // Isolate the hours in the string
   //            System.out.println(srs);
                 AttributedString astr = new AttributedString(srs);
-                Pattern pattern = Pattern.compile("\\d{2}:\\d{2}");
-                Matcher matcher = pattern.matcher(srs);
+                pattern = Pattern.compile("\\d{2}:\\d{2}");
+                matcher = pattern.matcher(srs);
                 int nbMatch = 0;
                 boolean found = matcher.find();
                 // Highlight Rise and Set time
@@ -1064,8 +1074,8 @@ public class TideInternalFrame
                     dataStr += nextEvent.getType() + " " + TIME_FORMAT.format(nextEvent.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(nextEvent.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit + " (in " + Utils.formatTimeDiff(now, nextEvent.getCalendar()) + ")";
                 }
                 AttributedString astr = new AttributedString(dataStr);
-                Pattern pattern = Pattern.compile("Next event");
-                Matcher matcher = pattern.matcher(dataStr);
+                pattern = Pattern.compile("Next event");
+                matcher = pattern.matcher(dataStr);
                 int nbMatch = 0;
                 boolean found = matcher.find();
                 // Highlight Rise and Set time

@@ -55,6 +55,6 @@ public class TideFrame_AboutBoxPanel1
     this.add( labelCompany, new GridBagConstraints(1, 3, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE,
           new Insets(0, 15, 0, 15), 0, 0));
     this.add(logoLabel, new GridBagConstraints(0, 0, 1, 4, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
-          new Insets(0, 0, 0, 0), 0, 0));
+          new Insets(10, 10, 10, 10), 0, 0));
   }
 }
