@@ -1,10 +1,12 @@
 package tideengineimplementation.gui;
 
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
@@ -18,6 +20,7 @@ public class TideFrame_AboutBoxPanel1
   private JLabel labelCompany = new JLabel();
   private GridBagLayout layoutMain = new GridBagLayout();
   private Border border = BorderFactory.createEtchedBorder();
+  private JLabel logoLabel = new JLabel();
 
   public TideFrame_AboutBoxPanel1()
   {
@@ -36,13 +39,22 @@ public class TideFrame_AboutBoxPanel1
   {
     this.setLayout( layoutMain );
     this.setBorder( border );
+    this.setBackground(Color.white);
     labelTitle.setText( "Oliv's Tide Computer" );
     labelAuthor.setText( "C'est moi qui l'ai fait" );
     labelCopyright.setText( "Copyright 2011" );
     labelCompany.setText( "OlivSoft" );
-    this.add( labelTitle, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5, 15, 0, 15), 0, 0) );
-    this.add( labelAuthor, new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 15, 0, 15), 0, 0) );
-    this.add( labelCopyright, new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 15, 0, 15), 0, 0) );
-    this.add( labelCompany, new GridBagConstraints(0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 15, 5, 15), 0, 0) );
+    logoLabel.setIcon(new ImageIcon(this.getClass().getResource("tide.jpg")));
+
+    this.add( labelTitle, new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE,
+          new Insets(5, 15, 0, 15), 0, 0));
+    this.add( labelAuthor, new GridBagConstraints(1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE,
+          new Insets(0, 15, 0, 15), 0, 0));
+    this.add( labelCopyright, new GridBagConstraints(1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE,
+          new Insets(0, 15, 0, 15), 0, 0));
+    this.add( labelCompany, new GridBagConstraints(1, 3, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE,
+          new Insets(0, 15, 0, 15), 0, 0));
+    this.add(logoLabel, new GridBagConstraints(0, 0, 1, 4, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0));
   }
 }
