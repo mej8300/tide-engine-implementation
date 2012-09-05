@@ -15,10 +15,14 @@ import java.text.DecimalFormat;
 
 import java.util.GregorianCalendar;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+
+import javax.swing.JRadioButton;
 
 import tideengine.TideStation;
 
@@ -37,6 +41,22 @@ public class SearchPanel
   private JLabel stationNameLabel = new JLabel();
 
   private JPanel datePanel = new JPanel();
+  private JPanel weekDayPanel = new JPanel();
+  private JPanel rbWeekDayPanel = new JPanel();
+  private JPanel weekDaysPanel = new JPanel();
+  
+  private JLabel weekDayLabel = new JLabel("...and when week day is");
+  private JRadioButton anyDay = new JRadioButton("any day");
+  private JRadioButton specDay = new JRadioButton("checked below");
+  private ButtonGroup dayGroup = new ButtonGroup();
+  
+  private JCheckBox mondayCheckBox = new JCheckBox("Monday");
+  private JCheckBox tuesdayCheckBox = new JCheckBox("Tuesday");
+  private JCheckBox wednesdayCheckBox = new JCheckBox("Wednesday");
+  private JCheckBox thursdayCheckBox = new JCheckBox("Thursday");
+  private JCheckBox fridayCheckBox = new JCheckBox("Friday");
+  private JCheckBox saturdayCheckBox = new JCheckBox("Saturday");
+  private JCheckBox sundayCheckBox = new JCheckBox("Sunday");
   
   private JComboBox hiLoComboBox = new JComboBox();
   private JLabel hiLoLabel = new JLabel();
@@ -54,6 +74,9 @@ public class SearchPanel
   private transient TideStation station = null;
   private JButton nowButton = new JButton();
   private GridBagLayout gridBagLayout2 = new GridBagLayout();
+  private GridBagLayout gridBagLayout3 = new GridBagLayout();
+  private GridBagLayout gridBagLayout4 = new GridBagLayout();
+  private GridBagLayout gridBagLayout5 = new GridBagLayout();
 
   public SearchPanel(TideStation ts)
   {
@@ -76,6 +99,10 @@ public class SearchPanel
     findDaysLabel.setText("Find days at");
     stationNameLabel.setText(this.station.getFullName());
     datePanel.setLayout(gridBagLayout2);
+    weekDayPanel.setLayout(gridBagLayout3);
+    rbWeekDayPanel.setLayout(gridBagLayout4);
+    weekDaysPanel.setLayout(gridBagLayout5);
+    
     hiLoLabel.setText("when tide is ");
     betweenLabel.setText("between");
 
@@ -126,6 +153,66 @@ public class SearchPanel
           new Insets(0, 0, 0, 0), 0, 0));
     this.add(datePanel, new GridBagConstraints(0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
           new Insets(0, 0, 0, 0), 0, 0));
+
+    dayGroup.add(anyDay);
+    dayGroup.add(specDay);
+    anyDay.setSelected(true);
+    anyDay.addActionListener(new ActionListener()
+      {
+        public void actionPerformed(ActionEvent e)
+        {
+          anyDay_actionPerformed(e);
+        }
+      });
+    specDay.setSelected(false);
+    specDay.addActionListener(new ActionListener()
+      {
+        public void actionPerformed(ActionEvent e)
+        {
+          specDay_actionPerformed(e);
+        }
+      });
+    enableWeekDays(specDay.isSelected());
+    
+    rbWeekDayPanel.add(weekDayLabel, new GridBagConstraints(0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,
+          new Insets(0, 0, 0, 0), 0, 0));
+    rbWeekDayPanel.add(anyDay, new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0));
+    rbWeekDayPanel.add(specDay, new GridBagConstraints(1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0));
+
+    weekDaysPanel.add(mondayCheckBox, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0));
+    weekDaysPanel.add(tuesdayCheckBox, new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0));
+    weekDaysPanel.add(wednesdayCheckBox, new GridBagConstraints(2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0));
+    weekDaysPanel.add(thursdayCheckBox, new GridBagConstraints(3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0));
+    weekDaysPanel.add(fridayCheckBox, new GridBagConstraints(4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0));
+    weekDaysPanel.add(saturdayCheckBox, new GridBagConstraints(5, 0, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0));
+    weekDaysPanel.add(sundayCheckBox, new GridBagConstraints(6, 0, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0));
+
+    weekDayPanel.add(rbWeekDayPanel, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,
+          new Insets(0, 0, 0, 0), 0, 0));
+    weekDayPanel.add(weekDaysPanel, new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0));
+    this.add(weekDayPanel, new GridBagConstraints(0, 5, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,
+          new Insets(5, 0, 0, 0), 0, 0));
+  }
+  
+  private void enableWeekDays(boolean b)
+  {
+    mondayCheckBox.setEnabled(b);
+    tuesdayCheckBox.setEnabled(b);
+    wednesdayCheckBox.setEnabled(b);
+    thursdayCheckBox.setEnabled(b);
+    fridayCheckBox.setEnabled(b);
+    saturdayCheckBox.setEnabled(b);
+    sundayCheckBox.setEnabled(b);
   }
   
   public void setStation(TideStation ts)
@@ -156,9 +243,57 @@ public class SearchPanel
   {
     return toDatePanel.getDate();
   }
+  
+  public final static int MONDAY    = 0;
+  public final static int TUESDAY   = 1;
+  public final static int WEDNESDAY = 2;
+  public final static int THURSDAY  = 3;
+  public final static int FRIDAY    = 4;
+  public final static int SATURDAY  = 5;
+  public final static int SUNDAY    = 6;
+  
+  private final static String[] DAY_NAMES = { "Monday",
+                                              "Tuesday",
+                                              "Wednesday",
+                                              "Thursday",
+                                              "Friday",
+                                              "Saturday",
+                                              "Sunday" };
+  
+  public static String[] getDayNames()
+  {
+    return DAY_NAMES.clone();  
+  }
+  
+  public int[] getWeekDay()
+  {
+    int[] days = null;
+    if (specDay.isSelected())
+    {
+      days = new int[7];
+      days[MONDAY]    = (mondayCheckBox.isSelected()?1:0);
+      days[TUESDAY]   = (tuesdayCheckBox.isSelected()?1:0);
+      days[WEDNESDAY] = (wednesdayCheckBox.isSelected()?1:0);
+      days[THURSDAY]  = (thursdayCheckBox.isSelected()?1:0);
+      days[FRIDAY]    = (fridayCheckBox.isSelected()?1:0);
+      days[SATURDAY]  = (saturdayCheckBox.isSelected()?1:0);
+      days[SUNDAY]    = (sundayCheckBox.isSelected()?1:0);
+    }    
+    return days;
+  }
 
   private void nowButton_actionPerformed(ActionEvent e)
   {
     fromDatePanel.setDate(GregorianCalendar.getInstance());
+  }
+
+  private void anyDay_actionPerformed(ActionEvent e)
+  {
+    enableWeekDays(specDay.isSelected());
+  }
+
+  private void specDay_actionPerformed(ActionEvent e)
+  {
+    enableWeekDays(specDay.isSelected());
   }
 }

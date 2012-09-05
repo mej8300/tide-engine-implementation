@@ -3180,6 +3180,7 @@ public class TideInternalFrame
       final int toHour   = searchDialog.getToHour();
       final GregorianCalendar fromDate = searchDialog.getFromDate();
       final GregorianCalendar toDate   = searchDialog.getToDate();
+      final int[] weekdays = searchDialog.getWeekDay();
       Thread searchThread = new Thread()
         {
           public void run()
@@ -3206,7 +3207,22 @@ public class TideInternalFrame
             result += "<h3>\n";
             result += ("Days when tide is <b>" + ((tideType == SearchPanel.HIGH_TIDE)?"high":"low") + "</b> at " + ts.getFullName() + "<br>\n");
             result += ("between " + DF2.format(fromHour) + ":00 and " + DF2.format(toHour) + ":00<br>\n");
-            result += ("(dates between " + JUST_DATE_FORMAT.format(fromDate.getTime()) + " and " + JUST_DATE_FORMAT.format(toDate.getTime()) + ")\n");
+            result += ("(dates between " + JUST_DATE_FORMAT.format(fromDate.getTime()) + " and " + JUST_DATE_FORMAT.format(toDate.getTime()));
+            if (weekdays != null)
+            {
+              boolean first = true;
+              result += ", and week day is ";
+              for (int i=0; i<7; i++)
+              {
+                if (weekdays[i] == 1)
+                {
+                  if (!first) result += ", ";
+                  result += SearchPanel.getDayNames()[i];
+                  first = false;
+                }
+              }
+            }
+            result += ")\n";
             result += "</h3>\n";
             result += "<hr>\n";
             result += "<ul>\n";
@@ -3315,9 +3331,27 @@ public class TideInternalFrame
 //                System.out.print("  Is " + tideHour + " between " + fromHour + " and " + toHour + " ?");
                   if (tideHour >= fromHour && tideHour <= toHour)
                   {
-                    result += ("<li type='disc'><a href='showDate(" + Long.toString(tv.getCalendar().getTime().getTime()) + ")'>" + SUITABLE_DATE_FORMAT.format(tv.getCalendar().getTime()) + "</a></li>\n");
-                    nbDays++;
-//                  System.out.println(" ... yes");
+                    boolean good = true;
+                    // Week day?
+                    if (weekdays != null)
+                    {
+                      good = false;
+                      int day = tv.getCalendar().get(Calendar.DAY_OF_WEEK);
+                      if ((day == Calendar.MONDAY && weekdays[SearchPanel.MONDAY] == 1) || 
+                          (day == Calendar.TUESDAY && weekdays[SearchPanel.TUESDAY] == 1) ||
+                          (day == Calendar.WEDNESDAY && weekdays[SearchPanel.WEDNESDAY] == 1) ||
+                          (day == Calendar.THURSDAY && weekdays[SearchPanel.THURSDAY] == 1) ||
+                          (day == Calendar.FRIDAY && weekdays[SearchPanel.FRIDAY] == 1) ||
+                          (day == Calendar.SATURDAY && weekdays[SearchPanel.SATURDAY] == 1) ||
+                          (day == Calendar.SUNDAY && weekdays[SearchPanel.SUNDAY] == 1) )
+                        good = true;
+                    }
+                    if (good)
+                    {
+                      result += ("<li type='disc'><a href='showDate(" + Long.toString(tv.getCalendar().getTime().getTime()) + ")'>" + SUITABLE_DATE_FORMAT.format(tv.getCalendar().getTime()) + "</a></li>\n");
+                      nbDays++;
+//                    System.out.println(" ... yes");
+                    }
                   }
 //                else
 //                  System.out.println(" ... no");
