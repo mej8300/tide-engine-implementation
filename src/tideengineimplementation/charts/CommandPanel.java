@@ -242,6 +242,9 @@ public class CommandPanel
   
   GeoPoint from = null;
   GeoPoint to   = null;
+
+  private transient Image blue = new ImageIcon(TideInternalFrame.class.getResource("img/bullet_ball_glass_blue.png")).getImage();
+  private transient Image red  = new ImageIcon(TideInternalFrame.class.getResource("img/bullet_ball_glass_red.png")).getImage();
   
   @Override
   public void chartPanelPaintComponent(Graphics gr)
@@ -273,7 +276,15 @@ public class CommandPanel
         {
           GeoPoint p =new GeoPoint(sd.getLatitude(), sd.getLongitude());
           Point pt = chartPanel.getPanelPoint(p);
-          gr.drawOval(pt.x-2,pt.y-2, 4, 4);
+          Image img = null;
+          if (sd.isCurrentStation())
+//          gr.setColor(Color.blue);
+            img = blue;
+          if (sd.isTideStation())
+//          gr.setColor(Color.red);
+            img = red;
+//        gr.drawOval(pt.x-2,pt.y-2, 4, 4);
+          gr.drawImage(img, pt.x-8, pt.y-8, null);
           if (withNameCheckBox.isSelected())
             gr.drawString(sd.getFullName(), pt.x + 2, pt.y);
         }
