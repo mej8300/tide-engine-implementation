@@ -12,11 +12,13 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Polygon;
+import java.awt.RadialGradientPaint;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -279,10 +281,10 @@ public class CommandPanel
           Image img = null;
           if (sd.isCurrentStation())
 //          gr.setColor(Color.blue);
-            img = blue;
+            img = red;   // this matches the tree
           if (sd.isTideStation())
 //          gr.setColor(Color.red);
-            img = red;
+            img = blue;  // this matches the tree
 //        gr.drawOval(pt.x-2,pt.y-2, 4, 4);
           gr.drawImage(img, pt.x-8, pt.y-8, null);
           if (withNameCheckBox.isSelected())
@@ -314,9 +316,59 @@ public class CommandPanel
     }
     else
     {
-      gr.fillOval(pt.x-8, pt.y-8, 16, 16);
-      gr.drawImage(img, pt.x - 7, pt.y - 7, null); // Image is 13x13
+      boolean gloss = true;
+      if (gloss)
+      {
+        int radius = 10;
+        Graphics2D g2d = (Graphics2D)gr;
+        Point center = pt;
+        boolean shadow = false;
+        if (shadow)
+        {
+          Color bgColor = this.getBackground();
+          Point shadowCenter = new Point((int)(center.x + (radius / 3)), (int)(center.y + (radius / 3)));
+          RadialGradientPaint rgp = new RadialGradientPaint(shadowCenter, 
+                                                            (int)(radius * 1.0), 
+                                                            new float[] {0f, 0.9f, 1f}, 
+                                                            new Color[] {Color.white, Color.gray, bgColor});
+          g2d.setPaint(rgp);
+          g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
+        }
+        Color lightColor = Color.lightGray;
+        Color darkColor = Color.gray; 
+        drawGlossyCircularBall(g2d, center, radius, lightColor, darkColor, 1f);
+
+        gr.drawImage(img, pt.x - 7, pt.y - 7, null); // Image is 13x13
+      }
+      else
+      {
+        gr.fillOval(pt.x-8, pt.y-8, 16, 16);
+        gr.drawImage(img, pt.x - 7, pt.y - 7, null); // Image is 13x13
+      }
     }
+  }
+
+  private static void drawGlossyCircularBall(Graphics2D g2d, Point center, int radius, Color lightColor, Color darkColor, float transparency)
+  {
+    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));
+    g2d.setPaint(null);
+
+    g2d.setColor(darkColor);
+    g2d.fillOval(center.x - radius, center.y - radius, 2 * radius, 2 * radius);
+
+    Point gradientOrigin = new Point(center.x - radius,
+                                     center.y - radius);
+    GradientPaint gradient = new GradientPaint(gradientOrigin.x, 
+                                               gradientOrigin.y, 
+                                               lightColor, 
+                                               gradientOrigin.x, 
+                                               gradientOrigin.y + (2 * radius / 3), 
+                                               darkColor); // vertical, light on top
+    g2d.setPaint(gradient);
+    g2d.fillOval((int)(center.x - (radius * 0.90)), 
+                 (int)(center.y - (radius * 0.95)), 
+                 (int)(2 * radius * 0.9), 
+                 (int)(2 * radius * 0.95));
   }
   
   public boolean onEvent(EventObject e, int type)
