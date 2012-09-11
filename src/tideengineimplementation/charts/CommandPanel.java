@@ -11,6 +11,7 @@ import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
@@ -72,6 +73,7 @@ public class CommandPanel
   private JPanel bottomPanel;
   private JButton zoomInButton;
   private JButton zoomOutButton;
+  private JButton resetZoomButton;  
   private JCheckBox mouseCheckBox;
   private JCheckBox withNameCheckBox;
   private JCheckBox withAstroCheckBox;
@@ -93,6 +95,10 @@ public class CommandPanel
   private transient Image jupiterSymbol = new ImageIcon(TideInternalFrame.class.getResource("jupiter.png")).getImage();
   private transient Image saturnSymbol  = new ImageIcon(TideInternalFrame.class.getResource("saturn.png")).getImage();
 
+  private transient ImageIcon zoomInImage  = new ImageIcon(this.getClass().getResource("zoomexpand.gif"));
+  private transient ImageIcon zoomOutImage = new ImageIcon(this.getClass().getResource("zoomshrink.gif"));
+  private transient ImageIcon refreshImage = new ImageIcon(this.getClass().getResource("refresh.png"));
+
   public CommandPanel()
   {
     borderLayout1 = new BorderLayout();
@@ -101,6 +107,7 @@ public class CommandPanel
     bottomPanel = new JPanel();
     zoomInButton = new JButton();
     zoomOutButton = new JButton();
+    resetZoomButton = new JButton();
     mouseCheckBox = new JCheckBox("GrabScroll enabled");
     mouseCheckBox.setSelected(false);
     withNameCheckBox = new JCheckBox("With Station Names");
@@ -140,7 +147,10 @@ public class CommandPanel
         }
       });
     setLayout(borderLayout1);
-    zoomInButton.setText("Zoom In");
+    zoomInButton.setToolTipText("Zoom In");
+    zoomInButton.setIcon(zoomInImage);
+    zoomInButton.setPreferredSize(new Dimension(24, 24));
+    zoomInButton.setBorderPainted(false);
     zoomInButton.addActionListener(new ActionListener() {
 
       public void actionPerformed(ActionEvent e)
@@ -149,7 +159,10 @@ public class CommandPanel
       }
 
     });
-    zoomOutButton.setText("Zoom Out");
+    zoomOutButton.setToolTipText("Zoom Out");
+    zoomOutButton.setIcon(zoomOutImage);
+    zoomOutButton.setPreferredSize(new Dimension(24, 24));
+    zoomOutButton.setBorderPainted(false);
     zoomOutButton.addActionListener(new ActionListener() {
 
       public void actionPerformed(ActionEvent e)
@@ -158,6 +171,20 @@ public class CommandPanel
       }
 
     });
+    resetZoomButton.setToolTipText("Reset Zoom");
+    resetZoomButton.setIcon(refreshImage);
+    resetZoomButton.setPreferredSize(new Dimension(24, 24));
+    resetZoomButton.setBorderPainted(false);
+    
+    resetZoomButton.addActionListener(new ActionListener() {
+
+      public void actionPerformed(ActionEvent e)
+      {
+        jButton3_actionPerformed(e);
+      }
+
+    });
+    
     mouseCheckBox.addActionListener(new ActionListener()
       {
         public void actionPerformed(ActionEvent e)
@@ -200,6 +227,7 @@ public class CommandPanel
     bottomPanel.add(moonLightRadioButton, null);
     bottomPanel.add(zoomInButton, null);
     bottomPanel.add(zoomOutButton, null);
+    bottomPanel.add(resetZoomButton, null);
     bottomPanel.add(mouseCheckBox, null);
     bottomPanel.add(withNameCheckBox, null);
     bottomPanel.add(withAstroCheckBox, null);
@@ -214,18 +242,18 @@ public class CommandPanel
     chartPanel.setSouthL(sLat);
     
     chartPanel.setWidthFromChart(nLat, sLat, wLong, eLong);
+    
     chartPanel.setHorizontalGridInterval(10D);
     chartPanel.setVerticalGridInterval(10D);
     chartPanel.setWithScale(false);
     chartPanel.setGridColor(Color.lightGray);
-
-    chartPanel.setMouseDraggedEnabled(mouseCheckBox.isSelected());
-    
+    // GrabScroll - DDZoom
+    chartPanel.setMouseDraggedEnabled(true); // mouseCheckBox.isSelected());
 //  chartPanel.setMouseDraggedType(ChartPanel.MOUSE_DRAG_GRAB_SCROLL);
     chartPanel.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
     chartPanel.setPositionToolTipEnabled(true);
   }
-
+  
   private void jButton1_actionPerformed(ActionEvent e)
   {
     chartPanel.zoomIn();
@@ -236,9 +264,26 @@ public class CommandPanel
     chartPanel.zoomOut();
   }
 
+  private void jButton3_actionPerformed(ActionEvent e)
+  {
+    double nLat  =  83D;
+    double sLat  = -80D;
+    double wLong = -180D;
+    double eLong =  180D; // chartPanel.calculateEastG(nLat, sLat, wLong);
+    chartPanel.setEastG(eLong);
+    chartPanel.setWestG(wLong);
+    chartPanel.setNorthL(nLat);
+    chartPanel.setSouthL(sLat);
+
+    chartPanel.setH(this.getHeight());
+    chartPanel.setWidthFromChart(nLat, sLat, wLong, eLong);
+    
+    chartPanel.repaint();
+  }
+
   private void swicthMouse(boolean b)
   {
-    chartPanel.setMouseDraggedEnabled(b);
+//  chartPanel.setMouseDraggedEnabled(b);
     chartPanel.setMouseDraggedType(b?ChartPanel.MOUSE_DRAG_GRAB_SCROLL:ChartPanel.MOUSE_DRAG_ZOOM);
   }
   
