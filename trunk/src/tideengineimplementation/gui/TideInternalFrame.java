@@ -9,6 +9,7 @@ import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -233,6 +234,7 @@ public class TideInternalFrame
     private Calendar low2Cal = null;
     private Calendar high1Cal = null;
     private Calendar high2Cal = null;
+    private List<TimedValue> slackList = null;
     private int trend = 0;
 
     @Override
@@ -751,6 +753,8 @@ public class TideInternalFrame
             {
               g.setColor(Color.BLUE);
               double bh = ts.getBaseHeight();
+              if (ts.isCurrentStation())
+                bh = 0;
               bh = Utils.convert(bh, ts.getDisplayUnit(), currentUnit);
               int y = height - (int)((bh - bottomValue) * heightRatio);
               g.drawLine(0, y, this.getWidth(), y);
@@ -787,6 +791,8 @@ public class TideInternalFrame
                         high2Cal = null;
                         trend = 0;
                         
+                        slackList = new ArrayList<TimedValue>();
+
                         double previousUTCOffset = Double.NaN;
                         
                         for (int h=0; h<24; h++)
@@ -812,6 +818,13 @@ public class TideInternalFrame
                             }
                             if (!Double.isNaN(previousWH))
                             {
+                              if (ts.isCurrentStation())
+                              {
+                                if ((previousWH > 0 && wh <= 0) || (previousWH < 0 && wh >= 0))
+                                {
+                                  slackList.add(new TimedValue("Slack", cal, 0d));
+                                }
+                              }
                               if (trend == 0)
                               {
                                 if (previousWH > wh)
@@ -938,6 +951,12 @@ public class TideInternalFrame
               if (high2Cal != null)
                 timeAL.add(new TimedValue("HW", high2Cal, high2));
               
+              if (ts.isCurrentStation() && slackList != null && slackList.size() > 0)
+              {
+                for (TimedValue tv : slackList)
+                  timeAL.add(tv);
+              }
+              
               Collections.sort(timeAL);
               // Station Name            
               int fontSize = 12;
@@ -1037,7 +1056,12 @@ public class TideInternalFrame
                 {
               //  dataStr = (tv.getType().equals("SR")?"Sun Rise":"Sun Set") + " " + TIME_FORMAT.format(tv.getCalendar().getTime());
                   if (currentUnit.equals(TideStation.KNOTS)) // Current, in knots
-                    dataStr = (tv.getType().equals("HW")?"Max Flood":"Max Ebb  ") + " " + TIME_FORMAT.format(tv.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(tv.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit;
+                  {
+                    if (tv.getType().equals("Slack"))
+                      dataStr = "Slack " + TIME_FORMAT.format(tv.getCalendar().getTime());
+                    else
+                      dataStr = (tv.getType().equals("HW")?"Max Flood":"Max Ebb ") + " " + TIME_FORMAT.format(tv.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(tv.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit;
+                  }
                   else
                     dataStr = tv.getType() + " " + TIME_FORMAT.format(tv.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(tv.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit;
                   if (diffOffset == -1)
@@ -3173,8 +3197,7 @@ public class TideInternalFrame
       searchDialog.setStation(this.ts);
     int resp = JOptionPane.showConfirmDialog(this, searchDialog, "Search", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
     if (resp == JOptionPane.OK_OPTION)
-    {
-      
+    {      
       final int tideType = searchDialog.getHighLow();
       final int fromHour = searchDialog.getFromHour();
       final int toHour   = searchDialog.getToHour();
@@ -3241,6 +3264,7 @@ public class TideInternalFrame
               Calendar high1Cal = null;
               Calendar high2Cal = null;
               int trend = 0;
+              
               double previousWH = Double.NaN;
               
               for (int h=0; h<24; h++)
@@ -3414,6 +3438,14 @@ public class TideInternalFrame
               bw.close();              
               jEditorPane.setPage(tempFile.toURI().toURL());
               jEditorPane.repaint();
+              if (false)
+              {
+                int resp = JOptionPane.showConfirmDialog(jEditorPane, "Send to browser?", "Search", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);  
+                if (resp == JOptionPane.YES_OPTION)
+                {
+                  Desktop.getDesktop().browse(tempFile.toURI());
+                }
+              }
             }
             catch (Exception ex)
             {
@@ -3544,7 +3576,10 @@ public class TideInternalFrame
       {
         if (nbl++ > 0)
           bw.write("  ,\n");
-        bw.write("  {type:\"" + tv.getType() + "\",\n");
+        String evtType = tv.getType();
+        if (ts.isCurrentStation())
+          evtType = evtType.equals("HW")?"Max Flood":"Max Ebb";
+        bw.write("  {type:\"" + evtType + "\",\n");
         bw.write("   time:\"" + TideForOneMonth.TF.format(tv.getCalendar().getTime()) + "\",\n");
         bw.write("   height:\"" + TideUtilities.DF22PLUS.format(tv.getValue()) + "\",\n");
         bw.write("   unit:\"" + currentUnit + "\"}\n");
