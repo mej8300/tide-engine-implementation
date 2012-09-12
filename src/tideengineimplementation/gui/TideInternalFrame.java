@@ -167,7 +167,7 @@ public class TideInternalFrame
   private final static SimpleDateFormat FULL_DATE_FORMAT = new SimpleDateFormat("E dd-MMM-yyyy HH:mm:ss Z z");
   
   private final static SimpleDateFormat LOCAL_DATE_FORMAT = new SimpleDateFormat("E dd-MMM-yyyy HH:mm:ss Z z");
-  private final static SimpleDateFormat UTC_DATE_FORMAT = new SimpleDateFormat("E dd-MMM-yyyy HH:mm:ss Z");
+  public  final static SimpleDateFormat UTC_DATE_FORMAT = new SimpleDateFormat("E dd-MMM-yyyy HH:mm:ss Z");
   static
   {
     UTC_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("Etc/UTC"));
@@ -974,7 +974,7 @@ public class TideInternalFrame
               AttributedString aSnStr = new AttributedString(snstr);
               aSnStr.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), 0, snstr.length());
               
-              Pattern pattern = Pattern.compile(ts.getFullName());
+              Pattern pattern = Pattern.compile(Utils.escapePattern(ts.getFullName()));
               Matcher matcher = pattern.matcher(snstr);
               if (matcher.find())
               {
@@ -982,8 +982,11 @@ public class TideInternalFrame
                 int end   = matcher.end();
                 aSnStr.addAttribute(TextAttribute.BACKGROUND, Color.YELLOW, start, end);                
                 aSnStr.addAttribute(TextAttribute.FOREGROUND, Color.RED, start, end);                
+              }              
+              else // else weird...
+              {
+                System.out.println("[" + ts.getFullName() + "] not found in [" + snstr + "]...");
               }
-              // else weird...
 
               g.drawString(aSnStr.getIterator(), x, y);
               g.setFont(f);
@@ -1058,7 +1061,7 @@ public class TideInternalFrame
                   if (currentUnit.equals(TideStation.KNOTS)) // Current, in knots
                   {
                     if (tv.getType().equals("Slack"))
-                      dataStr = "Slack " + TIME_FORMAT.format(tv.getCalendar().getTime());
+                      dataStr = "- Slack " + TIME_FORMAT.format(tv.getCalendar().getTime());
                     else
                       dataStr = (tv.getType().equals("HW")?"Max Flood":"Max Ebb ") + " " + TIME_FORMAT.format(tv.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(tv.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit;
                   }
@@ -1216,7 +1219,8 @@ public class TideInternalFrame
               chartCommandPanel.setSunD(AstroComputer.getSunDecl());
               chartCommandPanel.setMoonD(AstroComputer.getMoonDecl());
               chartCommandPanel.setSunGHA(AstroComputer.getSunGHA());
-              chartCommandPanel.setMoonGHA(AstroComputer.getMoonGHA());                    
+              chartCommandPanel.setMoonGHA(AstroComputer.getMoonGHA());   
+              chartCommandPanel.setCurrentDate(now);
             }
             if (mouseIsIn)
             {
@@ -3104,6 +3108,7 @@ public class TideInternalFrame
       final int nb = printDialog.getNb();
       final int q = printDialog.getQuantity();
       final String utu = printDialog.getUnitToUse();
+      
       System.out.println("Starting month:" + sm + ", year:" + sy);
       System.out.println("For " + nb + " " + (q==Calendar.MONTH?"month(s)":"year(s)"));
       

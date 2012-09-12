@@ -18,6 +18,8 @@ import tideengine.Coefficient;
 import tideengine.TideStation;
 import tideengine.TideUtilities;
 
+import tideengineimplementation.gui.TideInternalFrame;
+
 import tideengineimplementation.utils.AstroComputer;
 import tideengineimplementation.utils.Utils;
 
@@ -172,7 +174,12 @@ public class TideForOneMonth
       {
         out.println("<date val='" + SDF.format(now.getTime()) + "' moon-phase='" + DF2.format(phaseInDay) + "' sun-rise='" + TF.format(sunRise.getTime()) + "' sun-set='" + TF.format(sunSet.getTime()) + "'>");
         for (TimedValue tv : timeAL)
-          out.println("  <plot type='" + tv.getType() + "' date='" + TF.format(tv.getCalendar().getTime()) + "' height='" + TideUtilities.DF22.format(tv.getValue()) + "' unit='" + unitToUse + "'/>");
+        {
+          if ("Slack".equals(tv.getType()))
+            out.println("  <plot type='" + tv.getType() + "' date='" + TF.format(tv.getCalendar().getTime()) + "'/>");
+          else
+            out.println("  <plot type='" + tv.getType() + "' date='" + TF.format(tv.getCalendar().getTime()) + "' height='" + TideUtilities.DF22.format(tv.getValue()) + "' unit='" + unitToUse + "'/>");
+        }
         out.println("</date>");
       }
       
@@ -210,8 +217,10 @@ public class TideForOneMonth
     Calendar low2Cal = null;
     Calendar high1Cal = null;
     Calendar high2Cal = null;
+    List<TimedValue> slackList = null;
     int trend = 0;
 
+    slackList = new ArrayList<TimedValue>();
     double previousWH = Double.NaN;
     for (int h=0; h<24; h++)
     {
@@ -237,6 +246,13 @@ public class TideForOneMonth
           }
           else
           {
+            if (ts.isCurrentStation())
+            {
+              if ((previousWH > 0 && wh <= 0) || (previousWH < 0 && wh >= 0))
+              {
+                slackList.add(new TimedValue("Slack", cal, 0d));
+              }
+            }
             switch (trend)
             {
               case RISING:
@@ -299,13 +315,19 @@ public class TideForOneMonth
     }
     timeAL = new ArrayList<TimedValue>(4);
     if (low1Cal != null)
-      timeAL.add(new TimedValue("LW", low1Cal, low1));
+      timeAL.add(new TimedValue(ts.isTideStation()?"LW":"ME", low1Cal, low1));
     if (low2Cal != null)
-      timeAL.add(new TimedValue("LW", low2Cal, low2));
+      timeAL.add(new TimedValue(ts.isTideStation()?"LW":"ME", low2Cal, low2));
     if (high1Cal != null)
-      timeAL.add(new TimedValue("HW", high1Cal, high1));
+      timeAL.add(new TimedValue(ts.isTideStation()?"HW":"MF", high1Cal, high1));
     if (high2Cal != null)
-      timeAL.add(new TimedValue("HW", high2Cal, high2));
+      timeAL.add(new TimedValue(ts.isTideStation()?"HW":"MF", high2Cal, high2));
+
+    if (ts.isCurrentStation() && slackList != null && slackList.size() > 0)
+    {
+      for (TimedValue tv : slackList)
+        timeAL.add(tv);
+    }
     
     Collections.sort(timeAL);
     return timeAL;

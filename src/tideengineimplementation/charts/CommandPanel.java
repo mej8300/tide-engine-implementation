@@ -24,7 +24,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.EventObject;
 import java.util.HashMap;
 import java.util.List;
@@ -65,7 +67,9 @@ public class CommandPanel
      extends JPanel
   implements ChartPanelParentInterface_II
 {
-  private final static int PROJECTION = ChartPanel.ANAXIMANDRE;
+  private final static Color DARK_RED = new Color(108, 0, 0);
+
+  private final static int PROJECTION = ChartPanel.ANAXIMANDRE; // ChartPanel.GLOBE_VIEW;  ;0)
 //private final static double NORTH_LAT  =  83D;
 //private final static double SOUTH_LAT  = -80D;
   private final static double NORTH_LAT  =  90D;
@@ -96,6 +100,7 @@ public class CommandPanel
   private double sunGHA  = 0d;
   private double moonD   = 0d;
   private double moonGHA = 0d;
+  private Calendar currentDate = null;
   
   private transient Image moonSymbol    = new ImageIcon(TideInternalFrame.class.getResource("moon.png")).getImage();
   private transient Image sunSymbol     = new ImageIcon(TideInternalFrame.class.getResource("sun.png")).getImage();
@@ -483,6 +488,11 @@ public class CommandPanel
   {
     this.moonD = moonD;
   }
+  
+  public void setCurrentDate(Calendar cal)
+  {
+    this.currentDate = cal;
+  }
 
   @Override
   public void chartPanelPaintComponentAfter(Graphics gr)
@@ -578,7 +588,9 @@ public class CommandPanel
       // Drawing astro data
       if (sunD != 0 && sunGHA != 0 && moonD != 0 && moonGHA != 0)
       {
-        gr.setColor(Color.blue);
+        gr.setColor(DARK_RED); // Color.blue);
+        Font f = gr.getFont();
+        gr.setFont(f.deriveFont(Font.BOLD));
         String[][] data = new String[][]
           {
             { "Sun GHA",     GeomUtil.decToSex(sunGHA, GeomUtil.SWING, GeomUtil.NONE) },
@@ -594,7 +606,12 @@ public class CommandPanel
             { "Saturn GHA",  GeomUtil.decToSex(AstroComputer.getSaturnGHA(), GeomUtil.SWING, GeomUtil.NONE) },
             { "Saturn D",    GeomUtil.decToSex(AstroComputer.getSaturnDecl(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN) }
           };
-        Utilities.drawPanelTable(data, gr, new Point(10, 20), 10, 2, new int[] { Utilities.LEFT_ALIGNED, Utilities.RIGHT_ALIGNED });        
+        int x = (int)chartPanel.getVisibleRect().getX();
+        int y = (int)chartPanel.getVisibleRect().getY();    
+        String dateStr = "At UTC:" + TideInternalFrame.UTC_DATE_FORMAT.format(this.currentDate.getTime());
+        gr.drawString(dateStr, x + 10, y + 20);
+        Utilities.drawPanelTable(data, gr, new Point(x + 10, y + 20 + gr.getFont().getSize() + 2), 10, 2, new int[] { Utilities.LEFT_ALIGNED, Utilities.RIGHT_ALIGNED });        
+        gr.setFont(f);
       }
     }
   }
