@@ -81,6 +81,11 @@ public class Utils
     return ret;
   }
   
+  public static String escapePattern(String s)
+  {
+    return (s.replace("(", "\\(").replace(")", "\\)").replace(".", "\\."));  
+  }
+  
   public static void main1(String[] args)
   {
     System.out.println(formatTimeDiff(8094701L / 1000L));

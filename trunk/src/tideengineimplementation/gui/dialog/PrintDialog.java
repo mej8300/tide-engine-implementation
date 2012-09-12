@@ -149,8 +149,13 @@ public class PrintDialog
     monthComboBox.setSelectedIndex(GregorianCalendar.getInstance().get(Calendar.MONTH));
     unitLabel.setText("Unit to use : ");
     unitComboBox.removeAllItems();
-    unitComboBox.addItem(TideStation.FEET);
-    unitComboBox.addItem(TideStation.METERS);
+    if (ts.isTideStation())
+    {
+      unitComboBox.addItem(TideStation.FEET);
+      unitComboBox.addItem(TideStation.METERS);
+    }
+    if (ts.isCurrentStation())
+      unitComboBox.addItem(TideStation.KNOTS);
     unitComboBox.setSelectedItem(ts.getUnit());
   }
   
