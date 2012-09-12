@@ -65,6 +65,15 @@ public class CommandPanel
      extends JPanel
   implements ChartPanelParentInterface_II
 {
+  private final static int PROJECTION = ChartPanel.ANAXIMANDRE;
+//private final static double NORTH_LAT  =  83D;
+//private final static double SOUTH_LAT  = -80D;
+  private final static double NORTH_LAT  =  90D;
+  private final static double SOUTH_LAT  = -90D;
+  private final static double WEST_LONG  = -180D;
+  private final static double EAST_LONG  =  180D;
+  
+  
   private String stationFilterPattern = "";
   
   private BorderLayout borderLayout1;
@@ -98,17 +107,19 @@ public class CommandPanel
   private transient ImageIcon zoomInImage  = new ImageIcon(this.getClass().getResource("zoomexpand.gif"));
   private transient ImageIcon zoomOutImage = new ImageIcon(this.getClass().getResource("zoomshrink.gif"));
   private transient ImageIcon refreshImage = new ImageIcon(this.getClass().getResource("refresh.png"));
+  private transient ImageIcon pushPinImage = new ImageIcon(this.getClass().getResource("pushpin_25x25.gif"));
 
   public CommandPanel()
   {
     borderLayout1 = new BorderLayout();
     jScrollPane1 = new JScrollPane();
     chartPanel = new ChartPanel(this);
+    chartPanel.setProjection(PROJECTION);
     bottomPanel = new JPanel();
     zoomInButton = new JButton();
     zoomOutButton = new JButton();
     resetZoomButton = new JButton();
-    mouseCheckBox = new JCheckBox("GrabScroll enabled");
+    mouseCheckBox = new JCheckBox("Grab-Scroll");
     mouseCheckBox.setSelected(false);
     withNameCheckBox = new JCheckBox("With Station Names");
     withNameCheckBox.setSelected(false);
@@ -232,10 +243,11 @@ public class CommandPanel
     bottomPanel.add(withNameCheckBox, null);
     bottomPanel.add(withAstroCheckBox, null);
     add(bottomPanel, BorderLayout.SOUTH);
-    double nLat  =  83D;
-    double sLat  = -80D;
-    double wLong = -180D;
-    double eLong =  180D; // chartPanel.calculateEastG(nLat, sLat, wLong);
+    double nLat  = NORTH_LAT;
+    double sLat  = SOUTH_LAT;
+    double wLong = WEST_LONG;
+    double eLong = EAST_LONG;
+ // chartPanel.calculateEastG(nLat, sLat, wLong);
     chartPanel.setEastG(eLong);
     chartPanel.setWestG(wLong);
     chartPanel.setNorthL(nLat);
@@ -266,10 +278,10 @@ public class CommandPanel
 
   private void jButton3_actionPerformed(ActionEvent e)
   {
-    double nLat  =  83D;
-    double sLat  = -80D;
-    double wLong = -180D;
-    double eLong =  180D; // chartPanel.calculateEastG(nLat, sLat, wLong);
+    double nLat  = NORTH_LAT;
+    double sLat  = SOUTH_LAT;
+    double wLong = WEST_LONG;
+    double eLong = EAST_LONG;
     chartPanel.setEastG(eLong);
     chartPanel.setWestG(wLong);
     chartPanel.setNorthL(nLat);
@@ -551,9 +563,14 @@ public class CommandPanel
     if (gps != null)
     {
       Point gpsPt = chartPanel.getPanelPoint(gps.lat, gps.lng);
-      gr.setColor(Color.blue);
-      gr.fillOval(gpsPt.x - 3, gpsPt.y - 3,  6,  6);
-      gr.drawOval(gpsPt.x - 5, gpsPt.y - 5, 10, 10);
+      if (true)
+        gr.drawImage(pushPinImage.getImage(), gpsPt.x - 25, gpsPt.y - pushPinImage.getImage().getHeight(null), null);
+      else
+      {
+        gr.setColor(Color.blue);
+        gr.fillOval(gpsPt.x - 3, gpsPt.y - 3,  6,  6);
+        gr.drawOval(gpsPt.x - 5, gpsPt.y - 5, 10, 10);
+      }
     }
     
     if (withAstroCheckBox.isSelected())
