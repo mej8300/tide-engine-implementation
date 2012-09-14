@@ -316,7 +316,8 @@ public class CommandPanel
     Graphics2D g2d = null;
     if (gr instanceof Graphics2D)
       g2d = (Graphics2D)gr;
-    World.drawChart(chartPanel, gr);
+//  World.drawChart(chartPanel, gr);
+    World.paintChart(null, chartPanel, g2d, Color.orange);
 
     gr.setColor(Color.red);
     if (stationData != null)
