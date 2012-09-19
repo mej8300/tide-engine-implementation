@@ -6,13 +6,9 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
-
 import java.awt.event.ActionListener;
-
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-
-import java.util.ArrayList;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -27,21 +23,18 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableModel;
-
-import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
-
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
-
-import tideengine.BackEndXMLTideComputer;
+import javax.swing.table.TableModel;
 
 import tideengine.TideStation;
 
 import tideengineimplementation.gui.ctx.TideContext;
 
 import user.util.GeomUtil;
+
 
 public class FilterTable
      extends JPanel 

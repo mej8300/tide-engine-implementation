@@ -1,6 +1,5 @@
 package tideengineimplementation.gui;
 
-
 import astro.calc.GeoPoint;
 import astro.calc.GreatCircle;
 
@@ -138,10 +137,6 @@ import tideengineimplementation.utils.Utils;
 
 import user.util.GeomUtil;
 
-
-// import javax.swing.JProgressBar;
-
-
 public class TideInternalFrame
      extends JInternalFrame
 {
@@ -207,8 +202,6 @@ public class TideInternalFrame
   
   private transient Image sunSymbol  = new ImageIcon(this.getClass().getResource("sun.png")).getImage();
   private transient Image moonSymbol = new ImageIcon(this.getClass().getResource("moon.png")).getImage();
-//private transient Image sunSymbol  = new ImageIcon(TideInternalFrame.class.getResource("sun.png")).getImage();
-//private transient Image moonSymbol = new ImageIcon(TideInternalFrame.class.getResource("moon.png")).getImage();
   
   private int hourOffset = 0;
   private CoeffTable ct = null;
@@ -3706,6 +3699,7 @@ public class TideInternalFrame
   
   private void this_internalFrameClosed(InternalFrameEvent e)
   {
+    chartCommandPanel.removeApplicationListener();        
     // Store position
     Point topLeft = this.getLocation();
     Dimension dim = this.getSize();

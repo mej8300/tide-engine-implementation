@@ -113,6 +113,8 @@ public class CommandPanel
   private transient ImageIcon zoomOutImage = new ImageIcon(this.getClass().getResource("zoomshrink.gif"));
   private transient ImageIcon refreshImage = new ImageIcon(this.getClass().getResource("refresh.png"));
   private transient ImageIcon pushPinImage = new ImageIcon(this.getClass().getResource("pushpin_25x25.gif"));
+  
+  private transient TideEventListener tel = null;
 
   public CommandPanel()
   {
@@ -152,7 +154,7 @@ public class CommandPanel
   private void jbInit()
         throws Exception
   {
-    TideContext.getInstance().addTideListener(new TideEventListener()
+    tel = new TideEventListener()
       {
         @Override
         public void filterList(String pattern)
@@ -161,7 +163,9 @@ public class CommandPanel
           if (chartPanel.isVisible())
             repaint();
         }
-      });
+      };
+    TideContext.getInstance().addTideListener(tel);
+    
     setLayout(borderLayout1);
     zoomInButton.setToolTipText("Zoom In");
     zoomInButton.setIcon(zoomInImage);
@@ -269,6 +273,11 @@ public class CommandPanel
 //  chartPanel.setMouseDraggedType(ChartPanel.MOUSE_DRAG_GRAB_SCROLL);
     chartPanel.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
     chartPanel.setPositionToolTipEnabled(true);
+  }
+  
+  public void removeApplicationListener()
+  {
+    TideContext.getInstance().removeTideListener(tel);
   }
   
   private void jButton1_actionPerformed(ActionEvent e)
