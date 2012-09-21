@@ -11,6 +11,8 @@ import java.util.TimeZone;
 import tideengine.TideStation;
 import tideengine.TideUtilities;
 
+import tideengineimplementation.gui.ctx.TideContext;
+
 public class Utils
 {
   public final static long NB_S_PER_MIN  = 60L;
@@ -84,6 +86,33 @@ public class Utils
   public static String escapePattern(String s)
   {
     return (s.replace("(", "\\(").replace(")", "\\)").replace(".", "\\."));  
+  }
+  
+  public static void shrinkStationList()
+  {
+    shrinkStationList(null);
+  }
+  
+  public static void shrinkStationList(String mess)
+  {
+    boolean verbose = (mess != null);
+    if (verbose)
+      System.out.println("Shrinking Station List " + mess);
+    int maxRecent = Integer.parseInt(System.getProperty("max.recent.stations", "5"));
+    if (verbose)
+      System.out.println("Max recent stations is " + maxRecent);
+    while (TideContext.getInstance().getRecentStations().size() > maxRecent)
+    {
+      if (verbose)
+        System.out.println(".Removing " + TideContext.getInstance().getRecentStations().get(0) + " from the station list");
+      TideContext.getInstance().getRecentStations().remove(0);
+    }
+    if (verbose)
+    {
+      System.out.println(".List is now:");
+      for (String s : TideContext.getInstance().getRecentStations())
+        System.out.println("- " + s);
+    }
   }
   
   public static void main1(String[] args)

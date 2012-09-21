@@ -183,6 +183,7 @@ public class TideInternalFrame
   private JMenuBar menuBar = new JMenuBar();
   private JMenu menuFile = new JMenu();
   private JMenu menuFileRecent = new JMenu();
+  private JMenuItem menuClearHistory = new JMenuItem();
   private JMenuItem menuFileExit = new JMenuItem();
   private JMenuItem menuFilePrint = new JMenuItem();
   private JMenuItem menuFileSearch = new JMenuItem();
@@ -253,6 +254,7 @@ public class TideInternalFrame
       catch (Exception ex) 
       {
         System.err.println("MouseDown:" + ex.getLocalizedMessage());
+        ex.printStackTrace();
       }
       
       String thisTime    = TIME_FORMAT.format(cal.getTime());
@@ -1051,7 +1053,7 @@ public class TideInternalFrame
                 if (!tv.getType().equals("SS") && !tv.getType().equals("SR"))
                 {
               //  dataStr = (tv.getType().equals("SR")?"Sun Rise":"Sun Set") + " " + TIME_FORMAT.format(tv.getCalendar().getTime());
-                  if (currentUnit.equals(TideStation.KNOTS)) // Current, in knots
+                  if (currentUnit != null && currentUnit.equals(TideStation.KNOTS)) // Current, in knots
                   {
                     if (tv.getType().equals("Slack"))
                       dataStr = "- Slack " + TIME_FORMAT.format(tv.getCalendar().getTime());
@@ -2203,10 +2205,10 @@ public class TideInternalFrame
       {
         Properties prop = new Properties();
         prop.load(new FileReader("tidestation.properties")); 
-        String sn = prop.getProperty("tide.station");
+        String sn = prop.getProperty("tide.station"); // Last displayed station from previous session
         if (sn != null)
         {
-          TideContext.getInstance().getRecentStations().add(sn);
+//        TideContext.getInstance().getRecentStations().add(sn);
           displayTide(sn);
         }
         boolean loop = true;
@@ -2222,9 +2224,7 @@ public class TideInternalFrame
               TideContext.getInstance().getRecentStations().add(s);
           }
         }
-        int maxRecent = Integer.parseInt(System.getProperty("max.recent.stations", "5"));
-        while (TideContext.getInstance().getRecentStations().size() > maxRecent)
-          TideContext.getInstance().getRecentStations().remove(0);
+        Utils.shrinkStationList(); // "from constructor");
       } 
       catch (FileNotFoundException fnfe)
       {
@@ -2279,9 +2279,7 @@ public class TideInternalFrame
           if (!TideContext.getInstance().getRecentStations().contains(stationName))
             TideContext.getInstance().getRecentStations().add(stationName);
 
-          int maxRecent = Integer.parseInt(System.getProperty("max.recent.stations", "5"));
-          while (TideContext.getInstance().getRecentStations().size() > maxRecent)
-            TideContext.getInstance().getRecentStations().remove(0);
+          Utils.shrinkStationList(); // "from TideEventListener.stationSelected");
           
           for (String s : TideContext.getInstance().getRecentStations())
             prop.setProperty("recent." + Integer.toString(++idx), s);
@@ -2350,13 +2348,37 @@ public class TideInternalFrame
     menuFileExit.addActionListener( new ActionListener() { public void actionPerformed( ActionEvent ae ) { fileExit_ActionPerformed( ae ); } } );
     
     menuFileRecent.setText("Recent Stations");
+    menuClearHistory.setText("Clear History");
+    menuClearHistory.addActionListener(new ActionListener() 
+      { 
+        public void actionPerformed( ActionEvent ae ) 
+        { 
+          while (TideContext.getInstance().getRecentStations().size() > 0)
+            TideContext.getInstance().getRecentStations().remove(0);
+          if (ts != null)
+            TideContext.getInstance().getRecentStations().add(ts.getFullName());
+
+          Properties prop = new Properties();
+          prop.setProperty("tide.station", (ts!=null?ts.getFullName():""));
+          int idx = 0;
+          for (String s : TideContext.getInstance().getRecentStations())
+            prop.setProperty("recent." + Integer.toString(++idx), s);
+          try { prop.store(new FileOutputStream("tidestation.properties"), null); } catch (Exception ex) 
+          { ex.printStackTrace(); }
+        } 
+      });
     menuFileRecent.addMenuListener(new MenuListener()
       {
         public void menuSelected(MenuEvent e)
         {
           menuFileRecent.removeAll();
-          for (final String s : TideContext.getInstance().getRecentStations())
+          menuFileRecent.add(menuClearHistory);
+          menuFileRecent.add(new JSeparator());
+          
+          for (int i=TideContext.getInstance().getRecentStations().size(); i>0; i--)
+//        for (final String s : TideContext.getInstance().getRecentStations())
           {
+            final String s = TideContext.getInstance().getRecentStations().get(i-1);
             JMenuItem jmi = new JMenuItem(s);
             jmi.addActionListener(new ActionListener() 
               { 
@@ -2771,9 +2793,7 @@ public class TideInternalFrame
                     if (!TideContext.getInstance().getRecentStations().contains(stn.getFullStationName()))
                       TideContext.getInstance().getRecentStations().add(stn.getFullStationName());
 
-                    int maxRecent = Integer.parseInt(System.getProperty("max.recent.stations", "5"));
-                    while (TideContext.getInstance().getRecentStations().size() > maxRecent)
-                      TideContext.getInstance().getRecentStations().remove(0);
+                    Utils.shrinkStationList(); // "from MouseListener.dblClicked");
                   }
                 }
               }
@@ -3542,9 +3562,7 @@ public class TideInternalFrame
                   if (!TideContext.getInstance().getRecentStations().contains(sName))
                     TideContext.getInstance().getRecentStations().add(sName);
 
-                  int maxRecent = Integer.parseInt(System.getProperty("max.recent.stations", "5"));
-                  while (TideContext.getInstance().getRecentStations().size() > maxRecent)
-                    TideContext.getInstance().getRecentStations().remove(0);
+                  Utils.shrinkStationList(); // "from findClosestStationsThread dialog");
                 }
               }
             }
