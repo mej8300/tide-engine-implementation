@@ -1,15 +1,15 @@
 package tideengineimplementation.gui.ctx;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
-
 
 public class TideContext
 {
   private static TideContext staticObjects = null;
   private transient List<TideEventListener> tideListeners = null;
   
-  private transient List<String> recentStations = new ArrayList<String>();
+  private transient List<String> recentStations = new LinkedList<String>();
 
   private TideContext()
   {
