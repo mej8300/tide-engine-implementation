@@ -23,6 +23,8 @@ import java.awt.RadialGradientPaint;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import java.awt.event.MouseEvent;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -56,10 +58,13 @@ import ocss.nmea.parser.GeoPos;
 import tideengine.TideStation;
 
 import tideengineimplementation.gui.TideInternalFrame;
+import tideengineimplementation.gui.TideInternalFrame.StationDistance;
 import tideengineimplementation.gui.ctx.TideContext;
 import tideengineimplementation.gui.ctx.TideEventListener;
 
 import tideengineimplementation.utils.AstroComputer;
+
+import tideengineimplementation.utils.Utils;
 
 import user.util.GeomUtil;
 
@@ -76,8 +81,7 @@ public class CommandPanel
   private final static double SOUTH_LAT  = -90D;
   private final static double WEST_LONG  = -180D;
   private final static double EAST_LONG  =  180D;
-  
-  
+    
   private String stationFilterPattern = "";
   
   private BorderLayout borderLayout1;
@@ -114,6 +118,8 @@ public class CommandPanel
   private transient ImageIcon refreshImage = new ImageIcon(this.getClass().getResource("refresh.png"));
   private transient ImageIcon pushPinImage = new ImageIcon(this.getClass().getResource("pushpin_25x25.gif"));
   
+  private transient ImageIcon bluePushPinImage = new ImageIcon(this.getClass().getResource("bluepushpin.png"));
+
   private transient TideEventListener tel = null;
 
   public CommandPanel()
@@ -315,6 +321,8 @@ public class CommandPanel
   
   GeoPoint from = null;
   GeoPoint to   = null;
+  
+  GeoPoint stationPosition = null;
 
   private transient Image blue = new ImageIcon(TideInternalFrame.class.getResource("img/bullet_ball_glass_blue.png")).getImage();
   private transient Image red  = new ImageIcon(TideInternalFrame.class.getResource("img/bullet_ball_glass_red.png")).getImage();
@@ -443,19 +451,42 @@ public class CommandPanel
                  (int)(2 * radius * 0.95));
   }
   
+  private String tooltipMess = null;
+  private boolean replaceTooltip = false;
+                  
   public boolean onEvent(EventObject e, int type)
   {
+    if (type == ChartPanel.MOUSE_MOVED)
+    {
+      // Closets station
+      MouseEvent me = (MouseEvent)e;
+      int x = me.getX();
+      int y = me.getY();
+      GeoPoint gp = chartPanel.getGeoPos(x, y);
+      StationDistance closestStation = Utils.findClosestStation(gp, 100d);
+      if (closestStation != null)
+      {
+        tooltipMess = closestStation.getStationName();
+        replaceTooltip = true;
+        System.out.println("Closest:" + closestStation.getStationName() + ", at " + closestStation.getDistance() + " nm.");
+      }
+      else
+      {
+        tooltipMess = null;
+        replaceTooltip = false;
+      }
+    }
     return true;
   }
 
   public String getMessForTooltip()
   {
-    return null;
+    return tooltipMess;
   }
 
   public boolean replaceMessForTooltip()
   {
-    return false;
+    return replaceTooltip;
   }
 
   public void videoCompleted() {}
@@ -593,6 +624,12 @@ public class CommandPanel
       }
     }
     
+    if (this.stationPosition != null)
+    {
+      Point stationPt = chartPanel.getPanelPoint(stationPosition.getL(), stationPosition.getG());
+      gr.drawImage(bluePushPinImage.getImage(), stationPt.x - 10, stationPt.y - bluePushPinImage.getImage().getHeight(null), null);
+    }
+      
     if (withAstroCheckBox.isSelected())
     {
       // Drawing astro data
@@ -651,5 +688,10 @@ public class CommandPanel
 
   public void afterEvent(EventObject eventObject, int i)
   {
+  }
+
+  public void setStationPosition(GeoPoint statioonPosition)
+  {
+    this.stationPosition = statioonPosition;
   }
 }

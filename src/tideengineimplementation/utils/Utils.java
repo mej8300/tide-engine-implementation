@@ -1,17 +1,29 @@
 package tideengineimplementation.utils;
 
+import astro.calc.GeoPoint;
+import astro.calc.GreatCircle;
+
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.TimeZone;
 
+import javax.swing.JOptionPane;
+
+import tideengine.BackEndTideComputer;
 import tideengine.TideStation;
 import tideengine.TideUtilities;
 
+import tideengineimplementation.gui.TideInternalFrame;
 import tideengineimplementation.gui.ctx.TideContext;
+import tideengineimplementation.gui.dialog.FoundStationPanel;
 
 public class Utils
 {
@@ -113,6 +125,48 @@ public class Utils
       for (String s : TideContext.getInstance().getRecentStations())
         System.out.println("- " + s);
     }
+  }
+  
+  private static List<TideStation> tideStations = null;
+  
+  public static TideInternalFrame.StationDistance findClosestStation(GeoPoint origin, double maxDist)
+  {
+    List<TideInternalFrame.StationDistance> stationMap = null;
+    TideInternalFrame.StationDistance closest = null;
+    if (tideStations == null)
+    {
+      try { tideStations = BackEndTideComputer.getStationData(); } catch (Exception ex) {}
+    }
+    if (tideStations != null)
+    {
+//    System.out.println("Found " + Integer.toString(tideStations.size()) + " station(s)");
+      stationMap = new ArrayList<TideInternalFrame.StationDistance>();
+      // Populate
+      for (TideStation tideStation : tideStations)
+      {
+        double dist = GreatCircle.getDistanceInNM(origin, new GeoPoint(tideStation.getLatitude(), tideStation.getLongitude()));
+        if (dist <= maxDist)
+          stationMap.add(new TideInternalFrame.StationDistance(tideStation.getFullName(), dist));
+      }               
+      // Sort
+      Collections.sort(stationMap, new Comparator<TideInternalFrame.StationDistance>()
+      {
+        public int compare(TideInternalFrame.StationDistance o1, TideInternalFrame.StationDistance o2)
+        {
+          // Sort on distance
+          int cmp = 0;
+          if (o1.getDistance() > o2.getDistance())
+            cmp = 1;
+          else if (o1.getDistance() < o2.getDistance())
+            cmp = -1;
+          return cmp;
+        }
+      });               
+      // Populate a table for the user to select one station.
+    }
+    if (stationMap.size() > 0)
+      closest = stationMap.get(0);
+    return closest;
   }
   
   public static void main1(String[] args)
