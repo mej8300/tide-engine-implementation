@@ -250,13 +250,15 @@ public class TideInternalFrame
                                            (int)h, (int)Math.round(m));
       cal.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
       double wh = 0;
-      try { wh = Utils.convert(TideUtilities.getWaterHeight(ts, constSpeed, cal), ts.getDisplayUnit(), currentUnit); } 
-      catch (Exception ex) 
+      if (ts != null)
       {
-        System.err.println("MouseDown:" + ex.getLocalizedMessage());
-        ex.printStackTrace();
+        try { wh = Utils.convert(TideUtilities.getWaterHeight(ts, constSpeed, cal), ts.getDisplayUnit(), currentUnit); } 
+        catch (Exception ex) 
+        {
+          System.err.println("MouseDown:" + ex.getLocalizedMessage());
+          ex.printStackTrace();
+        }
       }
-      
       String thisTime    = TIME_FORMAT.format(cal.getTime());
       String thisUTCTime = UTC_TIME_FORMAT.format(cal.getTime());
       
@@ -3042,6 +3044,12 @@ public class TideInternalFrame
               
               tzComboBox.setSelectedItem(ts.getTimeZone());
               stationTimeZoneLabel.setText(ts.getTimeZone());
+              if (chartCommandPanel != null)
+              {
+                chartCommandPanel.setStationPosition(new GeoPoint(ts.getLatitude(), ts.getLongitude()));
+                if (chartCommandPanel.isVisible())
+                  chartCommandPanel.repaint();
+              }
             }
             else
             {
@@ -4233,7 +4241,7 @@ public class TideInternalFrame
     }
   }
   
-  public class StationDistance
+  public static class StationDistance
   {
     private String stationName = "";
     private double distance = 0D;
