@@ -12,7 +12,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,9 +38,13 @@ import javax.swing.table.TableModel;
 import tideengineimplementation.gui.TideInternalFrame;
 import tideengineimplementation.gui.ctx.TideContext;
 
+
 public class CoeffTable
   extends JPanel
 {
+  @SuppressWarnings("compatibility:3402934700602820083")
+  public final static long serialVersionUID = 1L;
+
   private transient Object[][] coeffData;
 
   // Table Columns
@@ -208,6 +211,9 @@ public class CoeffTable
     // Init Table
     dataModel = new AbstractTableModel()
       {
+        @SuppressWarnings("compatibility:9070027359489543434")
+        public final static long serialVersionUID = 1L;
+
         public int getColumnCount()
         {
           return names.length;
@@ -250,6 +256,9 @@ public class CoeffTable
     // Create JTable
     table = new JTable(dataModel)
     {
+      @SuppressWarnings("compatibility:-6277413828840729633")
+      public final static long serialVersionUID = 1L;
+
       /* For the tooltip text */
       public Component prepareRenderer_tamere(TableCellRenderer renderer, int rowIndex, int vColIndex)
       {
@@ -428,12 +437,15 @@ public class CoeffTable
     return reversed;
   }
   
-  public class CustomTableCellRenderer
+  public static class CustomTableCellRenderer
     extends JLabel
     implements TableCellRenderer
   {
-    Object curValue = null;
-    boolean selected = false;
+    @SuppressWarnings("compatibility:4628953852823146895")
+    public final static long serialVersionUID = 1L;
+
+    private transient Object curValue = null;
+    private boolean selected = false;
 
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
     {

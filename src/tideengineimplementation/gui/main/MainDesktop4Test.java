@@ -16,6 +16,8 @@ import tideengineimplementation.gui.TideInternalFrame;
 public class MainDesktop4Test
      extends JFrame
 {
+  @SuppressWarnings("compatibility:2842122687839437386")
+  public final static long serialVersionUID = 1L;
   public MainDesktop4Test()
   {
     try

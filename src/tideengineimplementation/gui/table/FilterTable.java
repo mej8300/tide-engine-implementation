@@ -39,6 +39,9 @@ import user.util.GeomUtil;
 public class FilterTable
      extends JPanel 
 {
+  @SuppressWarnings("compatibility:-858313862504726597")
+  public final static long serialVersionUID = 1L;
+
   private transient List<TideStation> stationData;
   
   // Table Columns
@@ -195,6 +198,9 @@ public class FilterTable
     // Init Table
     dataModel = new AbstractTableModel()
     {
+        @SuppressWarnings("compatibility:9070027359489543434")
+        public final static long serialVersionUID = 1L;
+
       public int getColumnCount()
       { return names.length; }
       public int getRowCount()
@@ -220,6 +226,9 @@ public class FilterTable
     // Create JTable
     table = new JTable(dataModel)
       {
+        @SuppressWarnings("compatibility:-6277413828840729633")
+        public final static long serialVersionUID = 1L;
+
         public Component prepareRenderer(TableCellRenderer renderer, int rowIndex, int vColIndex)
         {
           Component c = super.prepareRenderer(renderer, rowIndex, vColIndex);

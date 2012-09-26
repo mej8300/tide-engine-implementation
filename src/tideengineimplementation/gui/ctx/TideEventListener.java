@@ -1,6 +1,5 @@
 package tideengineimplementation.gui.ctx;
 
-import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.List;
 

@@ -2,20 +2,19 @@ package tideengineimplementation.gui.dialog;
 
 import java.awt.Color;
 import java.awt.Dimension;
-
 import java.awt.Font;
 import java.awt.Graphics;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import javax.swing.JPanel;
-import javax.swing.Timer;
+
 
 public class SpecialProgressBar
   extends JPanel
 //implements ActionListener
 {
+  @SuppressWarnings("compatibility:-7027864965078341797")
+  public final static long serialVersionUID = 1L;
+
   private final SpecialProgressBar instance = this;
   private String label = "";
   private boolean move = true;

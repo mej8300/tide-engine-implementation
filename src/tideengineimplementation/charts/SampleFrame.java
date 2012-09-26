@@ -17,6 +17,8 @@ import tideengineimplementation.utils.StationPositions;
 
 public class SampleFrame extends JFrame
 {
+  @SuppressWarnings("compatibility:2455624528469075514")
+  public final static long serialVersionUID = 1L;
   private CommandPanel commandPanel;
 
   public SampleFrame()

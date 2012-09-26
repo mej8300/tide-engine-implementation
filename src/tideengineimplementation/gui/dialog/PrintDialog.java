@@ -31,6 +31,9 @@ import tideengine.TideStation;
 public class PrintDialog
   extends JPanel
 {
+  @SuppressWarnings("compatibility:6965100563857786638")
+  public final static long serialVersionUID = 1L;
+
   private GridBagLayout gridBagLayout1 = new GridBagLayout();
   private JLabel stationNameLabel = new JLabel();
   private JComboBox timeZoneComboBox = new JComboBox();

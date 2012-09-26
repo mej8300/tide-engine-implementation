@@ -25,6 +25,9 @@ import javax.swing.SpinnerNumberModel;
 public class DatePanel
   extends JPanel
 {
+  @SuppressWarnings("compatibility:2893176718828670228")
+  public final static long serialVersionUID = 1L;
+
   private GridBagLayout gridBagLayout1 = new GridBagLayout();
   private JSpinner yearSpinner = null; // new JSpinner();
   private JComboBox monthComboBox = new JComboBox();
