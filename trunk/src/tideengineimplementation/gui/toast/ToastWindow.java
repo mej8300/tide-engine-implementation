@@ -9,28 +9,25 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Image;
 import java.awt.Insets;
-import java.awt.MediaTracker;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import java.net.URL;
-
-import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import javax.swing.JWindow;
 
 import tideengineimplementation.gui.dialog.SpecialProgressBar;
 
 public class ToastWindow extends JWindow
 {
+  @SuppressWarnings("compatibility:417524017059390911")
+  public final static long serialVersionUID = 1L;
+
   private static ToastWindow instance;
   private boolean paintCalled = false;
 
@@ -41,11 +38,6 @@ public class ToastWindow extends JWindow
   private final static int H = 100;
   private final static int W = 325;
   
-  /**
-   * Creates a new instance.
-   * @param parent the parent of the window.
-   * @param image the splash image.
-   */
   private ToastWindow(Frame parent)
   {
     this(parent, null);
@@ -161,10 +153,6 @@ public class ToastWindow extends JWindow
     }
   }
   
-  /**
-   * Open's a splash window using the specified image.
-   * @param image The splash image.
-   */
   public static void splash(String label) 
   {
     splash(label, null);

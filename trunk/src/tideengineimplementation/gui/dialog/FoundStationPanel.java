@@ -23,6 +23,9 @@ import tideengineimplementation.gui.TideInternalFrame;
 public class FoundStationPanel
 extends JPanel 
 {
+  @SuppressWarnings("compatibility:-467412741448390710")
+  public final static long serialVersionUID = 1L;
+
   private String selectedStation = null;
   private final static DecimalFormat DF_X2 = new DecimalFormat("#0.00");
   // Table Columns
@@ -79,6 +82,9 @@ extends JPanel
     // Init Table
     dataModel = new AbstractTableModel()
     {
+      @SuppressWarnings("compatibility:9070027359489543434")
+      public final static long serialVersionUID = 1L;
+
       public int getColumnCount()
       { return names.length; }
       public int getRowCount()

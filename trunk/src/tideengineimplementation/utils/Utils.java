@@ -1,5 +1,6 @@
 package tideengineimplementation.utils;
 
+
 import astro.calc.GeoPoint;
 import astro.calc.GreatCircle;
 
@@ -15,15 +16,13 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
 
-import javax.swing.JOptionPane;
-
 import tideengine.BackEndTideComputer;
 import tideengine.TideStation;
 import tideengine.TideUtilities;
 
 import tideengineimplementation.gui.TideInternalFrame;
 import tideengineimplementation.gui.ctx.TideContext;
-import tideengineimplementation.gui.dialog.FoundStationPanel;
+
 
 public class Utils
 {

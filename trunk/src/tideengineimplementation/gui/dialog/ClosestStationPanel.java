@@ -17,6 +17,9 @@ import javax.swing.SwingConstants;
 public class ClosestStationPanel
   extends JPanel
 {
+  @SuppressWarnings("compatibility:7672932141139302930")
+  public final static long serialVersionUID = 1L;
+
   private GridBagLayout gridBagLayout1 = new GridBagLayout();
   private JLabel titleLabel = new JLabel();
   private JLabel positionLabel = new JLabel();

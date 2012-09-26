@@ -29,6 +29,9 @@ import tideengineimplementation.gui.ctx.TideContext;
 public class TimeZoneTable
   extends JPanel
 {
+  @SuppressWarnings("compatibility:8975770705051309092")
+  public final static long serialVersionUID = 1L;
+
   private transient String[] timeZoneData;
 
   // Table Columns
@@ -153,6 +156,9 @@ public class TimeZoneTable
     // Init Table
     dataModel = new AbstractTableModel()
       {
+        @SuppressWarnings("compatibility:9070027359489543434")
+        public final static long serialVersionUID = 1L;
+
         public int getColumnCount()
         {
           return names.length;

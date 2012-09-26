@@ -14,12 +14,15 @@ import javax.swing.border.Border;
 public class TideFrame_AboutBoxPanel1
   extends JPanel
 {
+  @SuppressWarnings("compatibility:-7269217593939379012")
+  public final static long serialVersionUID = 1L;
+
   private JLabel labelTitle = new JLabel();
   private JLabel labelAuthor = new JLabel();
   private JLabel labelCopyright = new JLabel();
   private JLabel labelCompany = new JLabel();
   private GridBagLayout layoutMain = new GridBagLayout();
-  private Border border = BorderFactory.createEtchedBorder();
+  private transient Border border = BorderFactory.createEtchedBorder();
   private JLabel logoLabel = new JLabel();
 
   public TideFrame_AboutBoxPanel1()

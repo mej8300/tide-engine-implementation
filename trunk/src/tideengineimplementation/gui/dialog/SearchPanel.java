@@ -3,11 +3,7 @@ package tideengineimplementation.gui.dialog;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-
 import java.awt.Insets;
-
-import java.awt.Rectangle;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -21,14 +17,17 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-
 import javax.swing.JRadioButton;
 
 import tideengine.TideStation;
 
+
 public class SearchPanel
   extends JPanel
 {
+  @SuppressWarnings("compatibility:1992585320685695242")
+  public final static long serialVersionUID = 1L;
+
   public final static int HIGH_TIDE = 0;
   public final static int LOW_TIDE  = 1;
 

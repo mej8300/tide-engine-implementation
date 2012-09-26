@@ -1,23 +1,12 @@
 package tideengineimplementation.utils;
 
-import java.io.File;
-import java.io.FileInputStream;
-
-import java.util.ArrayList;
-
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.JOptionPane;
 
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
-import org.xml.sax.InputSource;
-
 import tideengine.BackEndTideComputer;
-import tideengine.BackEndXMLTideComputer;
 import tideengine.TideStation;
 
 import tideengineimplementation.gui.table.FilterTable;

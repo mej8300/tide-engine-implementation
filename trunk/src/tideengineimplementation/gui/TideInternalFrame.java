@@ -140,6 +140,9 @@ import user.util.GeomUtil;
 public class TideInternalFrame
      extends JInternalFrame
 {
+  @SuppressWarnings("compatibility:3131594877844669614")
+  public final static long serialVersionUID = 1L;
+
   public final static String TIDE_INTERNAL_FRAME_PROP_FILE = "internal.tide.frame.properties";
   public final static String TOP_LEFT_X_PROP               = "top.left.x";
   public final static String TOP_LEFT_Y_PROP               = "top.left.y";
@@ -215,6 +218,9 @@ public class TideInternalFrame
   
   private TidePanel graphPanelOneDay = new TidePanel() // Current Day, now.
   {
+    @SuppressWarnings("compatibility:6183464550290531188")
+    public final static long serialVersionUID = 1L;
+
     private boolean mouseIsIn = false;
     private String postit = "";
     private int mouseX = 0, mouseY = 0;
@@ -228,7 +234,7 @@ public class TideInternalFrame
     private Calendar low2Cal = null;
     private Calendar high1Cal = null;
     private Calendar high2Cal = null;
-    private List<TimedValue> slackList = null;
+    private transient List<TimedValue> slackList = null;
     private int trend = 0;
 
     @Override
@@ -521,7 +527,7 @@ public class TideInternalFrame
 
             Point previous = null;
             // Draw here            
-            double previousWH = Double.NaN;
+//          double previousWH = Double.NaN;
             Calendar reference = (Calendar)now.clone();
             
             showTideCurveCB.setVisible(decomposeCheckBox.isSelected());
@@ -1390,8 +1396,8 @@ public class TideInternalFrame
         super.paintComponent(g);
     //  g.setFont(new Font("courier new", Font.PLAIN, 12));
         Calendar from = null, to = null;
-        double moonPhase = -1D;
-        int prevPhase = -1;
+//      double moonPhase = -1D;
+//      int prevPhase = -1;
         
         if (tideStationName != null)
         {
@@ -3203,7 +3209,7 @@ public class TideInternalFrame
               if (System.getProperty("os.name").indexOf("Linux") > -1)
                 cmd = "." + File.separator + "pub" + File.separator + "publishtide " + radical;
               System.out.println("Command:" + cmd);
-              Process p = Runtime.getRuntime().exec(cmd);
+          /*  Process p = */ Runtime.getRuntime().exec(cmd);
             }
             catch (Exception ex)
             {

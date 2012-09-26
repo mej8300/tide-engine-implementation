@@ -18,10 +18,9 @@ import tideengine.Coefficient;
 import tideengine.TideStation;
 import tideengine.TideUtilities;
 
-import tideengineimplementation.gui.TideInternalFrame;
-
 import tideengineimplementation.utils.AstroComputer;
 import tideengineimplementation.utils.Utils;
+
 
 /**
  * Tide Publisher

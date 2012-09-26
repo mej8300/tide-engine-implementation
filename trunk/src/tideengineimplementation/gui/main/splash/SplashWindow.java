@@ -24,13 +24,16 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import javax.swing.JWindow;
 
 import tideengineimplementation.gui.dialog.SpecialProgressBar;
 
+
 public class SplashWindow extends JWindow
 {
+  @SuppressWarnings("compatibility:3873269388586340794")
+  public final static long serialVersionUID = 1L;
+
   private static SplashWindow instance;
   private transient Image image;
   private boolean paintCalled = false;
@@ -54,6 +57,7 @@ public class SplashWindow extends JWindow
   {
     this(parent, image, null);
   }
+  
   private SplashWindow(Frame parent, Image image, JFrame parentFrame) 
   {
     super(parent);

@@ -7,9 +7,9 @@ import java.util.List;
 public class TideContext
 {
   private static TideContext staticObjects = null;
-  private transient List<TideEventListener> tideListeners = null;
+  private List<TideEventListener> tideListeners = null;
   
-  private transient List<String> recentStations = new LinkedList<String>();
+  private List<String> recentStations = new LinkedList<String>();
 
   private TideContext()
   {

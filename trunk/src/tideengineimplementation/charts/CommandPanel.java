@@ -66,6 +66,9 @@ public class CommandPanel
      extends JPanel
   implements ChartPanelParentInterface_II
 {
+  @SuppressWarnings("compatibility:-2844425347986426369")
+  public final static long serialVersionUID = 1L;
+  
   private final static Color DARK_RED = new Color(108, 0, 0);
 
   private final static int PROJECTION = ChartPanel.ANAXIMANDRE; // ChartPanel.GLOBE_VIEW;  ;0)
