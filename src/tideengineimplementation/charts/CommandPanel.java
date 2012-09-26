@@ -1,6 +1,8 @@
 package tideengineimplementation.charts;
 
+
 import astro.calc.GeoPoint;
+
 import chart.components.ui.ChartPanel;
 import chart.components.ui.ChartPanelParentInterface_II;
 import chart.components.util.World;
@@ -22,20 +24,14 @@ import java.awt.Polygon;
 import java.awt.RadialGradientPaint;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import java.awt.event.MouseEvent;
 
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
 import java.util.EventObject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedSet;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,8 +43,6 @@ import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
-
-import nauticalalmanac.Context;
 
 import nmea.server.ctx.NMEAContext;
 import nmea.server.ctx.NMEADataCache;
@@ -63,10 +57,10 @@ import tideengineimplementation.gui.ctx.TideContext;
 import tideengineimplementation.gui.ctx.TideEventListener;
 
 import tideengineimplementation.utils.AstroComputer;
-
 import tideengineimplementation.utils.Utils;
 
 import user.util.GeomUtil;
+
 
 public class CommandPanel 
      extends JPanel
@@ -92,6 +86,7 @@ public class CommandPanel
   private JButton zoomOutButton;
   private JButton resetZoomButton;  
   private JCheckBox mouseCheckBox;
+  private JCheckBox showStationsCheckBox;
   private JCheckBox withNameCheckBox;
   private JCheckBox withAstroCheckBox;
   private JRadioButton sunLightRadioButton;
@@ -134,6 +129,8 @@ public class CommandPanel
     resetZoomButton = new JButton();
     mouseCheckBox = new JCheckBox("Grab-Scroll");
     mouseCheckBox.setSelected(false);
+    showStationsCheckBox = new JCheckBox("Show Stations");
+    showStationsCheckBox.setSelected(true);
     withNameCheckBox = new JCheckBox("With Station Names");
     withNameCheckBox.setSelected(false);
     withAstroCheckBox = new JCheckBox("With Astro Data");
@@ -211,6 +208,14 @@ public class CommandPanel
 
     });
     
+    showStationsCheckBox.addActionListener(new ActionListener()
+      {
+        public void actionPerformed(ActionEvent e)
+        {
+          withNameCheckBox.setEnabled(showStationsCheckBox.isSelected());
+          chartPanel.repaint();
+        }
+      });
     mouseCheckBox.addActionListener(new ActionListener()
       {
         public void actionPerformed(ActionEvent e)
@@ -249,6 +254,7 @@ public class CommandPanel
     
     jScrollPane1.getViewport().add(chartPanel, null);
     add(jScrollPane1, BorderLayout.CENTER);
+    bottomPanel.add(showStationsCheckBox, null);
     bottomPanel.add(sunLightRadioButton, null);
     bottomPanel.add(moonLightRadioButton, null);
     bottomPanel.add(zoomInButton, null);
@@ -333,8 +339,8 @@ public class CommandPanel
     Graphics2D g2d = null;
     if (gr instanceof Graphics2D)
       g2d = (Graphics2D)gr;
-//  World.drawChart(chartPanel, gr);
     World.paintChart(null, chartPanel, g2d, Color.orange);
+    World.drawChart(chartPanel, gr);
 
     gr.setColor(Color.red);
     if (stationData != null)
@@ -346,29 +352,32 @@ public class CommandPanel
         pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);        
       }
       
-      for (TideStation sd : stationData)
+      if (showStationsCheckBox.isSelected())
       {
-        boolean go = true;
-        if (pattern != null)
+        for (TideStation sd : stationData)
         {
-          Matcher m = pattern.matcher(sd.getFullName());
-          go = m.matches();          
-        }
-        if (go)
-        {
-          GeoPoint p =new GeoPoint(sd.getLatitude(), sd.getLongitude());
-          Point pt = chartPanel.getPanelPoint(p);
-          Image img = null;
-          if (sd.isCurrentStation())
-//          gr.setColor(Color.blue);
-            img = red;   // this matches the tree
-          if (sd.isTideStation())
-//          gr.setColor(Color.red);
-            img = blue;  // this matches the tree
-//        gr.drawOval(pt.x-2,pt.y-2, 4, 4);
-          gr.drawImage(img, pt.x-8, pt.y-8, null);
-          if (withNameCheckBox.isSelected())
-            gr.drawString(sd.getFullName(), pt.x + 2, pt.y);
+          boolean go = true;
+          if (pattern != null)
+          {
+            Matcher m = pattern.matcher(sd.getFullName());
+            go = m.matches();          
+          }
+          if (go)
+          {
+            GeoPoint p =new GeoPoint(sd.getLatitude(), sd.getLongitude());
+            Point pt = chartPanel.getPanelPoint(p);
+            Image img = null;
+            if (sd.isCurrentStation())
+  //          gr.setColor(Color.blue);
+              img = red;   // this matches the tree
+            if (sd.isTideStation())
+  //          gr.setColor(Color.red);
+              img = blue;  // this matches the tree
+  //        gr.drawOval(pt.x-2,pt.y-2, 4, 4);
+            gr.drawImage(img, pt.x-8, pt.y-8, null);
+            if (withNameCheckBox.isSelected())
+              gr.drawString(sd.getFullName(), pt.x + 2, pt.y);
+          }
         }
       }
     }
