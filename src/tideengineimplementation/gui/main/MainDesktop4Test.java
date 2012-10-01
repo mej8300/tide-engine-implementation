@@ -34,7 +34,7 @@ public class MainDesktop4Test
     throws Exception
   {
     this.getContentPane().setLayout( null );
-    this.setSize(new Dimension(1295, 774));
+    this.setSize(new Dimension(1672, 879));
     this.setTitle( "Oliv" );
     
     TideInternalFrame tides = new TideInternalFrame(null);
@@ -44,13 +44,13 @@ public class MainDesktop4Test
     tides.setResizable(true);
     this.add(tides);
     tides.setVisible(true);
-    tides.setBounds(new Rectangle(70, 35, 1079, 637));
+    tides.setBounds(new Rectangle(70, 35, 1200, 800));
   }
   
   public static void main(String[] args)
   {
     String lnf = null;
-    try { lnf = System.getProperty("swing.defaultlaf"); } catch (Exception ignore) {}
+    try { lnf = System.getProperty("swing.defaultlaf"); } catch (Exception ignore) { System.err.println(ignore.getLocalizedMessage()); }
     //  System.out.println("LnF:" + lnf);
     if (lnf == null) // Let the -Dswing.defaultlaf do the job.
     {
@@ -86,7 +86,6 @@ public class MainDesktop4Test
       }
     });    
     //  frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
-    frame.setVisible(true);
-    
+    frame.setVisible(true);    
   }
 }
