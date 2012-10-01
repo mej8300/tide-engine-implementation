@@ -207,6 +207,16 @@ public class TideInternalFrame
   private transient Image sunSymbol  = new ImageIcon(this.getClass().getResource("sun.png")).getImage();
   private transient Image moonSymbol = new ImageIcon(this.getClass().getResource("moon.png")).getImage();
   
+  private transient ImageIcon nowImage       = new ImageIcon(this.getClass().getResource("img/now.png"));
+  private transient ImageIcon calLeftImage1  = new ImageIcon(this.getClass().getResource("img/cal-left-1.png"));
+  private transient ImageIcon calRightImage1 = new ImageIcon(this.getClass().getResource("img/cal-right-1.png"));
+  private transient ImageIcon calLeftImage2  = new ImageIcon(this.getClass().getResource("img/cal-left-2.png"));
+  private transient ImageIcon calRightImage2 = new ImageIcon(this.getClass().getResource("img/cal-right-2.png"));
+  private transient ImageIcon calLeftImage3  = new ImageIcon(this.getClass().getResource("img/cal-left-3.png"));
+  private transient ImageIcon calRightImage3 = new ImageIcon(this.getClass().getResource("img/cal-right-3.png"));
+  private transient ImageIcon calLeftImage4  = new ImageIcon(this.getClass().getResource("img/cal-left-4.png"));
+  private transient ImageIcon calRightImage4 = new ImageIcon(this.getClass().getResource("img/cal-right-4.png"));
+
   private int hourOffset = 0;
   private CoeffTable ct = null;
   private transient HashMap<ColoredCoeff, String> coeffData = null;
@@ -2337,7 +2347,7 @@ public class TideInternalFrame
 
     this.setJMenuBar( menuBar );
     this.getContentPane().setLayout(mainBorderLayout);
-    this.setSize(new Dimension(1167, 644));
+    this.setSize(new Dimension(1272, 684));
     this.setTitle("Oliv's Tide Computer");
     menuFile.setText("File");
     menuFilePrint.setText("Print");
@@ -2818,12 +2828,14 @@ public class TideInternalFrame
     buttonPanel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
     buttonPanel.setLayout(gridBagLayout1);
 //  buttonPanel.setPreferredSize(new Dimension(764, 66));
-    backOneYearButton.setText("< Y");
-    backOneYearButton.setToolTipText("Back 1 Year");
-    backOneYearButton.setMaximumSize(new Dimension(50, 21));
-    backOneYearButton.setMinimumSize(new Dimension(50, 21));
-    backOneYearButton.setPreferredSize(new Dimension(50, 21));
-    backOneYearButton.setMargin(new Insets(1, 1, 1, 1));
+//  backOneYearButton.setText("< Y");
+    backOneYearButton.setIcon(calLeftImage4);
+    backOneYearButton.setBorderPainted(false);
+    backOneYearButton.setToolTipText("<html>Back 1 Year<br>" + "</html>");
+//  backOneYearButton.setMaximumSize(new Dimension(50, 32));
+//  backOneYearButton.setMinimumSize(new Dimension(50, 32));
+    backOneYearButton.setPreferredSize(new Dimension(58, 32));
+//  backOneYearButton.setMargin(new Insets(1, 1, 1, 1));
     backOneYearButton.addActionListener(new ActionListener()
       {
         public void actionPerformed(ActionEvent e)
@@ -2831,12 +2843,14 @@ public class TideInternalFrame
           backOneYearButton_actionPerformed(e);
         }
       });
-    backOneMonthButton.setText("< M");
-    backOneMonthButton.setToolTipText("Back 1 Month");
-    backOneMonthButton.setMargin(new Insets(1, 1, 1, 1));
-    backOneMonthButton.setMaximumSize(new Dimension(50, 21));
-    backOneMonthButton.setMinimumSize(new Dimension(50, 21));
-    backOneMonthButton.setPreferredSize(new Dimension(50, 21));
+//  backOneMonthButton.setText("< M");
+    backOneMonthButton.setIcon(calLeftImage3);
+    backOneMonthButton.setBorderPainted(false);
+    backOneMonthButton.setToolTipText("<html>Back 1 Month<br>" + "</html>");
+//  backOneMonthButton.setMargin(new Insets(1, 1, 1, 1));
+//  backOneMonthButton.setMaximumSize(new Dimension(50, 32));
+//  backOneMonthButton.setMinimumSize(new Dimension(50, 32));
+    backOneMonthButton.setPreferredSize(new Dimension(52, 32));
     backOneMonthButton.addActionListener(new ActionListener()
       {
         public void actionPerformed(ActionEvent e)
@@ -2844,12 +2858,14 @@ public class TideInternalFrame
           backOneMonthButton_actionPerformed(e);
         }
       });
-    backOneWeekButton.setText("< W");
-    backOneWeekButton.setToolTipText("Back 1 Week");
-    backOneWeekButton.setMargin(new Insets(1, 1, 1, 1));
-    backOneWeekButton.setMaximumSize(new Dimension(50, 21));
-    backOneWeekButton.setMinimumSize(new Dimension(50, 21));
-    backOneWeekButton.setPreferredSize(new Dimension(50, 21));
+//  backOneWeekButton.setText("< W");
+    backOneWeekButton.setIcon(calLeftImage2);
+    backOneWeekButton.setBorderPainted(false);
+    backOneWeekButton.setToolTipText("<html>Back 1 Week<br>" + "</html>");
+//  backOneWeekButton.setMargin(new Insets(1, 1, 1, 1));
+//  backOneWeekButton.setMaximumSize(new Dimension(50, 32));
+//  backOneWeekButton.setMinimumSize(new Dimension(50, 32));
+    backOneWeekButton.setPreferredSize(new Dimension(46, 32));
     backOneWeekButton.addActionListener(new ActionListener()
       {
         public void actionPerformed(ActionEvent e)
@@ -2857,12 +2873,14 @@ public class TideInternalFrame
           backOneWeekButton_actionPerformed(e);
         }
       });
-    backOneDayButton.setText("< D");
+//  backOneDayButton.setText("< D");
+    backOneDayButton.setIcon(calLeftImage1);
+    backOneDayButton.setBorderPainted(false);
     backOneDayButton.setToolTipText("<html>Back 1 Day<br>(Shift: 1 Hour, Ctrl: Scroll)</html>");
-    backOneDayButton.setMargin(new Insets(1, 1, 1, 1));
-    backOneDayButton.setMaximumSize(new Dimension(50, 21));
-    backOneDayButton.setMinimumSize(new Dimension(50, 21));
-    backOneDayButton.setPreferredSize(new Dimension(50, 21));
+//  backOneDayButton.setMargin(new Insets(1, 1, 1, 1));
+//  backOneDayButton.setMaximumSize(new Dimension(50, 32));
+//  backOneDayButton.setMinimumSize(new Dimension(50, 32));
+    backOneDayButton.setPreferredSize(new Dimension(42, 32));
     backOneDayButton.addActionListener(new ActionListener()
       {
         public void actionPerformed(ActionEvent e)
@@ -2870,12 +2888,14 @@ public class TideInternalFrame
           backOneDayButton_actionPerformed(e);
         }
       });
-    forwardOneDayButton.setText("D >");
+//  forwardOneDayButton.setText("D >");
+    forwardOneDayButton.setIcon(calRightImage1);
+    forwardOneDayButton.setBorderPainted(false);
     forwardOneDayButton.setToolTipText("<html>Forward 1 Day<br>(Shift: 1 Hour, Ctrl: Scroll)<html>");
-    forwardOneDayButton.setMargin(new Insets(1, 1, 1, 1));
-    forwardOneDayButton.setMaximumSize(new Dimension(50, 21));
-    forwardOneDayButton.setMinimumSize(new Dimension(50, 21));
-    forwardOneDayButton.setPreferredSize(new Dimension(50, 21));
+//  forwardOneDayButton.setMargin(new Insets(1, 1, 1, 1));
+//  forwardOneDayButton.setMaximumSize(new Dimension(50, 32));
+//  forwardOneDayButton.setMinimumSize(new Dimension(50, 32));
+    forwardOneDayButton.setPreferredSize(new Dimension(42, 32));
     forwardOneDayButton.addActionListener(new ActionListener()
       {
         public void actionPerformed(ActionEvent e)
@@ -2883,12 +2903,14 @@ public class TideInternalFrame
           forwardOneDayButton_actionPerformed(e);
         }
       });
-    forwardOneWeekButton.setText("W >");
-    forwardOneWeekButton.setToolTipText("Forward 1 Week");
-    forwardOneWeekButton.setMargin(new Insets(1, 1, 1, 1));
-    forwardOneWeekButton.setMaximumSize(new Dimension(50, 21));
-    forwardOneWeekButton.setMinimumSize(new Dimension(50, 21));
-    forwardOneWeekButton.setPreferredSize(new Dimension(50, 21));
+//  forwardOneWeekButton.setText("W >");
+    forwardOneWeekButton.setIcon(calRightImage2);
+    forwardOneWeekButton.setBorderPainted(false);
+    forwardOneWeekButton.setToolTipText("<html>Forward 1 Week<br>" + "</html>");
+//  forwardOneWeekButton.setMargin(new Insets(1, 1, 1, 1));
+//  forwardOneWeekButton.setMaximumSize(new Dimension(50, 32));
+//  forwardOneWeekButton.setMinimumSize(new Dimension(50, 32));
+    forwardOneWeekButton.setPreferredSize(new Dimension(46, 32));
     forwardOneWeekButton.addActionListener(new ActionListener()
       {
         public void actionPerformed(ActionEvent e)
@@ -2896,12 +2918,14 @@ public class TideInternalFrame
           forwardOneWeekButton_actionPerformed(e);
         }
       });
-    forwardOneMonthButton.setText("M >");
-    forwardOneMonthButton.setToolTipText("Forward 1 Month");
-    forwardOneMonthButton.setMargin(new Insets(1, 1, 1, 1));
-    forwardOneMonthButton.setMaximumSize(new Dimension(50, 21));
-    forwardOneMonthButton.setMinimumSize(new Dimension(50, 21));
-    forwardOneMonthButton.setPreferredSize(new Dimension(50, 21));
+//  forwardOneMonthButton.setText("M >");
+    forwardOneMonthButton.setIcon(calRightImage3);
+    forwardOneMonthButton.setBorderPainted(false);
+    forwardOneMonthButton.setToolTipText("<html>Forward 1 Month<br>" + "</html>");
+//  forwardOneMonthButton.setMargin(new Insets(1, 1, 1, 1));
+//  forwardOneMonthButton.setMaximumSize(new Dimension(50, 32));
+//  forwardOneMonthButton.setMinimumSize(new Dimension(50, 32));
+    forwardOneMonthButton.setPreferredSize(new Dimension(52, 32));
     forwardOneMonthButton.addActionListener(new ActionListener()
       {
         public void actionPerformed(ActionEvent e)
@@ -2909,12 +2933,14 @@ public class TideInternalFrame
           forwardOneMonthButton_actionPerformed(e);
         }
       });
-    forwardOneYearButton.setText("Y >");
-    forwardOneYearButton.setToolTipText("Forward 1 Year");
-    forwardOneYearButton.setMargin(new Insets(1, 1, 1, 1));
-    forwardOneYearButton.setMaximumSize(new Dimension(50, 21));
-    forwardOneYearButton.setMinimumSize(new Dimension(50, 21));
-    forwardOneYearButton.setPreferredSize(new Dimension(50, 21));
+//  forwardOneYearButton.setText("Y >");
+    forwardOneYearButton.setIcon(calRightImage4);
+    forwardOneYearButton.setBorderPainted(false);
+    forwardOneYearButton.setToolTipText("<html>Forward 1 Year<br>" + "</html>");
+//  forwardOneYearButton.setMargin(new Insets(1, 1, 1, 1));
+//  forwardOneYearButton.setMaximumSize(new Dimension(50, 32));
+//  forwardOneYearButton.setMinimumSize(new Dimension(50, 32));
+    forwardOneYearButton.setPreferredSize(new Dimension(58, 32));
     forwardOneYearButton.addActionListener(new ActionListener()
       {
         public void actionPerformed(ActionEvent e)
@@ -2922,11 +2948,13 @@ public class TideInternalFrame
           forwardOneYearButton_actionPerformed(e);
         }
       });
-    nowButton.setText("Now");
-    nowButton.setMargin(new Insets(1, 1, 1, 1));
-    nowButton.setMaximumSize(new Dimension(50, 21));
-    nowButton.setMinimumSize(new Dimension(50, 21));
-    nowButton.setPreferredSize(new Dimension(50, 21));
+//  nowButton.setText("<html>Now<br>" + "</html>");
+    nowButton.setIcon(nowImage);
+//  nowButton.setMargin(new Insets(1, 1, 1, 1));
+//  nowButton.setMaximumSize(new Dimension(32, 32));
+//  nowButton.setMinimumSize(new Dimension(32, 32));
+    nowButton.setPreferredSize(new Dimension(32, 32));
+    nowButton.setBorderPainted(false);
     nowButton.addActionListener(new ActionListener()
       {
         public void actionPerformed(ActionEvent e)
@@ -2934,13 +2962,14 @@ public class TideInternalFrame
           nowButton_actionPerformed(e);
         }
       });
+    updateTooltips(now);
     
     try { refreshButton.setIcon(new ImageIcon(this.getClass().getResource("img/refresh.png"))); } catch (Exception ex) { System.err.println(ex.getLocalizedMessage()); }
     refreshButton.setToolTipText("Refresh");
-    refreshButton.setMargin(new Insets(1, 1, 1, 1));
-    refreshButton.setMaximumSize(new Dimension(21, 21));
-    refreshButton.setMinimumSize(new Dimension(21, 21));
-    refreshButton.setPreferredSize(new Dimension(21, 21));
+//  refreshButton.setMargin(new Insets(1, 1, 1, 1));
+//  refreshButton.setMaximumSize(new Dimension(32, 32));
+//  refreshButton.setMinimumSize(new Dimension(32, 32));
+    refreshButton.setPreferredSize(new Dimension(32, 32));
     refreshButton.setBorderPainted(false);
     refreshButton.addActionListener(new ActionListener()
       {
@@ -3652,6 +3681,7 @@ public class TideInternalFrame
     resetData();
     graphPanelOneDay.repaint();
     graphPanelExtended.repaint();
+    updateTooltips(now);
   }
   private void backOneWeekButton_actionPerformed(ActionEvent e)
   {
@@ -3659,6 +3689,7 @@ public class TideInternalFrame
     resetData();
     graphPanelOneDay.repaint();
     graphPanelExtended.repaint();
+    updateTooltips(now);
   }
   private void backOneMonthButton_actionPerformed(ActionEvent e)
   {
@@ -3666,6 +3697,7 @@ public class TideInternalFrame
     resetData();
     graphPanelOneDay.repaint();
     graphPanelExtended.repaint();
+    updateTooltips(now);
   }
   private void backOneYearButton_actionPerformed(ActionEvent e)
   {
@@ -3673,6 +3705,7 @@ public class TideInternalFrame
     resetData();
     graphPanelOneDay.repaint();
     graphPanelExtended.repaint();
+    updateTooltips(now);
   }
 
   private void forwardOneDayButton_actionPerformed(ActionEvent e)
@@ -3690,6 +3723,7 @@ public class TideInternalFrame
     resetData();
     graphPanelOneDay.repaint();
     graphPanelExtended.repaint();
+    updateTooltips(now);
   }
   private void forwardOneWeekButton_actionPerformed(ActionEvent e)
   {
@@ -3697,6 +3731,7 @@ public class TideInternalFrame
     resetData();
     graphPanelOneDay.repaint();
     graphPanelExtended.repaint();
+    updateTooltips(now);
   }
   private void forwardOneMonthButton_actionPerformed(ActionEvent e)
   {
@@ -3704,6 +3739,7 @@ public class TideInternalFrame
     resetData();
     graphPanelOneDay.repaint();
     graphPanelExtended.repaint();
+    updateTooltips(now);
   }
   private void forwardOneYearButton_actionPerformed(ActionEvent e)
   {
@@ -3711,6 +3747,7 @@ public class TideInternalFrame
     resetData();
     graphPanelOneDay.repaint();
     graphPanelExtended.repaint();
+    updateTooltips(now);
   }
 
   private void nowButton_actionPerformed(ActionEvent e)
@@ -3720,8 +3757,41 @@ public class TideInternalFrame
     resetData();
     graphPanelOneDay.repaint();
     graphPanelExtended.repaint();
+    updateTooltips(now);
   }
 
+  private void updateTooltips(Calendar cal)
+  {
+    Calendar _cal = (Calendar)cal.clone();
+    _cal.add(Calendar.YEAR, -1);
+    backOneYearButton.setToolTipText("<html><center>Back 1 <b>Year</b><br>" + JUST_DATE_FORMAT.format(_cal.getTime()) + "</center></html>");
+    _cal = (Calendar)cal.clone();
+    _cal.add(Calendar.MONTH, -1);
+    backOneMonthButton.setToolTipText("<html><center>Back 1 <b>Month</b><br>" + JUST_DATE_FORMAT.format(_cal.getTime()) + "</html></center>");
+    _cal = (Calendar)cal.clone();
+    _cal.add(Calendar.DAY_OF_MONTH, -7);
+    backOneWeekButton.setToolTipText("<html><center>Back 1 <b>Week</b><br>" + JUST_DATE_FORMAT.format(_cal.getTime()) + "</html></center>");
+    _cal = (Calendar)cal.clone();
+    _cal.add(Calendar.DAY_OF_MONTH, -1);
+    backOneDayButton.setToolTipText("<html><center>Back 1 <b>Day</b><br>" + JUST_DATE_FORMAT.format(_cal.getTime()) + "<br>(Shift: 1 Hour, Ctrl: Scroll)</html></center>");
+
+    Calendar _now = GregorianCalendar.getInstance(TimeZone.getTimeZone(timeZone2Use));
+    nowButton.setToolTipText("<html><center>Now<br>" + JUST_DATE_FORMAT.format(_now.getTime()) + "</html></center>");
+
+    _cal = (Calendar)cal.clone();
+    _cal.add(Calendar.YEAR, 1);
+    forwardOneYearButton.setToolTipText("<html><center>Forward 1 <b>Year</b><br>" + JUST_DATE_FORMAT.format(_cal.getTime()) + "</html></center>");
+    _cal = (Calendar)cal.clone();
+    _cal.add(Calendar.MONTH, 1);
+    forwardOneMonthButton.setToolTipText("<html><center>Forward 1 <b>Month</b><br>" + JUST_DATE_FORMAT.format(_cal.getTime()) + "</html></center>");
+    _cal = (Calendar)cal.clone();
+    _cal.add(Calendar.DAY_OF_MONTH, 7);
+    forwardOneWeekButton.setToolTipText("<html><center>Forward 1 <b>Week</b><br>" + JUST_DATE_FORMAT.format(_cal.getTime()) + "</html></center>");
+    _cal = (Calendar)cal.clone();
+    _cal.add(Calendar.DAY_OF_MONTH, 1);
+    forwardOneDayButton.setToolTipText("<html><center>Forward 1 <b>Day</b><br>" + JUST_DATE_FORMAT.format(_cal.getTime()) + "<br>(Shift: 1 Hour, Ctrl: Scroll)</html></center>");
+  }
+  
   private void refreshButton_actionPerformed(ActionEvent e)
   {
     resetData();
