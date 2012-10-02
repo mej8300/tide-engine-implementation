@@ -158,7 +158,11 @@ public class SpecialProgressBar
     
     public void stopit()
     {
-      this.move = false;
+      synchronized (this)
+      {
+        System.out.println("--- StopIt notification.");
+        this.move = false;
+      }
     }
   }
 }

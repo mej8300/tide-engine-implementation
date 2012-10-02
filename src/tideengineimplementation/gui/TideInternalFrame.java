@@ -2340,6 +2340,7 @@ public class TideInternalFrame
         @Override
         public void setBusy(boolean b)
         {
+//        System.out.println("-- EventListener setBusy:" + Boolean.toString(b));
           topButtonPanel.setEnabled(!b);
         }
       };

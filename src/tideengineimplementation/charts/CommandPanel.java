@@ -669,7 +669,20 @@ public class CommandPanel
         int y = (int)chartPanel.getVisibleRect().getY();    
         String dateStr = "At UTC:" + TideInternalFrame.UTC_DATE_FORMAT.format(this.currentDate.getTime());
         gr.drawString(dateStr, x + 10, y + 20);
-        Utilities.drawPanelTable(data, gr, new Point(x + 10, y + 20 + gr.getFont().getSize() + 2), 10, 2, new int[] { Utilities.LEFT_ALIGNED, Utilities.RIGHT_ALIGNED });        
+//      Utilities.drawPanelTable(data, gr, new Point(x + 10, y + 20 + gr.getFont().getSize() + 2), 10, 2, new int[] { Utilities.LEFT_ALIGNED, Utilities.RIGHT_ALIGNED });
+        gr.setColor(Color.white);        
+        y += 5;
+        Utilities.drawPanelTable(data, 
+                                 gr, 
+                                 new Point(x + 10, y + 20 + gr.getFont().getSize() + 2), 
+                                 10, 
+                                 2, 
+                                 new int[] { Utilities.LEFT_ALIGNED, Utilities.RIGHT_ALIGNED }, 
+                                 true, 
+                                 Color.cyan,
+                                 Color.blue,
+                                 0.35f,
+                                 0.9f);        
         gr.setFont(f);
       }
     }
