@@ -1218,6 +1218,9 @@ public class TideInternalFrame
                 g.drawString("Sun : Alt=" + GeomUtil.decToSex(est[AstroComputer.SUN_ALT_IDX], GeomUtil.SWING, GeomUtil.NONE) + ", Z:" + GeomUtil.decToSex(est[AstroComputer.SUN_Z_IDX], GeomUtil.SWING, GeomUtil.NONE), x, y);
                 y -= (fontSize + 2);
               }
+              g.drawString("LHA Aries:" + GeomUtil.decToSex(est[AstroComputer.LHA_ARIES_IDX], GeomUtil.SWING, GeomUtil.NONE), x, y);
+              y -= (fontSize + 2);
+              
               g.drawString("Moon D: " + GeomUtil.decToSex(AstroComputer.getMoonDecl(), GeomUtil.SWING, GeomUtil.NS, GeomUtil.LEADING_SIGN) + 
                            " GHA:" + GeomUtil.decToSex(AstroComputer.getMoonGHA(), GeomUtil.SWING, GeomUtil.NONE) + 
                            " (G: " + GeomUtil.decToSex(AstroComputer.ghaToLongitude(AstroComputer.getMoonGHA()), GeomUtil.SWING, GeomUtil.EW, GeomUtil.LEADING_SIGN) + ")", 

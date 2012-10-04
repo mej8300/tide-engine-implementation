@@ -22,7 +22,7 @@ import nauticalalmanac.Venus;
 public class AstroComputer
 {
   private static int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0;
-  private static double deltaT = 66.4749d; // 2011.Overridden by deltaT system variable.  
+  private static double deltaT = 66.4749d; // 2011. Overridden by deltaT system variable.  
   /**
    * Time are UTC
    * @param y year
@@ -74,6 +74,7 @@ public class AstroComputer
   public final static int UTC_SET_IDX  = 1;
   public final static int RISE_Z_IDX   = 2;
   public final static int SET_Z_IDX    = 3;
+
   /**
    * The calculate() method must have been invoked before.
    * 
@@ -201,14 +202,15 @@ public class AstroComputer
     return d;
   }
   
-  public final static int SUN_ALT_IDX  = 0;
-  public final static int SUN_Z_IDX    = 1;  
-  public final static int MOON_ALT_IDX = 2;
-  public final static int MOON_Z_IDX   = 3;
+  public final static int SUN_ALT_IDX   = 0;
+  public final static int SUN_Z_IDX     = 1;  
+  public final static int MOON_ALT_IDX  = 2;
+  public final static int MOON_Z_IDX    = 3;
+  public final static int LHA_ARIES_IDX = 4;
 
   public static synchronized double[] getSunMoon(int y, int m, int d, int h, int mi, int s, double lat, double lng)
   {
-    double[] values = new double[4];
+    double[] values = new double[5];
     year = y;
     month = m;
     day = d;
@@ -234,6 +236,13 @@ public class AstroComputer
     values[MOON_ALT_IDX] = sru.getHe();
     values[MOON_Z_IDX]   = sru.getZ();
     
+    double ahl = Context.GHAAtrue + lng;
+    while (ahl < 0.0)
+      ahl += 360.0;
+    while (ahl > 360.0)
+      ahl -= 360.0;
+    values[LHA_ARIES_IDX] = ahl;
+
     return values;
   }
   
@@ -356,6 +365,8 @@ public class AstroComputer
   public static synchronized double getMarsDecl() { return Context.DECmars; }
   public static synchronized double getJupiterDecl() { return Context.DECjupiter; }
   public static synchronized double getSaturnDecl() { return Context.DECsaturn; }
+
+  public static synchronized double getAriesGHA() { return Context.GHAAtrue; }
 
   public static synchronized double getVenusGHA() { return Context.GHAvenus; }
   public static synchronized double getMarsGHA() { return Context.GHAmars; }
