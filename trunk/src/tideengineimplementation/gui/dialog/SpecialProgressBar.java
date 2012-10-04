@@ -160,7 +160,7 @@ public class SpecialProgressBar
     {
       synchronized (this)
       {
-        System.out.println("--- StopIt notification.");
+//      System.out.println("--- StopIt notification.");
         this.move = false;
       }
     }

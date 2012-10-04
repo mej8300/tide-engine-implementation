@@ -110,6 +110,7 @@ public class CommandPanel
   private transient Image marsSymbol    = new ImageIcon(TideInternalFrame.class.getResource("mars.png")).getImage();
   private transient Image jupiterSymbol = new ImageIcon(TideInternalFrame.class.getResource("jupiter.png")).getImage();
   private transient Image saturnSymbol  = new ImageIcon(TideInternalFrame.class.getResource("saturn.png")).getImage();
+  private transient Image ariesSymbol   = new ImageIcon(TideInternalFrame.class.getResource("aries.png")).getImage();
 
   private transient ImageIcon zoomInImage  = new ImageIcon(this.getClass().getResource("zoomexpand.gif"));
   private transient ImageIcon zoomOutImage = new ImageIcon(this.getClass().getResource("zoomshrink.gif"));
@@ -429,8 +430,11 @@ public class CommandPanel
         Color lightColor = Color.lightGray;
         Color darkColor = Color.gray; 
         drawGlossyCircularBall(g2d, center, radius, lightColor, darkColor, 1f);
-
-        gr.drawImage(img, pt.x - 7, pt.y - 7, null); // Image is 13x13
+        
+        if ("Aries".equals(name))
+          gr.drawImage(img, pt.x - 5, pt.y - 5, null); // 10x10
+        else
+          gr.drawImage(img, pt.x - 7, pt.y - 7, null); // Image is 13x13
       }
       else
       {
@@ -556,6 +560,8 @@ public class CommandPanel
       gr.setColor(Color.LIGHT_GRAY);
       plotBody(gr, "Sun",  sunD,  sunGHA, sunSymbol);
       plotBody(gr, "Moon", moonD, moonGHA, moonSymbol);
+
+      plotBody(gr, "Aries",  0d,  AstroComputer.getAriesGHA(),  ariesSymbol);
 
       plotBody(gr, "Venus",   AstroComputer.getVenusDecl(),   AstroComputer.getVenusGHA(),   venusSymbol);
       plotBody(gr, "Mars",    AstroComputer.getMarsDecl(),    AstroComputer.getMarsGHA(),    marsSymbol);
