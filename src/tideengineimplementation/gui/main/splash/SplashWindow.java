@@ -130,6 +130,8 @@ public class SplashWindow extends JWindow
         flavor = "XML";
       else if (tideFlavor.equals("sqllite"))
         flavor = "SQLITE";
+      else if (tideFlavor.equals("serialized"))
+        flavor = "Serialized";
       else
         flavor = "SQL";
     }
