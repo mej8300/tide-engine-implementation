@@ -2275,7 +2275,9 @@ public class TideInternalFrame
       if (flavor.equals("xml"))
         BackEndTideComputer.connect(BackEndTideComputer.XML_OPTION);
       else if (flavor.equals("serialized"))
-        BackEndTideComputer.connect(BackEndTideComputer.SERIALIZED_OPTION);
+        BackEndTideComputer.connect(BackEndTideComputer.JAVA_SERIALIZED_OPTION);
+      else if (flavor.equals("json"))
+        BackEndTideComputer.connect(BackEndTideComputer.JSON_SERIALIZED_OPTION);
       else if (flavor.equals("sql"))
         BackEndTideComputer.connect(BackEndTideComputer.SQL_OPTION);
       else // sqlite
