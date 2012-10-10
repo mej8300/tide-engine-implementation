@@ -92,6 +92,7 @@ public class CommandPanel
   private JCheckBox showStationsCheckBox;
   private JCheckBox withNameCheckBox;
   private JCheckBox withAstroCheckBox;
+  private JCheckBox withWanderingBodiesCheckBox;
   private JRadioButton sunLightRadioButton;
   private JRadioButton moonLightRadioButton;
   private ButtonGroup lightGroup = new ButtonGroup();
@@ -139,6 +140,8 @@ public class CommandPanel
     withNameCheckBox.setSelected(false);
     withAstroCheckBox = new JCheckBox("With Astro Data");
     withAstroCheckBox.setSelected(false);
+    withWanderingBodiesCheckBox = new JCheckBox("Wandering Bodies");
+    withWanderingBodiesCheckBox.setSelected(true);
     
     sunLightRadioButton = new JRadioButton("Sun Light");
     sunLightRadioButton.setSelected(true);
@@ -241,6 +244,13 @@ public class CommandPanel
                                            chartPanel.repaint();
                                          }
                                        });
+    withWanderingBodiesCheckBox.addActionListener(new ActionListener()
+                                       {
+                                         public void actionPerformed(ActionEvent e)
+                                         {
+                                           chartPanel.repaint();
+                                         }
+                                       });
     sunLightRadioButton.addActionListener(new ActionListener()
                                        {
                                          public void actionPerformed(ActionEvent e)
@@ -267,6 +277,7 @@ public class CommandPanel
     bottomPanel.add(mouseCheckBox, null);
     bottomPanel.add(withNameCheckBox, null);
     bottomPanel.add(withAstroCheckBox, null);
+    bottomPanel.add(withWanderingBodiesCheckBox, null);
     add(bottomPanel, BorderLayout.SOUTH);
     double nLat  = NORTH_LAT;
     double sLat  = SOUTH_LAT;
@@ -555,7 +566,7 @@ public class CommandPanel
   public void chartPanelPaintComponentAfter(Graphics gr)
   {
     // Sun and Moon, Planets 
-    if (sunD != 0 && sunGHA != 0 && moonD != 0 && moonGHA != 0)
+    if (withWanderingBodiesCheckBox.isSelected() && sunD != 0 && sunGHA != 0 && moonD != 0 && moonGHA != 0)
     {
       gr.setColor(Color.LIGHT_GRAY);
       plotBody(gr, "Sun",  sunD,  sunGHA, sunSymbol);
