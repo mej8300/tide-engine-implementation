@@ -373,6 +373,8 @@ public class AstroComputer
   public static synchronized double getJupiterGHA() { return Context.GHAjupiter; }
   public static synchronized double getSaturnGHA() { return Context.GHAsaturn; }
   
+  public static synchronized double getMeanObliquityOfEcliptic() { return Context.eps0; } 
+  
   public static synchronized double ghaToLongitude(double gha)
   {
     double longitude = 0;

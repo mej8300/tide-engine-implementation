@@ -66,7 +66,7 @@ public class CommandPanel
      extends JPanel
   implements ChartPanelParentInterface_II
 {
-  @SuppressWarnings("compatibility:-2844425347986426369")
+  @SuppressWarnings("compatibility:3601482022102225908")
   public final static long serialVersionUID = 1L;
   
   private final static Color DARK_RED = new Color(108, 0, 0);
@@ -454,6 +454,35 @@ public class CommandPanel
       }
     }
   }
+  
+  private void drawEcliptic(Graphics gr, double ariesGHA, double eclipticObliquity)
+  {
+    double longitude = 0;
+    if (ariesGHA < 180)
+      longitude = -ariesGHA;
+    if (ariesGHA >= 180)
+      longitude = 360 - ariesGHA;
+    
+    longitude += 90d; // Extremum
+    while (longitude > 360)
+      longitude -= 360;
+    GeoPoint p = new GeoPoint(eclipticObliquity, longitude);
+    GeoPoint eclCenter = deadReckoning(p, 90 * 60, 0); // Position of the center of the Ecliptic 
+
+    gr.setColor(Color.blue);
+    for (int i=0; i<360; i++)
+    {
+      GeoPoint gp = deadReckoning(eclCenter, 90 * 60, i);
+      double lng = gp.getG();
+      if (lng < -180)
+        lng += 360;
+      if (lng > 180)
+        lng -= 360;
+      // Just plot
+      Point pp = chartPanel.getPanelPoint(new GeoPoint(gp.getL(), lng));
+      gr.fillOval(pp.x, pp.y, 1, 1);
+    }
+  }
 
   private static void drawGlossyCircularBall(Graphics2D g2d, Point center, int radius, Color lightColor, Color darkColor, float transparency)
   {
@@ -636,6 +665,11 @@ public class CommandPanel
       ((Graphics2D)gr).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
        gr.fillPolygon(night);
       ((Graphics2D)gr).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+      
+      // Ecliptic
+      double ghaAries = AstroComputer.getAriesGHA();
+      double meanOblEcl = AstroComputer.getMeanObliquityOfEcliptic();
+      drawEcliptic(gr, ghaAries, meanOblEcl);
     }
     
     GeoPos gps = null;    
