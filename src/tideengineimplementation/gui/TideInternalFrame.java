@@ -684,22 +684,24 @@ public class TideInternalFrame
                           double y = value;
                           try
                           {
-                            sunAltitudes.add(new DataPoint(x, y));
+                            synchronized (sunAltitudes) { sunAltitudes.add(new DataPoint(x, y)); }
                           }
                           catch (NullPointerException npe)
                           {
-                            System.err.println("Wierd:" + npe.getLocalizedMessage());
+                            System.err.println("sunAltitudes is null. Wierd.");
+                            npe.printStackTrace();
                           }
                           
                           value = values[AstroComputer.HE_MOON_IDX]; // Moon
                           y = value;
                           try
                           {
-                            moonAltitudes.add(new DataPoint(x, y));
+                            synchronized (moonAltitudes) { moonAltitudes.add(new DataPoint(x, y)); }
                           }
                           catch (NullPointerException npe)
                           {
-                            System.err.println("Wierd:" + npe.getLocalizedMessage());
+                            System.err.println("moonAltitudes is null. Wierd.");
+                            npe.printStackTrace();
                           }
                         }
                       }
@@ -782,17 +784,22 @@ public class TideInternalFrame
                   final TidePanel instance = this;
                   final double _bottomValue = bottomValue;
                   setMainCurveReady(false);
-                  mainCurve = new ArrayList<DataPoint>();                
+//                mainCurve = new ArrayList<DataPoint>();                
                   Thread mainCurveThread = new Thread()
                     {
                       public void run()
                       {                        
                         long before = System.currentTimeMillis();
+                        mainCurve = new ArrayList<DataPoint>();                
                         instance.setMainCurveReady(false);
-                        System.out.println("1 - Calculating main Curve, " + new Date().toString());
                         int k = lookBusy("Calculating main curve");
                         double previousWH = Double.NaN;
+                        
                         Calendar reference = (Calendar)now.clone();
+                        
+                        System.out.println("1 - Calculating Main Curve, ReferenceTZ:" + 
+                                           reference.getTimeZone().getID() + " " +
+                                           FULL_DATE_FORMAT.format(reference.getTime()));
 
                         low1  = Double.NaN;
                         low2  = Double.NaN;
@@ -815,15 +822,17 @@ public class TideInternalFrame
                             Calendar cal = new GregorianCalendar(reference.get(Calendar.YEAR),
                                                                  reference.get(Calendar.MONTH),
                                                                  reference.get(Calendar.DAY_OF_MONTH),
-                                                                 h + hourOffset, m);
+                                                                 h + hourOffset, m, 0);
                             cal.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
                             double wh = 0;
                             try { wh = Utils.convert(TideUtilities.getWaterHeight(ts, constSpeed, cal), ts.getDisplayUnit(), currentUnit); }
                             catch (Exception ex) { ex.printStackTrace(); }
+//                            if ( m == 0)
+//                              System.out.println("WH at " + h + ":" + m + " (" + timeZone2Use + ") =" + wh + " [" + TIME_FORMAT.format(cal.getTime()) + "]");
                             double offset = AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(timeZone2Use), cal.getTime());
                             if (Double.isNaN(previousUTCOffset))
                               previousUTCOffset = offset;
-                            if (offset != previousUTCOffset)
+                            if (offset != previousUTCOffset) // This is for when the time goes from DT to ST and vice versa.
                             {
                               System.out.println("TimeOffset change at " + cal.getTime() + ", offset was " + previousUTCOffset + ", now " + offset);
                               System.out.println("Previous WH:" + previousWH + ", WH:" + wh);
@@ -905,10 +914,11 @@ public class TideInternalFrame
                               }
                               double x = (h + (double)(m / 60D));
                               double y = (wh - _bottomValue);
-                              try { mainCurve.add(new DataPoint(x, y)); }
+                              try { synchronized (mainCurve) { mainCurve.add(new DataPoint(x, y)); } }
                               catch (NullPointerException npe)
                               {
-                                System.err.println("Wierd:" + npe.getLocalizedMessage());
+                                System.err.println("MainCurve is null, wierd.");
+                                npe.printStackTrace();
                               }
                             }
                             previousWH = wh;
@@ -1656,32 +1666,35 @@ public class TideInternalFrame
                               double value = values[AstroComputer.HE_SUN_IDX];  // Sun                  
                               double x = ((currDay * 24) + h + (double)(m / 60D));
                               double y = value; // (this.getHeight() / 2) - (int)((value) * heightRatioAlt);
-                              try { sunAltitudes.add(new DataPoint(x, y)); }
+                              try { synchronized(sunAltitudes) { sunAltitudes.add(new DataPoint(x, y)); } }
                               catch (NullPointerException npe)
                               {
-                                System.err.println("Wierd:" + npe.getLocalizedMessage());
+                                System.err.println("Sun Altitude is null, wierd");
+                                npe.printStackTrace();                                                    
                               }
                               
                               value = values[AstroComputer.HE_MOON_IDX]; // Moon
                               y = value; // (this.getHeight() / 2) - (int)((value) * heightRatioAlt);
                               try
                               {
-                                moonAltitudes.add(new DataPoint(x, y));
+                                synchronized (moonAltitudes) { moonAltitudes.add(new DataPoint(x, y)); }
                               }
                               catch (NullPointerException npe)
                               {
-                                System.err.println("Wierd:" + npe.getLocalizedMessage());
+                                System.err.println("moonAltitudes is null. Wierd.");
+                                npe.printStackTrace();
                               }
                               
                               value = values[AstroComputer.DEC_MOON_IDX];
                               y = value;
                               try
                               {
-                                moonDeclination.add(new DataPoint(x, y));
+                                synchronized (moonDeclination) { moonDeclination.add(new DataPoint(x, y)); }
                               }
                               catch (NullPointerException npe)
                               {
-                                System.err.println("Wierd:" + npe.getLocalizedMessage());
+                                System.err.println("moonDeclination is null, wierd.");
+                                npe.printStackTrace();
                               }
                             }
                           }
@@ -1917,11 +1930,12 @@ public class TideInternalFrame
                                 double y = (wh - _bottomValue);
                                 try
                                 {
-                                  mainCurve.add(new DataPoint(x, y));
+                                  synchronized (mainCurve) { mainCurve.add(new DataPoint(x, y)); }
                                 }
                                 catch (NullPointerException npe)
                                 {
-                                  System.err.println("Wierd:" + npe.getLocalizedMessage());
+                                  System.err.println("mainCurve is null, wierd.");
+                                  npe.printStackTrace();
                                 }
                                 
                                 if (h == 0 && m == 0) // Vertical grid at 00:00 each day
@@ -1932,11 +1946,12 @@ public class TideInternalFrame
                                   String dStr = DATE_FORMAT.format(cal.getTime());
                                   try
                                   {
-                                    noonLabel.add(new LabeledValue(x, dStr));
+                                    synchronized (noonLabel) {noonLabel.add(new LabeledValue(x, dStr)); }
                                   }
                                   catch (NullPointerException npe)
                                   {
-                                    System.err.println("Wierd:" + npe.getLocalizedMessage());
+                                    System.err.println("noonLabel is null. Wierd.");
+                                    npe.printStackTrace();
                                   }
                                 }
                                 Calendar currentDate = GregorianCalendar.getInstance();
@@ -1988,11 +2003,12 @@ public class TideInternalFrame
                                   }
                                   try
                                   {
-                                    moonPhaseList.add(new MoonPhaseValue(x, moonPhase, phaseStr));
+                                    synchronized (moonPhaseList) { moonPhaseList.add(new MoonPhaseValue(x, moonPhase, phaseStr)); }
                                   }
                                   catch (NullPointerException npe)
                                   {
-                                    System.err.println("Wierd:" + npe.getLocalizedMessage());
+                                    System.err.println("moonPhaseList is null, wierd.");
+                                    npe.printStackTrace();
                                   }
                                   prevPhase = (int)Math.round(moonPhase);
                                 }
@@ -2662,7 +2678,7 @@ public class TideInternalFrame
         public void stateChanged(ChangeEvent evt)
         {
           JSlider slider = (JSlider) evt.getSource();
-          if (!slider.getValueIsAdjusting())
+          if (slider.isVisible() && !slider.getValueIsAdjusting())
           {
             int value = slider.getValue();
 //          System.out.println("Slider now " + value);
@@ -4047,8 +4063,10 @@ public class TideInternalFrame
     }
   }
 
-  class StationTreeCellRenderer extends DefaultTreeCellRenderer 
+  private static class StationTreeCellRenderer extends DefaultTreeCellRenderer 
   {
+    @SuppressWarnings("compatibility:-8216068910265867686")
+    private final static long serialVersionUID = 1L;
     public StationTreeCellRenderer()
     {
       super();
@@ -4103,8 +4121,10 @@ public class TideInternalFrame
     }
   }
       
-  private class TidePanel extends JPanel implements MouseMotionListener, MouseListener
+  private static class TidePanel extends JPanel implements MouseMotionListener, MouseListener
   {
+    @SuppressWarnings("compatibility:4053780883260119913")
+    private final static long serialVersionUID = 1L;
     public final static int RISING  =  1;
     public final static int FALLING = -1;
     
@@ -4148,13 +4168,19 @@ public class TideInternalFrame
     
     public void resetData()
     {
-      mainCurve = null;
-      harmonicCurves = null;
-      sunAltitudes = null;
-      moonAltitudes = null;
-      mainCurveReady = false;
-      harmonicsReady = false;
-      astroReady     = false;
+      if (mainCurve != null)
+      {
+        synchronized (mainCurve) 
+        { 
+          mainCurve = null; 
+          harmonicCurves = null;
+          sunAltitudes = null;
+          moonAltitudes = null;
+          mainCurveReady = false;
+          harmonicsReady = false;
+          astroReady     = false;
+        }
+      }
     }
     
     public void mouseMoved(MouseEvent e)

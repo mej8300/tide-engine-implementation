@@ -67,7 +67,7 @@ public class SpecialProgressBar
   
   public void stop()
   {
-    System.out.println("Stop looking busy.");
+//  System.out.println("Stop looking busy.");
     this.move = false;
     if (thread != null)
     {
@@ -152,7 +152,7 @@ public class SpecialProgressBar
         instance.repaint();
         try { Thread.sleep(100L); } catch (Exception ex) { ex.printStackTrace(); }
       }
-      System.out.println("Stop moving." + (display != null && display.trim().length() > 0?" (" + display + ")":""));
+//    System.out.println("Stop moving." + (display != null && display.trim().length() > 0?" (" + display + ")":""));
       instance.repaint();
     }
     
