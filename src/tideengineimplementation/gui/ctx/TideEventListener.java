@@ -14,4 +14,5 @@ public abstract class TideEventListener implements EventListener
   public void setCoeffToHighlight(List<String> names) {}
   public void showAllCurves(boolean b) {}
   public void setBusy(boolean b) {}
+  public void setNbStationsSelected(int n) {}
 }

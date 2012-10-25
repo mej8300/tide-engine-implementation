@@ -175,6 +175,8 @@ public class TideInternalFrame
   private final static SimpleDateFormat JUST_DATE_FORMAT = new SimpleDateFormat("EEEE dd MMMM yyyy");
   private final static SimpleDateFormat JUST_DATE_FORMAT_SMALL = new SimpleDateFormat("E dd MMM yyyy z (Z)");
   private final static String FRAME_TITLE = "Tide Computer";
+  
+  private final static String SELECTED_STATIONS_PREFIX = "View Selected Stations ";
 
   private transient TideStation ts = null;  
   private transient List<Coefficient> constSpeed = null;
@@ -191,7 +193,9 @@ public class TideInternalFrame
   private JMenuItem menuFilePrint = new JMenuItem();
   private JMenuItem menuFileSearch = new JMenuItem();
   private JMenuItem menuFileFindClosest = new JMenuItem();
-  private JMenuItem menuFileGoogle = new JMenuItem();
+  private JMenu menuFileGoogleMenu = new JMenu();
+  private JMenuItem menuFileGoogleOneStation = new JMenuItem();
+  private JMenuItem menuFileGoogleSelectedStation = new JMenuItem();
   private JMenu menuHelp = new JMenu();
   private JMenuItem menuHelpAbout = new JMenuItem();
   private BorderLayout mainBorderLayout = new BorderLayout();
@@ -392,6 +396,7 @@ public class TideInternalFrame
             double bottomValue = mm[TideUtilities.MIN_POS] - gutter;
             double heightRatioAlt = (double)height / 180d;
               
+//          System.out.println("heightRatio:" + heightRatio + ", gutter:" + gutter + ", bottomValue:" + bottomValue + ", heightRatioAlt:" + heightRatioAlt);  
             // Horizontal grid
             g.setColor(Color.LIGHT_GRAY);
             for (int hgt=(int)Math.floor(mm[TideUtilities.MIN_POS]); hgt<=(int)Math.floor(mm[TideUtilities.MAX_POS]); hgt++)
@@ -797,9 +802,9 @@ public class TideInternalFrame
                         
                         Calendar reference = (Calendar)now.clone();
                         
-                        System.out.println("1 - Calculating Main Curve, ReferenceTZ:" + 
-                                           reference.getTimeZone().getID() + " " +
-                                           FULL_DATE_FORMAT.format(reference.getTime()));
+//                        System.out.println("1 - Calculating Main Curve, ReferenceTZ:" + 
+//                                           reference.getTimeZone().getID() + " " +
+//                                           FULL_DATE_FORMAT.format(reference.getTime()));
 
                         low1  = Double.NaN;
                         low2  = Double.NaN;
@@ -917,7 +922,7 @@ public class TideInternalFrame
                               try { synchronized (mainCurve) { mainCurve.add(new DataPoint(x, y)); } }
                               catch (NullPointerException npe)
                               {
-                                System.err.println("MainCurve is null, wierd.");
+                                System.err.println("MainCurve is null, wierd. It is " + h + ":" + m);
                                 npe.printStackTrace();
                               }
                             }
@@ -1118,7 +1123,7 @@ public class TideInternalFrame
                   dataStr += (nextEvent.getType().equals("SR")?"Sun Rise":"Sun Set") + " " + TIME_FORMAT.format(nextEvent.getCalendar().getTime()) + " (in " + Utils.formatTimeDiff(now, nextEvent.getCalendar()) + ")";
                 else
                 {
-                  if (currentUnit.equals(TideStation.KNOTS))
+                  if (TideStation.KNOTS.equals(currentUnit))
                     dataStr += (nextEvent.getType().equals("HW")?"Max Flood":"Max Ebb  ") + " " + TIME_FORMAT.format(nextEvent.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(nextEvent.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit + " (in " + Utils.formatTimeDiff(now, nextEvent.getCalendar()) + ")";
                   else
                     dataStr += nextEvent.getType() + " " + TIME_FORMAT.format(nextEvent.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(nextEvent.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit + " (in " + Utils.formatTimeDiff(now, nextEvent.getCalendar()) + ")";
@@ -2366,6 +2371,12 @@ public class TideInternalFrame
 //        System.out.println("-- EventListener setBusy:" + Boolean.toString(b));
           topButtonPanel.setEnabled(!b);
         }
+        
+        @Override
+        public void setNbStationsSelected(int n) 
+        {
+          menuFileGoogleSelectedStation.setText(SELECTED_STATIONS_PREFIX + "(" + Integer.toString(n) + ")");
+        }
       };
     TideContext.getInstance().addTideListener(tideEventListener);
 
@@ -2383,9 +2394,16 @@ public class TideInternalFrame
     menuFileFindClosest.setText("Find closest stations");
     menuFileFindClosest.setEnabled(false);
     menuFileFindClosest.addActionListener( new ActionListener() { public void actionPerformed( ActionEvent ae ) { fileFindClosest_ActionPerformed( ae ); } } );
-    menuFileGoogle.setText("Google Map");
-    menuFileGoogle.setEnabled(false);
-    menuFileGoogle.addActionListener( new ActionListener() { public void actionPerformed( ActionEvent ae ) { fileGoogle_ActionPerformed( ae ); } } );    
+    
+    menuFileGoogleMenu.setText("Google Maps");
+    
+    menuFileGoogleOneStation.setText("Google Map"); // Dynamically modified
+    menuFileGoogleOneStation.setEnabled(false);
+    menuFileGoogleOneStation.addActionListener( new ActionListener() { public void actionPerformed( ActionEvent ae ) { fileGoogle_ActionPerformed( ae ); } } );    
+    menuFileGoogleSelectedStation.setText(SELECTED_STATIONS_PREFIX); // Dynamically modified
+    menuFileGoogleSelectedStation.setEnabled(true);
+    menuFileGoogleSelectedStation.addActionListener( new ActionListener() { public void actionPerformed( ActionEvent ae ) { fileGoogle_ActionPerformed( ae ); } } );    
+        
     menuFileExit.setText("Exit");
     menuFileExit.addActionListener( new ActionListener() { public void actionPerformed( ActionEvent ae ) { fileExit_ActionPerformed( ae ); } } );
     
@@ -2448,7 +2466,9 @@ public class TideInternalFrame
     menuFile.add( menuFilePrint );
     menuFile.add( menuFileSearch );
     menuFile.add( menuFileFindClosest );
-    menuFile.add( menuFileGoogle );
+    menuFile.add(menuFileGoogleMenu);
+    menuFileGoogleMenu.add( menuFileGoogleOneStation );
+    menuFileGoogleMenu.add( menuFileGoogleSelectedStation );
     menuFile.add(new JSeparator());
     menuFile.add( menuFileRecent );
     menuFile.add(new JSeparator());
@@ -2476,7 +2496,8 @@ public class TideInternalFrame
         public void actionPerformed(ActionEvent e)
         {
           currentUnit = (String)unitComboBox.getSelectedItem();
-          resetData();
+          if (unitComboBox.hasFocus())
+            resetData();
           graphPanelOneDay.repaint();
           graphPanelExtended.repaint();
         }
@@ -2518,7 +2539,8 @@ public class TideInternalFrame
             timeZone2Use = (ts != null?ts.getTimeZone():System.getProperty("user.timezone"));
             tzComboBox.setSelectedItem(timeZone2Use);
           }
-          resetData();
+          if (tzComboBox.hasFocus())
+            resetData();
           graphPanelOneDay.repaint();
           graphPanelExtended.repaint();
         }
@@ -2678,7 +2700,7 @@ public class TideInternalFrame
         public void stateChanged(ChangeEvent evt)
         {
           JSlider slider = (JSlider) evt.getSource();
-          if (slider.isVisible() && !slider.getValueIsAdjusting())
+          if (slider.isVisible() && slider.isEnabled() && !slider.getValueIsAdjusting())
           {
             int value = slider.getValue();
 //          System.out.println("Slider now " + value);
@@ -2686,7 +2708,8 @@ public class TideInternalFrame
             defaultWidth = value;
             if (graphPanelExtended.isVisible())
               graphPanelExtended.repaint();
-            resetData();
+            if (slider.hasFocus())
+              resetData();
           }
         }
       });
@@ -3027,10 +3050,21 @@ public class TideInternalFrame
         }
       };
     refreshThread.start();
+//  initphase = false;
   }
 
   private void resetData()
   {
+    // Who called me
+    if ("true".equals(System.getProperty("who.called.me")))
+    {
+      Throwable t = new Throwable(); 
+      StackTraceElement[] elements = t.getStackTrace(); 
+      System.out.println("----------------------------------");
+      for (StackTraceElement ste : elements)
+        System.out.println(ste.toString());
+      System.out.println("----------------------------------");
+    }
     graphPanelOneDay.resetData();
     graphPanelExtended.resetData();
   }
@@ -3065,6 +3099,7 @@ public class TideInternalFrame
    */
   private void displayTide(final String stationName)
   {
+    resetData();
     coeffData = null;
     coeffColor = null;
     coeffToHighlight = null;
@@ -3087,7 +3122,8 @@ public class TideInternalFrame
               menuFilePrint.setEnabled(true);
               menuFileSearch.setEnabled(true);
               menuFileFindClosest.setEnabled(true);
-              menuFileGoogle.setEnabled(true);
+              menuFileGoogleOneStation.setEnabled(true);
+              menuFileGoogleOneStation.setText(ts.getFullName());
               String stationUnit = ts.getDisplayUnit();
               unitComboBox.removeAllItems();
               if (ts.isTideStation())
@@ -3115,7 +3151,7 @@ public class TideInternalFrame
               menuFilePrint.setEnabled(false);
               menuFileSearch.setEnabled(false);
               menuFileFindClosest.setEnabled(false);
-              menuFileGoogle.setEnabled(false);
+              menuFileGoogleOneStation.setEnabled(false);
             }
             graphPanelOneDay.repaint();
             graphPanelExtended.repaint();
@@ -3645,38 +3681,78 @@ public class TideInternalFrame
   {
     // Display the tide for the day, in Google Map
     // Generate googletide.js
-    try
+    if (e.getActionCommand().startsWith(SELECTED_STATIONS_PREFIX))
     {
-      BufferedWriter bw = new BufferedWriter(new FileWriter("googletide.js"));
-      bw.write("var lat2plot = " + Double.toString(ts.getLatitude()) + ";\n");
-      bw.write("var lng2plot = " + Double.toString(ts.getLongitude()) + ";\n");
-      bw.write("var stationName = \"" + ts.getFullName() + "\";\n");
-      bw.write("\n");
-      List<TideForOneMonth.TimedValue> timeAL = TideForOneMonth.tideForOneDay(now, timeZone2Use, ts.getFullName(), constSpeed, currentUnit);      
-      bw.write("var tidedata = new Array\n(\n");
-      int nbl = 0;
-      for (TideForOneMonth.TimedValue tv : timeAL)
+      List<TideStation> selected = filterTable.getSelectedStations();
+      if (selected.size() == 0)
       {
-        if (nbl++ > 0)
-          bw.write("  ,\n");
-        String evtType = tv.getType();
-        if (ts.isCurrentStation())
-          evtType = evtType.equals("HW")?"Max Flood":"Max Ebb";
-        bw.write("  {type:\"" + evtType + "\",\n");
-        bw.write("   time:\"" + TideForOneMonth.TF.format(tv.getCalendar().getTime()) + "\",\n");
-        bw.write("   height:\"" + TideUtilities.DF22PLUS.format(tv.getValue()) + "\",\n");
-        bw.write("   unit:\"" + currentUnit + "\"}\n");
+        JOptionPane.showMessageDialog(this, "No station selected, try again.", "Google Tides", JOptionPane.WARNING_MESSAGE);
+        return;
       }
-      bw.write(");\n");
-      
-      bw.close();
-      
-      coreutilities.Utilities.openInBrowser("googletide.html");
+      try
+      {
+        BufferedWriter bw = new BufferedWriter(new FileWriter("googletide.js"));
+        bw.write("var option = 1;\n");
+        bw.write("var lat2plot = " + Double.toString(selected.get(0).getLatitude()) + ";\n"); 
+        bw.write("var lng2plot = " + Double.toString(selected.get(0).getLongitude()) + ";\n");
+        
+        bw.write("var stations = new Array\n(\n");      
+        int nbl = 0;
+        for (TideStation ts : selected)
+        {
+          if (nbl++ > 0)
+            bw.write("  ,\n");
+          bw.write("  {name:\"" + ts.getFullName() + "\",\n");
+          bw.write("   type:\"" + (ts.isCurrentStation()?"C":"T") + "\",\n");
+          bw.write("   latitude:\"" + ts.getLatitude() + "\",\n");
+          bw.write("   longitude:\"" + ts.getLongitude() + "\"}\n");
+          nbl++;
+        }
+        bw.write(");\n");
+        bw.close();
+      }
+      catch (Exception ex)
+      {
+        ex.printStackTrace();
+      }
     }
-    catch (Exception ex)
+    else
     {
-      ex.printStackTrace();
+      try
+      {
+        BufferedWriter bw = new BufferedWriter(new FileWriter("googletide.js"));
+        bw.write("var option = 0;\n");
+        bw.write("var lat2plot = " + Double.toString(ts.getLatitude()) + ";\n");
+        bw.write("var lng2plot = " + Double.toString(ts.getLongitude()) + ";\n");
+        bw.write("var stationName = \"" + ts.getFullName() + "\";\n");
+        bw.write("\n");
+        List<TideForOneMonth.TimedValue> timeAL = TideForOneMonth.tideForOneDay(now, timeZone2Use, ts.getFullName(), constSpeed, currentUnit);      
+        bw.write("var tidedata = new Array\n(\n");
+        int nbl = 0;
+        for (TideForOneMonth.TimedValue tv : timeAL)
+        {
+          if (nbl++ > 0)
+            bw.write("  ,\n");
+          String evtType = tv.getType();
+          if (ts.isCurrentStation())
+            evtType = evtType.equals("HW")?"Max Flood":"Max Ebb";
+          bw.write("  {type:\"" + evtType + "\",\n");
+          bw.write("   time:\"" + TideForOneMonth.TF.format(tv.getCalendar().getTime()) + "\",\n");
+          bw.write("   height:\"" + TideUtilities.DF22PLUS.format(tv.getValue()) + "\",\n");
+          bw.write("   unit:\"" + currentUnit + "\"}\n");
+        }
+        bw.write(");\n");
+        
+        bw.close();
+      }
+      catch (Exception ex)
+      {
+        ex.printStackTrace();
+      }
     }
+    try { coreutilities.Utilities.openInBrowser("googletide.html"); }
+    catch (Exception ex)
+    { ex.printStackTrace(); }
   }
   
   private void helpAbout_ActionPerformed(ActionEvent e)
@@ -3702,7 +3778,8 @@ public class TideInternalFrame
     }
     else
       now.add(quantity, -1);
-    resetData();
+    if (backOneDayButton.hasFocus())
+      resetData();
     graphPanelOneDay.repaint();
     graphPanelExtended.repaint();
     updateTooltips(now);
@@ -3710,7 +3787,8 @@ public class TideInternalFrame
   private void backOneWeekButton_actionPerformed(ActionEvent e)
   {
     now.add(Calendar.DAY_OF_MONTH, -7);
-    resetData();
+    if (backOneWeekButton.hasFocus())
+      resetData();
     graphPanelOneDay.repaint();
     graphPanelExtended.repaint();
     updateTooltips(now);
@@ -3718,7 +3796,8 @@ public class TideInternalFrame
   private void backOneMonthButton_actionPerformed(ActionEvent e)
   {
     now.add(Calendar.MONTH, -1);
-    resetData();
+    if (backOneMonthButton.hasFocus())
+      resetData();
     graphPanelOneDay.repaint();
     graphPanelExtended.repaint();
     updateTooltips(now);
@@ -3726,7 +3805,8 @@ public class TideInternalFrame
   private void backOneYearButton_actionPerformed(ActionEvent e)
   {
     now.add(Calendar.YEAR, -1);
-    resetData();
+    if (backOneYearButton.hasFocus())
+      resetData();
     graphPanelOneDay.repaint();
     graphPanelExtended.repaint();
     updateTooltips(now);
@@ -3744,7 +3824,8 @@ public class TideInternalFrame
     }
     else
       now.add(quantity, 1);
-    resetData();
+    if (forwardOneDayButton.hasFocus())
+      resetData();
     graphPanelOneDay.repaint();
     graphPanelExtended.repaint();
     updateTooltips(now);
@@ -3752,7 +3833,8 @@ public class TideInternalFrame
   private void forwardOneWeekButton_actionPerformed(ActionEvent e)
   {
     now.add(Calendar.DAY_OF_MONTH, 7);
-    resetData();
+    if (forwardOneWeekButton.hasFocus())
+      resetData();
     graphPanelOneDay.repaint();
     graphPanelExtended.repaint();
     updateTooltips(now);
@@ -3760,7 +3842,8 @@ public class TideInternalFrame
   private void forwardOneMonthButton_actionPerformed(ActionEvent e)
   {
     now.add(Calendar.MONTH, 1);
-    resetData();
+    if (forwardOneMonthButton.hasFocus())
+      resetData();
     graphPanelOneDay.repaint();
     graphPanelExtended.repaint();
     updateTooltips(now);
@@ -3768,7 +3851,8 @@ public class TideInternalFrame
   private void forwardOneYearButton_actionPerformed(ActionEvent e)
   {
     now.add(Calendar.YEAR, 1);
-    resetData();
+    if (forwardOneYearButton.hasFocus())
+      resetData();
     graphPanelOneDay.repaint();
     graphPanelExtended.repaint();
     updateTooltips(now);
@@ -3778,7 +3862,8 @@ public class TideInternalFrame
   {
     now = GregorianCalendar.getInstance();
     hourOffset = 0;
-    resetData();
+    if (nowButton.hasFocus())
+      resetData();
     graphPanelOneDay.repaint();
     graphPanelExtended.repaint();
     updateTooltips(now);
@@ -3818,7 +3903,8 @@ public class TideInternalFrame
   
   private void refreshButton_actionPerformed(ActionEvent e)
   {
-    resetData();
+    if (refreshButton.hasFocus())
+      resetData();
     graphPanelOneDay.repaint();
     graphPanelExtended.repaint();
   }
@@ -4168,19 +4254,14 @@ public class TideInternalFrame
     
     public void resetData()
     {
-      if (mainCurve != null)
-      {
-        synchronized (mainCurve) 
-        { 
-          mainCurve = null; 
-          harmonicCurves = null;
-          sunAltitudes = null;
-          moonAltitudes = null;
-          mainCurveReady = false;
-          harmonicsReady = false;
-          astroReady     = false;
-        }
-      }
+//    Thread.currentThread().dumpStack();      
+      if (mainCurve != null) synchronized (mainCurve) { mainCurve = null; } 
+      if (harmonicCurves != null) synchronized (harmonicCurves) { harmonicCurves = null; }
+      if (sunAltitudes != null) synchronized (sunAltitudes) { sunAltitudes = null; }
+      if (moonAltitudes != null) synchronized (moonAltitudes) { moonAltitudes = null; }
+      mainCurveReady = false;
+      harmonicsReady = false; 
+      astroReady = false; 
     }
     
     public void mouseMoved(MouseEvent e)

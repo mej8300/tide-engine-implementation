@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -95,7 +96,7 @@ public class FilterTable
       {
         for (TideStation sd : stationData)
         {
-          addLineInTable(sd.getFullName(), 
+          addLineInTable(sd, 
                          GeomUtil.decToSex(sd.getLatitude(), GeomUtil.SWING, GeomUtil.NS), 
                          GeomUtil.decToSex(sd.getLongitude(), GeomUtil.SWING, GeomUtil.EW));
           nbl++;
@@ -107,6 +108,7 @@ public class FilterTable
       e.printStackTrace();
     }
     this.setStatusLabel(Integer.toString(nbl) + " station(s)");
+    TideContext.getInstance().fireSetNbStationsSelected(nbl);
   }
 
   private void jbInit() throws Exception
@@ -175,7 +177,7 @@ public class FilterTable
            {
              for (TideStation sd : stationData)
              {
-               if (sd.getFullName().equals(data[sr][0]))
+               if (sd.getFullName().equals(((TideStation)data[sr][0]).getFullName()))
                {
                  TideContext.getInstance().fireStationSelected(sd.getFullName());
                  if (!TideContext.getInstance().getRecentStations().contains(sd.getFullName()))
@@ -235,7 +237,7 @@ public class FilterTable
           if (c instanceof JComponent)
           {
             JComponent jc = (JComponent) c;
-            jc.setToolTipText((String) getValueAt(rowIndex, vColIndex));
+            jc.setToolTipText(getValueAt(rowIndex, vColIndex).toString());
           }
           return c;
         }
@@ -247,7 +249,7 @@ public class FilterTable
 //  KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(new JTableFocusChangeListener(table));
   }
 
-  private void addLineInTable(String mn,
+  private void addLineInTable(TideStation mn,
                               String lat,
                               String lng)
   {
@@ -302,12 +304,13 @@ public class FilterTable
       {
         // Add in table
         nbl++;
-        addLineInTable(sd.getFullName(), 
+        addLineInTable(sd, 
                        GeomUtil.decToSex(sd.getLatitude(), GeomUtil.SWING, GeomUtil.NS), 
                        GeomUtil.decToSex(sd.getLongitude(), GeomUtil.SWING, GeomUtil.EW));
       }
     }
     this.setStatusLabel(Integer.toString(nbl) + " station(s)");
+    TideContext.getInstance().fireSetNbStationsSelected(nbl);
     ((AbstractTableModel)dataModel).fireTableDataChanged();
     table.repaint();
   }
@@ -318,6 +321,14 @@ public class FilterTable
     this.filterLabel.setEnabled(this.stationData != null);
     this.filterTextField.setEnabled(this.stationData != null);
     setValues();
+  }
+  
+  public List<TideStation> getSelectedStations()
+  {
+    List<TideStation> selected = new ArrayList<TideStation>();
+    for (int i=0; i<data.length; i++)
+      selected.add((TideStation)data[i][0]);
+    return selected;
   }
 
   public List<TideStation> getStationData()

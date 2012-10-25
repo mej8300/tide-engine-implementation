@@ -61,6 +61,12 @@ public class TideContext
     for (TideEventListener tel : tideListeners)
       tel.setBusy(b);
   }
+  
+  public void fireSetNbStationsSelected(int n)
+  {
+    for (TideEventListener tel : tideListeners)
+      tel.setNbStationsSelected(n);
+  }
 
   public void fireStationSelected(String sn)
   {
