@@ -6,6 +6,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 
 public class SpecialProgressBar
@@ -146,11 +147,24 @@ public class SpecialProgressBar
     @Override
     public void run()
     {
-      String display = instance.getLabel();
+//    String display = instance.getLabel();
       while (move)
       {
-        instance.repaint();
-        try { Thread.sleep(100L); } catch (Exception ex) { ex.printStackTrace(); }
+        try
+        {
+          SwingUtilities.invokeAndWait(new Runnable()
+           {
+             public void run()
+             {
+               instance.repaint();
+               try { Thread.sleep(100L); } catch (Exception ex) { ex.printStackTrace(); }
+             }
+           });
+        }
+        catch (Exception ex)
+        {
+          ex.printStackTrace();
+        }
       }
 //    System.out.println("Stop moving." + (display != null && display.trim().length() > 0?" (" + display + ")":""));
       instance.repaint();
