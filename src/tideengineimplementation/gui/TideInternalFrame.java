@@ -64,6 +64,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -1818,6 +1820,7 @@ public class TideInternalFrame
                           int currDay = 0;
                           Calendar reference = (Calendar)_from.clone();
                           boolean keepLooping = true;
+                          
                           double moonPhase = 0d;
                           int prevPhase = -1;
                           
@@ -2214,7 +2217,7 @@ public class TideInternalFrame
   private transient TideEventListener tideEventListener = null;
   private List<String> coeffToHighlight = null;
   private JPanel bottomPanel = new JPanel();
-  private SpecialProgressBar statusIndicator = new SpecialProgressBar();
+  private SpecialProgressBar statusIndicator = new SpecialProgressBar(true, true);
   private BorderLayout borderLayout1 = new BorderLayout();
 
   public TideInternalFrame()
@@ -2740,7 +2743,29 @@ public class TideInternalFrame
     statusIndicator.setEnabled(false);
     statusIndicator.setIndeterminate(false);
     this.getContentPane().add(bottomPanel, BorderLayout.SOUTH);
-    Thread sdThread = new Thread()
+//    Thread sdThread = new Thread()
+//      {
+//        public void run()
+//        {
+//          try
+//          { 
+//            System.out.print("Reading Station Data...");
+//            List<TideStation> stationData = BackEndTideComputer.getStationData();
+//            System.out.println(" Done.");
+//            chartCommandPanel.setStationData(stationData);
+//            chartCommandPanel.repaint();
+//            filterTable.setStationData(stationData);
+//          }
+//          catch (Exception ex)
+//          {
+//            ex.printStackTrace();
+//          }
+//        }
+//      };
+//    sdThread.start();
+    
+    ExecutorService es = Executors.newSingleThreadExecutor();
+    es.execute(new Runnable()
       {
         public void run()
         {
@@ -2758,8 +2783,8 @@ public class TideInternalFrame
             ex.printStackTrace();
           }
         }
-      };
-    sdThread.start();
+      });
+    es.shutdown();
 
     this.addInternalFrameListener(new InternalFrameAdapter()
       {
@@ -3055,6 +3080,16 @@ public class TideInternalFrame
 
   private void resetData()
   {
+    topButtonPanel.setEnabled(false);
+    // Invalidate data
+    graphPanelOneDay.setMainCurveReady(false);
+    graphPanelOneDay.setHarmonicsReady(false);
+    graphPanelOneDay.setAstroReady(false);
+    
+    graphPanelExtended.setMainCurveReady(false);
+    graphPanelExtended.setHarmonicsReady(false);
+    graphPanelExtended.setAstroReady(false);
+
     // Who called me
     if ("true".equals(System.getProperty("who.called.me")))
     {

@@ -42,7 +42,7 @@ public class SplashWindow extends JWindow
   private GridBagLayout gridBagLayout1 = new GridBagLayout();
   private JLabel copyrightLabel = new JLabel();
 //private JLabel toolLabel = new JLabel();
-  private SpecialProgressBar loadProgressBar = new SpecialProgressBar();
+  private SpecialProgressBar loadProgressBar = new SpecialProgressBar(true, true);
   private JLabel loadingLabel = new JLabel();
   
   private final static int H = 200;

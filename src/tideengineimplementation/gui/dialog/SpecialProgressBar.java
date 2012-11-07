@@ -13,7 +13,7 @@ public class SpecialProgressBar
   extends JPanel
 //implements ActionListener
 {
-  @SuppressWarnings("compatibility:-7027864965078341797")
+  @SuppressWarnings("compatibility:-6594254869806785729")
   public final static long serialVersionUID = 1L;
 
   private final SpecialProgressBar instance = this;
@@ -21,6 +21,8 @@ public class SpecialProgressBar
   private boolean move = true;
   private transient SpecialThread thread = null;
   private boolean stringPainted = true;
+  
+  private boolean displayRandomGreenBars = false;
   
 //private static Timer timer = null;
   
@@ -31,6 +33,11 @@ public class SpecialProgressBar
   
   public SpecialProgressBar(boolean b)
   {
+    this(b, false);
+  }
+  
+  public SpecialProgressBar(boolean b, boolean drgb)
+  {
 //    if (timer == null || (timer != null && !timer.isRunning()))
 //    {
 //      timer = new Timer(1000, this);
@@ -38,6 +45,7 @@ public class SpecialProgressBar
 //    }
     
     this.move = b;
+    this.displayRandomGreenBars = drgb;
     this.setEnabled(b);
     try
     {
@@ -96,12 +104,15 @@ public class SpecialProgressBar
     g.fillRect(0, 0, this.getWidth(), this.getHeight());
     g.setColor(Color.BLACK); // Frame
     g.drawRect(0, 0, this.getWidth() - 1, this.getHeight() - 1);
-    g.setColor(Color.GREEN); // Lines
-    for (int i=0; this.move &&  i<50; i++)
+    if (displayRandomGreenBars)
     {
-      int x = (int)Math.round(Math.random() * this.getWidth());    
-//    System.out.println("X:" + x);
-      g.drawLine(x, 0, x, this.getHeight());
+      g.setColor(Color.GREEN); // Lines
+      for (int i=0; this.move &&  i<50; i++)
+      {
+        int x = (int)Math.round(Math.random() * this.getWidth());    
+  //    System.out.println("X:" + x);
+        g.drawLine(x, 0, x, this.getHeight());
+      }
     }
     if (this.stringPainted && this.move && label != null && label.trim().length() > 0)
     {
@@ -148,18 +159,18 @@ public class SpecialProgressBar
     public void run()
     {
 //    String display = instance.getLabel();
-      while (move)
+      while (displayRandomGreenBars && move)
       {
         try
         {
-          SwingUtilities.invokeAndWait(new Runnable()
-           {
-             public void run()
+//        SwingUtilities.invokeAndWait(new Runnable()
+//         {
+//           public void run()
              {
                instance.repaint();
                try { Thread.sleep(100L); } catch (Exception ex) { ex.printStackTrace(); }
              }
-           });
+//         });
         }
         catch (Exception ex)
         {
