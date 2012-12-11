@@ -284,12 +284,12 @@ public class TideInternalFrame
       String thisTime    = TIME_FORMAT.format(cal.getTime());
       String thisUTCTime = UTC_TIME_FORMAT.format(cal.getTime());
       
-      if ((e.getModifiers() & MouseEvent.BUTTON1_MASK) != 0)
+      if ((e.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) // Left button pressed on the graph
       {
 //      postit = DF2.format((int)(h % 24)) + ":" + DF2.format(m) + "\n" + TideUtilities.DF22PLUS.format(wh) + " " + currentUnit;
         postit = thisTime + "\n" +  thisUTCTime + "\n" + TideUtilities.DF22PLUS.format(wh) + " " + currentUnit;
         mouseX = e.getX();
-        mouseY = e.getY();
+        mouseY = e.getY() - 35;  // 35 = 3*10 + 5. 3 lines, 10:font size, 5: rab
         mouseWh = wh;
         repaint();
       }
@@ -1263,7 +1263,8 @@ public class TideInternalFrame
               g.drawLine(mouseX, 0, mouseX, this.getHeight());
               int y = this.getHeight() - (int)((mouseWh - bottomValue) * heightRatio);
               g.fillOval(mouseX - 2, y - 2, 4, 4);
-              postit(g, postit, mouseX, y, Color.black, Color.cyan, 0.50f);
+//            postit(g, postit, mouseX, y, Color.black, Color.cyan, 0.50f);
+              postit(g, postit, mouseX, mouseY, Color.black, Color.cyan, 0.50f);
             }
           }
         }
