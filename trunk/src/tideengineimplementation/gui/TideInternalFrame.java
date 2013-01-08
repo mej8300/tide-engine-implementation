@@ -142,7 +142,7 @@ import user.util.GeomUtil;
 public class TideInternalFrame
      extends JInternalFrame
 {
-  @SuppressWarnings("compatibility:3131594877844669614")
+  @SuppressWarnings("compatibility:-3292072210595257705")
   public final static long serialVersionUID = 1L;
 
   public final static String TIDE_INTERNAL_FRAME_PROP_FILE = "internal.tide.frame.properties";
@@ -2291,22 +2291,22 @@ public class TideInternalFrame
   {
     try
     {
-      String flavor = "sqlite"; 
-      try { flavor = System.getProperty("tide.flavor", "xml"); } 
-      catch (Exception ignore)
-      {        
-        System.err.println("Are you an Applet? " + ignore.getLocalizedMessage() + " (Ok)");
-      }
-      if (flavor.equals("xml"))
-        BackEndTideComputer.connect(BackEndTideComputer.XML_OPTION);
-      else if (flavor.equals("serialized"))
-        BackEndTideComputer.connect(BackEndTideComputer.JAVA_SERIALIZED_OPTION);
-      else if (flavor.equals("json"))
-        BackEndTideComputer.connect(BackEndTideComputer.JSON_SERIALIZED_OPTION);
-      else if (flavor.equals("sql"))
-        BackEndTideComputer.connect(BackEndTideComputer.SQL_OPTION);
-      else // sqlite
-        BackEndTideComputer.connect(BackEndTideComputer.SQLITE_OPTION);
+//      String flavor = "sqlite"; 
+//      try { flavor = System.getProperty("tide.flavor", "xml"); } 
+//      catch (Exception ignore)
+//      {        
+//        System.err.println("Are you an Applet? " + ignore.getLocalizedMessage() + " (Ok)");
+//      }
+//      if (flavor.equals("xml"))
+        BackEndTideComputer.connect(); // BackEndTideComputer.XML_OPTION);
+//      else if (flavor.equals("serialized"))
+//        BackEndTideComputer.connect(BackEndTideComputer.JAVA_SERIALIZED_OPTION);
+//      else if (flavor.equals("json"))
+//        BackEndTideComputer.connect(BackEndTideComputer.JSON_SERIALIZED_OPTION);
+//      else if (flavor.equals("sql"))
+//        BackEndTideComputer.connect(BackEndTideComputer.SQL_OPTION);
+//      else // sqlite
+//        BackEndTideComputer.connect(BackEndTideComputer.SQLITE_OPTION);
     }
     catch (Exception ex)
     {
