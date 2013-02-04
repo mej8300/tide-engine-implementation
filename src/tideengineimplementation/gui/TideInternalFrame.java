@@ -3386,7 +3386,7 @@ public class TideInternalFrame
             "</style></head><body>\n";
             result += "<h3>\n";
             result += ("Days when tide is <b>" + ((tideType == SearchPanel.HIGH_TIDE)?"high":"low") + "</b> at " + ts.getFullName() + "<br>\n");
-            result += ("between " + DF2.format(fromHour) + ":00 and " + DF2.format(toHour) + ":00<br>\n");
+            result += ("between " + DF2.format(fromHour) + ":00 and " + DF2.format(toHour) + ":00 (local time)<br>\n");
             result += ("(dates between " + JUST_DATE_FORMAT.format(fromDate.getTime()) + " and " + JUST_DATE_FORMAT.format(toDate.getTime()));
             if (weekdays != null)
             {
@@ -3587,7 +3587,7 @@ public class TideInternalFrame
               });
             try
             {
-              File tempFile = File.createTempFile("data", ".html");
+              final File tempFile = File.createTempFile("data", ".html");
               tempFile.deleteOnExit();
               BufferedWriter bw = new BufferedWriter(new FileWriter(tempFile));
               bw.write(result);
@@ -3603,17 +3603,29 @@ public class TideInternalFrame
                   Desktop.getDesktop().browse(tempFile.toURI());
                 }
               }
+              finalList.add(jScrollPane, BorderLayout.CENTER);
+              JPanel panel = new JPanel();
+              
+              JLabel nbDayLabel = new JLabel();
+              nbDayLabel.setText(Integer.toString(nbDays) + " day(s).");
+              JButton toBrowser = new JButton("Send to browser");
+              toBrowser.addActionListener(new ActionListener()
+              {
+                public void actionPerformed(ActionEvent e)
+                {
+                  try { Desktop.getDesktop().browse(tempFile.toURI()); } catch (Exception ex) { ex.printStackTrace(); }
+                }
+              });
+              panel.add(nbDayLabel, null);
+              panel.add(toBrowser, null);
+              finalList.add(panel, BorderLayout.SOUTH);
+  
+              JOptionPane.showMessageDialog(null, finalList, "Search completed", JOptionPane.PLAIN_MESSAGE);
             }
             catch (Exception ex)
             {
               ex.printStackTrace();
             }
-            finalList.add(jScrollPane, BorderLayout.CENTER);
-            JLabel nbDayLabel = new JLabel();
-            nbDayLabel.setText(Integer.toString(nbDays) + " day(s).");
-            finalList.add(nbDayLabel, BorderLayout.SOUTH);
-
-            JOptionPane.showMessageDialog(null, finalList, "Search completed", JOptionPane.PLAIN_MESSAGE);
           }
         };
       searchThread.start();
