@@ -6,6 +6,8 @@ import java.awt.GridBagLayout;
 
 import java.awt.Insets;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseWheelEvent;
 
 import java.awt.event.MouseWheelListener;
@@ -16,6 +18,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -31,7 +34,7 @@ import tideengine.TideStation;
 public class PrintDialog
   extends JPanel
 {
-  @SuppressWarnings("compatibility:6965100563857786638")
+  @SuppressWarnings("compatibility:502668100476303798")
   public final static long serialVersionUID = 1L;
 
   private GridBagLayout gridBagLayout1 = new GridBagLayout();
@@ -51,7 +54,9 @@ public class PrintDialog
   private JComboBox monthComboBox = new JComboBox();
   private JSpinner yearSpinner = null;
   private JLabel unitLabel = new JLabel();
-  private JComboBox unitComboBox = new JComboBox(); // new JSpinner();
+  private JComboBox unitComboBox = new JComboBox();
+  private JCheckBox specialBackgroundCheckBox = new JCheckBox();
+  private SearchPanel searchPanel = new SearchPanel(null); 
 
   public PrintDialog(TideStation ts)
   {
@@ -70,6 +75,7 @@ public class PrintDialog
     throws Exception
   {
     this.setLayout(gridBagLayout1);
+    this.setSize(new Dimension(492, 300));
     stationNameLabel.setText("Station Name");
     timeZoneComboBox.setPreferredSize(new Dimension(150, 21));
     timeZoneComboBox.setMinimumSize(new Dimension(60, 21));
@@ -123,8 +129,13 @@ public class PrintDialog
           new Insets(0, 0, 0, 0), 0, 0));
     this.add(unitLabel, new GridBagConstraints(0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE,
           new Insets(0, 0, 0, 0), 0, 0));
-    this.add(unitComboBox, new GridBagConstraints(1, 4, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
+    this.add(unitComboBox, new GridBagConstraints(1, 4, 2, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
           new Insets(0, 0, 0, 0), 0, 0));
+    this.add(specialBackgroundCheckBox, new GridBagConstraints(0, 5, 3, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE,
+          new Insets(10, 0, 0, 0), 0, 0));
+    this.add(searchPanel, new GridBagConstraints(0, 6, 3, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+          new Insets(0, 0, 0, 0), 0, 0));
+    searchPanel.setEnabled(false);
     timeZoneComboBox.removeAllItems();
     String[] tz = TimeZone.getAvailableIDs();
     for (int i=0; i<tz.length; i++)
@@ -160,6 +171,15 @@ public class PrintDialog
     if (ts.isCurrentStation())
       unitComboBox.addItem(TideStation.KNOTS);
     unitComboBox.setSelectedItem(ts.getUnit());
+    specialBackgroundCheckBox.setText("Apply grey background:");
+    specialBackgroundCheckBox.setActionCommand("Apply grey background:");
+    specialBackgroundCheckBox.addActionListener(new ActionListener()
+      {
+        public void actionPerformed(ActionEvent e)
+        {
+          specialBackgroundCheckBox_actionPerformed(e);
+        }
+      });
   }
   
   public String getTimeZone()
@@ -198,6 +218,70 @@ public class PrintDialog
     return (String)unitComboBox.getSelectedItem();
   }
   
+  public boolean getSpecialBackground()
+  {
+    return specialBackgroundCheckBox.isSelected();  
+  }
+  
+  public SpecialPrm getSpecialBackgroundParameters()
+  {
+    SpecialPrm sp = new SpecialPrm();
+    sp.setTideType(searchPanel.getHighLow()); // SearchPanel.HIGH_TIDE / LOW_TIDE
+    sp.setFromHour(searchPanel.getFromHour());
+    sp.setToHour(searchPanel.getToHour());
+    sp.setWeekdays(searchPanel.getWeekDay());
+
+    return sp;
+  }
+  
+  public static class SpecialPrm
+  {
+    private int tideType;
+    private int fromHour;
+    private int toHour;
+    private int[] weekdays;
+
+    public void setTideType(int tideType)
+    {
+      this.tideType = tideType;
+    }
+
+    public int getTideType()
+    {
+      return tideType;
+    }
+
+    public void setFromHour(int fromHour)
+    {
+      this.fromHour = fromHour;
+    }
+
+    public int getFromHour()
+    {
+      return fromHour;
+    }
+
+    public void setToHour(int toHour)
+    {
+      this.toHour = toHour;
+    }
+
+    public int getToHour()
+    {
+      return toHour;
+    }
+
+    public void setWeekdays(int[] weekdays)
+    {
+      this.weekdays = weekdays;
+    }
+
+    public int[] getWeekdays()
+    {
+      return weekdays;
+    }
+  }
+  
   public static void main(String[] args)
   {
     SimpleDateFormat sdf = new SimpleDateFormat("E yyyy-MMM-dd HH:mm:ss.SSS Z");
@@ -217,5 +301,10 @@ public class PrintDialog
     
     sdf.setTimeZone(TimeZone.getTimeZone("Etc/UTC"));
     System.out.println("Now:" + sdf.format(utcCal.getTime()));        
+  }
+
+  private void specialBackgroundCheckBox_actionPerformed(ActionEvent e)
+  {
+    searchPanel.setEnabled(specialBackgroundCheckBox.isSelected());
   }
 }
