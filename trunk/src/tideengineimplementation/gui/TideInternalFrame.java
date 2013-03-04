@@ -3261,6 +3261,11 @@ public class TideInternalFrame
       final int q = printDialog.getQuantity();
       final String utu = printDialog.getUnitToUse();
       
+      PrintDialog.SpecialPrm sPrm = null;
+      if (printDialog.getSpecialBackground())
+        sPrm = printDialog.getSpecialBackgroundParameters();
+      final PrintDialog.SpecialPrm specialBGPrm = sPrm;
+      
       System.out.println("Starting month:" + sm + ", year:" + sy);
       System.out.println("For " + nb + " " + (q==Calendar.MONTH?"month(s)":"year(s)"));
       
@@ -3314,7 +3319,8 @@ public class TideInternalFrame
                                                   ts.getFullName(), 
                                                   utu,
                                                   constSpeed,
-                                                  TideForOneMonth.XML_FLAVOR);
+                                                  TideForOneMonth.XML_FLAVOR,
+                                                  specialBGPrm);
                   start.add(Calendar.MONTH, 1);
                 }
                 catch (Exception ex)

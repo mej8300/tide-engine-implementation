@@ -1,6 +1,7 @@
 package tideengineimplementation.gui.dialog;
 
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -20,6 +21,8 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
 import tideengine.TideStation;
+
+import util.SwingUtil;
 
 
 public class SearchPanel
@@ -95,8 +98,11 @@ public class SearchPanel
   {
     this.setLayout(gridBagLayout1);
     this.setSize(new Dimension(588, 249));
-    findDaysLabel.setText("Find days at");
-    stationNameLabel.setText(this.station.getFullName());
+    if (this.station != null)
+    {
+      findDaysLabel.setText("Find days at");
+      stationNameLabel.setText(this.station.getFullName());
+    }
     datePanel.setLayout(gridBagLayout2);
     weekDayPanel.setLayout(gridBagLayout3);
     rbWeekDayPanel.setLayout(gridBagLayout4);
@@ -139,20 +145,21 @@ public class SearchPanel
     betweenPanel.add(toHourComboBox, null);
     this.add(betweenPanel, new GridBagConstraints(0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
           new Insets(0, 0, 0, 0), 0, 0));
-
-    datePanel.add(from, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE,
-          new Insets(0, 0, 0, 0), 0, 0));
-    datePanel.add(nowButton, new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
-          new Insets(0, 0, 0, 0), 0, 0));
-    datePanel.add(fromDatePanel, new GridBagConstraints(2, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
-          new Insets(0, 0, 0, 0), 0, 0));
-    datePanel.add(to, new GridBagConstraints(3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE,
-          new Insets(0, 0, 0, 0), 0, 0));
-    datePanel.add(toDatePanel, new GridBagConstraints(4, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
-          new Insets(0, 0, 0, 0), 0, 0));
-    this.add(datePanel, new GridBagConstraints(0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
-          new Insets(0, 0, 0, 0), 0, 0));
-
+    if (this.station != null)
+    {
+      datePanel.add(from, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE,
+            new Insets(0, 0, 0, 0), 0, 0));
+      datePanel.add(nowButton, new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
+            new Insets(0, 0, 0, 0), 0, 0));
+      datePanel.add(fromDatePanel, new GridBagConstraints(2, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
+            new Insets(0, 0, 0, 0), 0, 0));
+      datePanel.add(to, new GridBagConstraints(3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE,
+            new Insets(0, 0, 0, 0), 0, 0));
+      datePanel.add(toDatePanel, new GridBagConstraints(4, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
+            new Insets(0, 0, 0, 0), 0, 0));
+      this.add(datePanel, new GridBagConstraints(0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
+            new Insets(0, 0, 0, 0), 0, 0));
+    }
     dayGroup.add(anyDay);
     dayGroup.add(specDay);
     anyDay.setSelected(true);
@@ -294,5 +301,39 @@ public class SearchPanel
   private void specDay_actionPerformed(ActionEvent e)
   {
     enableWeekDays(specDay.isSelected());
+  }
+
+  @Override
+  public void setEnabled(final boolean enabled)
+  {
+//  super.setEnabled(enabled);
+    hiLoLabel.setEnabled(enabled);
+    hiLoComboBox.setEnabled(enabled);
+    nowButton.setEnabled(enabled);
+    fromHourComboBox.setEnabled(enabled);
+    toHourComboBox.setEnabled(enabled);
+    betweenLabel.setEnabled(enabled);
+    and.setEnabled(enabled);
+    weekDayLabel.setEnabled(enabled);
+    weekDayLabel.setEnabled(enabled);
+    anyDay.setEnabled(enabled);
+    specDay.setEnabled(enabled);
+    
+    enableWeekDays(enabled && specDay.isSelected());
+    try
+    {
+      EventQueue.invokeLater(new Runnable()
+                               {
+                                 public void run()
+                                 {
+                                   repaint();             
+                                   System.out.println("Boom " + (enabled?"on":"off"));
+                                 }
+                               });
+    }
+    catch (Exception ex)
+    {
+      ex.printStackTrace();
+    }
   }
 }

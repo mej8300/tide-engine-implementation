@@ -18,6 +18,10 @@ import tideengine.Coefficient;
 import tideengine.TideStation;
 import tideengine.TideUtilities;
 
+import tideengineimplementation.gui.dialog.PrintDialog;
+
+import tideengineimplementation.gui.dialog.SearchPanel;
+
 import tideengineimplementation.utils.AstroComputer;
 import tideengineimplementation.utils.Utils;
 
@@ -43,7 +47,7 @@ public class TideForOneMonth
    * @param args -month MM -year YYYY. For month, 1=Jan, 2=Feb,... 12=Dec.
    * @throws Exception
    */
-  public static void main(String[] args) throws Exception
+  public static void main_(String[] args) throws Exception
   {
     String yearStr  = null;
     String monthStr = null;
@@ -94,7 +98,7 @@ public class TideForOneMonth
                                      String unitToUse, 
                                      List<Coefficient> constSpeed) throws Exception
   {
-    tideForOneMonth(out, timeZone, year, month, location, unitToUse, constSpeed, TEXT_FLAVOR);
+    tideForOneMonth(out, timeZone, year, month, location, unitToUse, constSpeed, TEXT_FLAVOR, null);
   }
   
   public final static int TEXT_FLAVOR = 0;
@@ -107,7 +111,8 @@ public class TideForOneMonth
                                      String location, 
                                      String unitToUse, 
                                      List<Coefficient> constSpeed, 
-                                     int flavor) throws Exception
+                                     int flavor,
+                                     PrintDialog.SpecialPrm sPrm) throws Exception
   {
     int nextMonth = (month==12)?0:month;
     Calendar firstDay = new GregorianCalendar(year, month - 1, 1);
@@ -171,7 +176,45 @@ public class TideForOneMonth
       }
       else if (flavor == XML_FLAVOR)
       {
-        out.println("<date val='" + SDF.format(now.getTime()) + "' moon-phase='" + DF2.format(phaseInDay) + "' sun-rise='" + TF.format(sunRise.getTime()) + "' sun-set='" + TF.format(sunSet.getTime()) + "'>");
+        String specialBG = "specBG='n' ";
+        if (sPrm != null)
+        {
+//        System.out.println("Special BG required");
+          for (TimedValue tv : timeAL)
+          {
+            double tideHour = tv.getCalendar().get(Calendar.HOUR_OF_DAY) + (tv.getCalendar().get(Calendar.MINUTE) / 60d);
+            System.out.println("Tidetype:" + tv.getType() + " hour:" + tideHour + " within [" + sPrm.getFromHour() + ", " + sPrm.getToHour() + "], weekday=" + tv.getCalendar().get(Calendar.DAY_OF_WEEK));
+            if (((sPrm.getTideType() == SearchPanel.HIGH_TIDE && tv.getType().equals("HW")) ||
+                 (sPrm.getTideType() == SearchPanel.LOW_TIDE && tv.getType().equals("LW"))) &&
+                 (tideHour >= sPrm.getFromHour() && tideHour <= sPrm.getToHour()))
+            {
+              boolean go = true;
+              // Week days
+              if (sPrm.getWeekdays() != null)
+              {
+                int day = tv.getCalendar().get(Calendar.DAY_OF_WEEK);
+                int[] dd = sPrm.getWeekdays();
+                System.out.println("See if " + day + " is in [");
+                for (int d : dd)
+                  System.out.print(d + " ");
+                System.out.println();
+                go = ((day == Calendar.MONDAY && dd[SearchPanel.MONDAY] == 1) || 
+                      (day == Calendar.TUESDAY && dd[SearchPanel.TUESDAY] == 1) ||
+                      (day == Calendar.WEDNESDAY && dd[SearchPanel.WEDNESDAY] == 1) ||
+                      (day == Calendar.THURSDAY && dd[SearchPanel.THURSDAY] == 1) ||
+                      (day == Calendar.FRIDAY && dd[SearchPanel.FRIDAY] == 1) ||
+                      (day == Calendar.SATURDAY && dd[SearchPanel.SATURDAY] == 1) ||
+                      (day == Calendar.SUNDAY && dd[SearchPanel.SUNDAY] == 1) );
+              }
+              if (go)
+              {
+                specialBG = "specBG='y' ";
+                break;
+              }
+            }
+          }          
+        }
+        out.println("<date val='" + SDF.format(now.getTime()) + "' " + specialBG + "moon-phase='" + DF2.format(phaseInDay) + "' sun-rise='" + TF.format(sunRise.getTime()) + "' sun-set='" + TF.format(sunSet.getTime()) + "'>");
         for (TimedValue tv : timeAL)
         {
           if ("Slack".equals(tv.getType()))
