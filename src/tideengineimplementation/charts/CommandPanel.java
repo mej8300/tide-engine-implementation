@@ -121,6 +121,7 @@ public class CommandPanel
   private transient ImageIcon bluePushPinImage = new ImageIcon(this.getClass().getResource("bluepushpin.png"));
 
   private transient TideEventListener tel = null;
+  private transient AstroPingThread astroPingThread = null;
 
   public CommandPanel()
   {
@@ -695,6 +696,11 @@ public class CommandPanel
       
     if (withAstroCheckBox.isSelected())
     {
+//      if (astroPingThread == null)
+//      {
+//        astroPingThread = new AstroPingThread(chartPanel);
+//        astroPingThread.start();
+//      }
       // Drawing astro data
       if (sunD != 0 && sunGHA != 0 && moonD != 0 && moonGHA != 0)
       {
@@ -737,6 +743,15 @@ public class CommandPanel
         gr.setFont(f);
       }
     }
+    else
+    {
+      if (astroPingThread != null)
+      {
+        // Stop the thread
+        astroPingThread.stopThat();
+        astroPingThread = null;
+      }
+    }
   }
 
   /**
@@ -769,5 +784,34 @@ public class CommandPanel
   public void setStationPosition(GeoPoint statioonPosition)
   {
     this.stationPosition = statioonPosition;
+  }
+  
+  private static class AstroPingThread extends Thread
+  {
+    private boolean go = false;
+    private ChartPanel chartPanel;
+    
+    public AstroPingThread(ChartPanel chartPanel)
+    {
+      super();
+      this.chartPanel = chartPanel;
+    }
+    
+    public void run()
+    {
+      go = true;
+      while (go)
+      {
+        chartPanel.repaint();
+        // Wait one sec
+        try { Thread.sleep(1000L); } catch (Exception ex) {}
+      }
+      System.out.println("Poof!");
+    }
+    
+    public void stopThat()
+    {
+      go = false;
+    }
   }
 }
