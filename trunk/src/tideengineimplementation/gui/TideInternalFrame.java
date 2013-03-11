@@ -345,8 +345,8 @@ public class TideInternalFrame
     @Override
     protected void paintComponent(Graphics g)
     {
-      if (!this.isVisible())
-        return;
+  //  if (!this.isVisible()) // Leave it on, for the astro data to be updated
+  //    return;
       
       ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                                        RenderingHints.VALUE_TEXT_ANTIALIAS_ON);      
