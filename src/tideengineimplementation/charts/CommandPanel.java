@@ -629,7 +629,6 @@ public class CommandPanel
         dayCenterLatitude = moonD;
       }
       
-      gr.setColor(Color.darkGray);
       GeoPoint sunPos = new GeoPoint(dayCenterLatitude, dayCenterLongitude);
 //    System.out.println("Sun Position:" + sunPos.toString());
       Map<Double, Double> nightMap = new HashMap<Double, Double>();
@@ -645,6 +644,7 @@ public class CommandPanel
         nightMap.put(lng, gp.getL());
       }
       SortedSet<Double> sortedLng= new TreeSet<Double>(nightMap.keySet());
+      int arraySize = sortedLng.size();
       Polygon night = new Polygon();
       for (Double d : sortedLng)
       {
@@ -652,6 +652,7 @@ public class CommandPanel
         Point pp = chartPanel.getPanelPoint(new GeoPoint(lat, d));
         night.addPoint(pp.x, pp.y);
       }
+      night.addPoint(chartPanel.getW(), night.ypoints[arraySize - 1]);
       if (dayCenterLatitude > 0) // Then night is south
       {
         night.addPoint(chartPanel.getW(), chartPanel.getH());  
@@ -662,7 +663,9 @@ public class CommandPanel
         night.addPoint(chartPanel.getW(), 0);  
         night.addPoint(0, 0);          
       }
+      night.addPoint(0, night.ypoints[0]);
       // Now fill the night polygon
+      gr.setColor(Color.darkGray);
       ((Graphics2D)gr).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
        gr.fillPolygon(night);
       ((Graphics2D)gr).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
