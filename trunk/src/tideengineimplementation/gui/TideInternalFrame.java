@@ -295,7 +295,13 @@ public class TideInternalFrame
       }
       else
 //      this.setToolTipText("<html>" + DF2.format((int)(h % 24)) + ":" + DF2.format(m) + "<br>" + TideUtilities.DF22PLUS.format(wh) + " " + currentUnit + "</html>");
-        this.setToolTipText("<html>" + thisTime + "<br>" +  thisUTCTime + "<br>" + TideUtilities.DF22PLUS.format(wh) + " " + currentUnit + "</html>");
+        this.setToolTipText("<html>" + 
+                              thisTime + "<br>" +  
+                              thisUTCTime + "<br>" + 
+                              TideUtilities.DF22PLUS.format(wh) + " " + currentUnit + 
+//                            "<br>x:" + e.getX() + ", y:" + e.getY() + 
+                            "</html>");
+      
     }
 
     @Override
@@ -1099,9 +1105,9 @@ public class TideInternalFrame
                     dataStr = tv.getType() + " " + TIME_FORMAT.format(tv.getCalendar().getTime()) + " : " + TideUtilities.DF22PLUS.format(tv.getValue()) + " " + /*ts.getDisplayUnit()*/ currentUnit;
                   if (diffOffset == -1)
                   {
-                    int len = g.getFontMetrics(g.getFont()).stringWidth(dataStr);
+                    int len = g.getFontMetrics(g.getFont().deriveFont(Font.BOLD)).stringWidth(dataStr);
                     int tabSize = 50;
-                    diffOffset = (int)((len / tabSize) + 1) * tabSize;
+                    diffOffset = (int)(Math.floor(len / tabSize) + 1) * tabSize;
                   }
                   AttributedString as = new AttributedString(dataStr);
                   as.addAttribute(TextAttribute.FONT, g.getFont().deriveFont(Font.BOLD, g.getFont().getSize()), 0, dataStr.length());
@@ -1397,7 +1403,9 @@ public class TideInternalFrame
                            JUST_DATE_FORMAT_SMALL.format(cal.getTime()) + 
                            "<br>" + DF2.format((int)(h % 24)) + ":" + DF2.format(m) +
                            moonDeclValue +
-                           "</center></html>";
+                           "</center>" + 
+//                         "<br>x:" + e.getX() + ", y:" + e.getY() + 
+                           "</html>";
       this.setToolTipText(toolTipMess);
 //    this.setToolTipText("<html>" + DF2.format((int)(h)) + ":" + DF2.format(m) + "</html>");
     }
