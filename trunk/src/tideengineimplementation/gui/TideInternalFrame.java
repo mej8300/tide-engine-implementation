@@ -2227,6 +2227,7 @@ public class TideInternalFrame
   private List<String> coeffToHighlight = null;
   private JPanel bottomPanel = new JPanel();
   private SpecialProgressBar statusIndicator = new SpecialProgressBar(true, true);
+  private JLabel statusField = new JLabel("");
   private BorderLayout borderLayout1 = new BorderLayout();
 
   public TideInternalFrame()
@@ -2388,6 +2389,12 @@ public class TideInternalFrame
         public void setNbStationsSelected(int n) 
         {
           menuFileGoogleSelectedStation.setText(SELECTED_STATIONS_PREFIX + "(" + Integer.toString(n) + ")");
+        }
+        
+        @Override
+        public void setStatus(String label) 
+        {
+          statusField.setText(label);
         }
       };
     TideContext.getInstance().addTideListener(tideEventListener);
@@ -2751,6 +2758,9 @@ public class TideInternalFrame
     bottomPanel.add(statusIndicator, BorderLayout.EAST);
     statusIndicator.setEnabled(false);
     statusIndicator.setIndeterminate(false);
+    
+    bottomPanel.add(statusField, BorderLayout.WEST);
+    
     this.getContentPane().add(bottomPanel, BorderLayout.SOUTH);
 //    Thread sdThread = new Thread()
 //      {
