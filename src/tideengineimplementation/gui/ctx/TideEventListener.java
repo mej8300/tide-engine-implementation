@@ -15,4 +15,5 @@ public abstract class TideEventListener implements EventListener
   public void showAllCurves(boolean b) {}
   public void setBusy(boolean b) {}
   public void setNbStationsSelected(int n) {}
+  public void setStatus(String label) {}
 }

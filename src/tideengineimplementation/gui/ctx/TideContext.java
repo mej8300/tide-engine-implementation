@@ -92,6 +92,11 @@ public class TideContext
       tel.setCoeffToHighlight(names);
   }
 
+  public void fireSetStatus(String label)
+  {
+    for (TideEventListener tel : tideListeners)
+      tel.setStatus(label);
+  }
   public List<String> getRecentStations()
   {
     return recentStations;

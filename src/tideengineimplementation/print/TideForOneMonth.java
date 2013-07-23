@@ -18,6 +18,7 @@ import tideengine.Coefficient;
 import tideengine.TideStation;
 import tideengine.TideUtilities;
 
+import tideengineimplementation.gui.ctx.TideContext;
 import tideengineimplementation.gui.dialog.PrintDialog;
 
 import tideengineimplementation.gui.dialog.SearchPanel;
@@ -123,7 +124,9 @@ public class TideForOneMonth
     boolean loop = true;    
     while (loop) 
     {      
-      System.out.println(" -- " + now.getTime().toString());
+      String mess = now.getTime().toString();
+      TideContext.getInstance().fireSetStatus(mess);
+      System.out.println(" -- " + mess);
       // If year changes, recompute TideStation
       if (now.get(Calendar.YEAR) != prevYear)
         ts = BackEndTideComputer.findTideStation(location, now.get(Calendar.YEAR)); 
@@ -229,6 +232,7 @@ public class TideForOneMonth
       if (now.get(Calendar.MONTH) == nextMonth)
         loop = false;
     }
+    TideContext.getInstance().fireSetStatus("Ok!");
   }
   
   public static List<TimedValue> tideForOneDay(Calendar now, 
