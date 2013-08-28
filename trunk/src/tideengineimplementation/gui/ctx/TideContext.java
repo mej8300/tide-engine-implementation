@@ -86,6 +86,12 @@ public class TideContext
       tel.filterList(pattern);
   }  
   
+  public void fireTimePing()
+  {
+    for (TideEventListener tel : tideListeners)
+      tel.timePing();
+  }  
+  
   public void fireCoeffSelection(List<String> names)
   {
     for (TideEventListener tel : tideListeners)

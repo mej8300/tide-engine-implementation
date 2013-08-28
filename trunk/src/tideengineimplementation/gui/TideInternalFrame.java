@@ -3086,6 +3086,7 @@ public class TideInternalFrame
           {
             if (graphPanelOneDay.isVisible())
               graphPanelOneDay.repaint();
+            TideContext.getInstance().fireTimePing();
             String title = FRAME_TITLE + " - System Date:" + LOCAL_DATE_FORMAT.format(now.getTime()) + ", UTC:" + UTC_DATE_FORMAT.format(now.getTime());
             setTitle(title);
             now.add(Calendar.SECOND, 1);
