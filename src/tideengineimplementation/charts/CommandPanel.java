@@ -122,6 +122,8 @@ public class CommandPanel
 
   private transient TideEventListener tel = null;
   private transient AstroPingThread astroPingThread = null;
+  
+  private String dateStr = null;
 
   public CommandPanel()
   {
@@ -140,6 +142,14 @@ public class CommandPanel
     withNameCheckBox = new JCheckBox("With Station Names");
     withNameCheckBox.setSelected(false);
     withAstroCheckBox = new JCheckBox("With Astro Data");
+    withAstroCheckBox.addActionListener(new ActionListener()
+      {
+        public void actionPerformed(ActionEvent e)
+        {
+          dateStr = null;
+        }
+      });
+    
     withAstroCheckBox.setSelected(false);
     withWanderingBodiesCheckBox = new JCheckBox("Wandering Bodies");
     withWanderingBodiesCheckBox.setSelected(true);
@@ -173,6 +183,15 @@ public class CommandPanel
           stationFilterPattern = pattern;
           if (chartPanel.isVisible())
             repaint();
+        }
+        
+        @Override
+        public void timePing()
+        {
+          if (false && withAstroCheckBox.isSelected())
+          {
+            repaint();            
+          }
         }
       };
     TideContext.getInstance().addTideListener(tel);
@@ -727,7 +746,8 @@ public class CommandPanel
           };
         int x = (int)chartPanel.getVisibleRect().getX();
         int y = (int)chartPanel.getVisibleRect().getY();    
-        String dateStr = "At UTC:" + TideInternalFrame.UTC_DATE_FORMAT.format(this.currentDate.getTime());
+        if (dateStr == null)
+          dateStr = "At UTC:" + TideInternalFrame.UTC_DATE_FORMAT.format(this.currentDate.getTime());
         gr.drawString(dateStr, x + 10, y + 20);
 //      Utilities.drawPanelTable(data, gr, new Point(x + 10, y + 20 + gr.getFont().getSize() + 2), 10, 2, new int[] { Utilities.LEFT_ALIGNED, Utilities.RIGHT_ALIGNED });
         gr.setColor(Color.white);        
