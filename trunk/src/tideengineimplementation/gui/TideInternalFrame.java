@@ -1032,6 +1032,7 @@ public class TideInternalFrame
               g.drawString(new GeoPos(ts.getLatitude(), ts.getLongitude()).toString() + " - Base Height : " + DF22.format(Utils.convert(ts.getBaseHeight(), ts.getDisplayUnit(), currentUnit)) + " " + currentUnit, x, y);
               y += (fontSize + 2);
               // Sun rise & set
+              // TODO Delta with the day before
               SUN_RISE_SET_SDF.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
               long daylight = (sunSet.getTimeInMillis() - sunRise.getTimeInMillis()) / 1000L;
               if (!Double.isNaN(rsSun[AstroComputer.UTC_RISE_IDX]))
