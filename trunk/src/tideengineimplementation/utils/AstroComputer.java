@@ -23,6 +23,17 @@ public class AstroComputer
 {
   private static int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0;
   private static double deltaT = 66.4749d; // 2011. Overridden by deltaT system variable.  
+
+  public static synchronized void setDateTime(int y, int m, int d, int h, int mi, int s)
+  {
+    year = y;
+    month = m;
+    day = d;
+    hour = h;
+    minute = mi;
+    second = s;
+  }
+
   /**
    * Time are UTC
    * @param y year
@@ -47,6 +58,12 @@ public class AstroComputer
     phase = Context.lambdaMapp - Context.lambda_sun;
     while (phase < 0d) phase += 360d;
     return phase;
+  }
+  
+  public static synchronized void calculate(int y, int m, int d, int h, int mi, int s)
+  {
+    setDateTime(y, m, d, h, mi, s);
+    calculate();
   }
   
   public static synchronized void calculate()

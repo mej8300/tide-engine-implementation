@@ -446,6 +446,20 @@ public class TideInternalFrame
             Calendar utcCal = (Calendar)now.clone();
             utcCal.setTimeZone(TimeZone.getTimeZone("Etc/UTC"));
             utcCal.getTime();
+            
+            // Get dayligh duration the day before
+            Calendar dayBefore = (Calendar)utcCal.clone();
+            dayBefore.add(Calendar.DATE, -1);
+            AstroComputer.setDateTime(dayBefore.get(Calendar.YEAR), 
+                                      dayBefore.get(Calendar.MONTH) + 1, 
+                                      dayBefore.get(Calendar.DAY_OF_MONTH), 
+                                      dayBefore.get(Calendar.HOUR_OF_DAY), // 12 - (int)Math.round(AstroComputer.getTimeZoneOffsetInHours(TimeZone.getTimeZone(ts.getTimeZone()))), 
+                                      dayBefore.get(Calendar.MINUTE), 
+                                      dayBefore.get(Calendar.SECOND));
+            AstroComputer.calculate();
+            double[] rsSunYesterday  = AstroComputer.sunRiseAndSet(ts.getLatitude(), ts.getLongitude());
+            double daylightYesterday = (rsSunYesterday[AstroComputer.UTC_SET_IDX] - rsSunYesterday[AstroComputer.UTC_RISE_IDX]);
+            
          // System.out.println("UTC Date:" + utcCal.getTime());
             moonPhase = AstroComputer.getMoonPhase(utcCal.get(Calendar.YEAR), 
                                                    utcCal.get(Calendar.MONTH) + 1, 
@@ -455,6 +469,12 @@ public class TideInternalFrame
                                                    utcCal.get(Calendar.SECOND));
 //          rsSun  = AstroComputer.sunRiseAndSet_wikipedia(ts.getLatitude());
             rsSun  = AstroComputer.sunRiseAndSet(ts.getLatitude(), ts.getLongitude());
+            double daylightToday = (rsSun[AstroComputer.UTC_SET_IDX] - rsSun[AstroComputer.UTC_RISE_IDX]);
+            double deltaDaylight = daylightToday - daylightYesterday;           
+            
+//            System.out.println("Yesterday:" + daylightYesterday + 
+//                             "\nToday:    " + daylightToday + 
+//                             "\nDelta:    " + deltaDaylight);            
             moonIllum = AstroComputer.getMoonIllum();
 //          System.out.println("display.sun.moon.data = " + System.getProperty("display.sun.moon.data"));
             if ("true".equals(System.getProperty("display.sun.moon.data")))
@@ -1032,12 +1052,16 @@ public class TideInternalFrame
               g.drawString(new GeoPos(ts.getLatitude(), ts.getLongitude()).toString() + " - Base Height : " + DF22.format(Utils.convert(ts.getBaseHeight(), ts.getDisplayUnit(), currentUnit)) + " " + currentUnit, x, y);
               y += (fontSize + 2);
               // Sun rise & set
-              // TODO Delta with the day before
+              // Delta with the day before, + or -
               SUN_RISE_SET_SDF.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
               long daylight = (sunSet.getTimeInMillis() - sunRise.getTimeInMillis()) / 1000L;
               if (!Double.isNaN(rsSun[AstroComputer.UTC_RISE_IDX]))
               {
-                String srs = "Sun Rise :" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + " Z:" + DF3.format(rsSun[AstroComputer.RISE_Z_IDX]) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()) + " Z:" + DF3.format(rsSun[AstroComputer.SET_Z_IDX]) + (daylight>0?(" - daylight:" + DF2.format(daylight / 3600) + "h " + DF2.format((daylight % 3600) / 60L) + "m"):"");
+                String srs = "Sun Rise :" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + 
+                             " Z:" + DF3.format(rsSun[AstroComputer.RISE_Z_IDX]) + 
+                             ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()) + 
+                             " Z:" + DF3.format(rsSun[AstroComputer.SET_Z_IDX]) + 
+                             (daylight>0?(" - daylight:" + DF2.format(daylight / 3600) + "h " + DF2.format((daylight % 3600) / 60L) + "m, \u0394 " + decimalHoursToHMS(deltaDaylight)):"");
                 // Isolate the hours in the string
   //            System.out.println(srs);
                 AttributedString astr = new AttributedString(srs);
@@ -1282,7 +1306,27 @@ public class TideInternalFrame
         }
       }
     }
-
+    
+    private String decimalHoursToHMS(double diff)
+    {
+      double dh = Math.abs(diff);
+      String s = "";
+      if (dh >= 1)
+        s += (DF2.format((int)dh) + "h ");
+      double remainder = dh - ((int)dh);
+      double minutes = remainder * 60;
+      if (s.trim().length() > 0 || minutes >= 1)
+        s += (DF2.format((int)minutes) + "m ");
+      remainder = minutes - (int)minutes;
+      double seconds = remainder * 60;
+      s += (DF2.format((int)seconds) + "s");
+      if (diff < 0)
+        s = "- " + s;
+      else
+        s = "+ " + s;
+      return s.trim();
+    }
+    
     public void postit(Graphics g, String s, int x, int y, Color bgcolor, Color fgcolor, Float transp)
     {
       int bevel = 2;
