@@ -56,7 +56,7 @@ import tideengineimplementation.gui.TideInternalFrame.StationDistance;
 import tideengineimplementation.gui.ctx.TideContext;
 import tideengineimplementation.gui.ctx.TideEventListener;
 
-import tideengineimplementation.utils.AstroComputer;
+import calculation.AstroComputer;
 import tideengineimplementation.utils.Utils;
 
 import user.util.GeomUtil;

@@ -134,7 +134,7 @@ import tideengineimplementation.gui.table.TimeZoneTable;
 
 import tideengineimplementation.print.TideForOneMonth;
 
-import tideengineimplementation.utils.AstroComputer;
+import calculation.AstroComputer;
 import tideengineimplementation.utils.Utils;
 
 import user.util.GeomUtil;
@@ -447,7 +447,7 @@ public class TideInternalFrame
             utcCal.setTimeZone(TimeZone.getTimeZone("Etc/UTC"));
             utcCal.getTime();
             
-            // Get dayligh duration the day before
+            // Get daylight duration the day before
             Calendar dayBefore = (Calendar)utcCal.clone();
             dayBefore.add(Calendar.DATE, -1);
             AstroComputer.setDateTime(dayBefore.get(Calendar.YEAR), 

@@ -23,7 +23,7 @@ import tideengineimplementation.gui.dialog.PrintDialog;
 
 import tideengineimplementation.gui.dialog.SearchPanel;
 
-import tideengineimplementation.utils.AstroComputer;
+import calculation.AstroComputer;
 import tideengineimplementation.utils.Utils;
 
 
