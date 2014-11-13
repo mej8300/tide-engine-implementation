@@ -162,16 +162,18 @@ public class TideInternalFrame
   private final static DecimalFormat DF22 = new DecimalFormat("#0.00");
   private final static DecimalFormat DF3  = new DecimalFormat("##0");
   private final static SimpleDateFormat SUN_RISE_SET_SDF = new SimpleDateFormat("E dd-MMM-yyyy HH:mm (z)");
+  private final static SimpleDateFormat MERIDIAN_SDF = new SimpleDateFormat("HH:mm:ss (z)");
+
+  private final static SimpleDateFormat MERIDIAN_HH_SDF = new SimpleDateFormat("HH");
+  private final static SimpleDateFormat MERIDIAN_mm_SDF = new SimpleDateFormat("mm");
+  private final static SimpleDateFormat MERIDIAN_ss_SDF = new SimpleDateFormat("ss");
 
   private final static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("d-MMM");
   private final static SimpleDateFormat FULL_DATE_FORMAT = new SimpleDateFormat("E dd-MMM-yyyy HH:mm:ss Z z");
   
   private final static SimpleDateFormat LOCAL_DATE_FORMAT = new SimpleDateFormat("E dd-MMM-yyyy HH:mm:ss Z z");
   public  final static SimpleDateFormat UTC_DATE_FORMAT = new SimpleDateFormat("E dd-MMM-yyyy HH:mm:ss Z");
-  static
-  {
-    UTC_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("Etc/UTC"));
-  }
+  static { UTC_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("Etc/UTC")); }
   private final static SimpleDateFormat SOLAR_DATE_FORMAT = new SimpleDateFormat("dd MMMM yyyy HH:mm:ss");
   private final static SimpleDateFormat SUITABLE_DATE_FORMAT = new SimpleDateFormat("EEEE dd MMMM yyyy HH:mm (Z) z");
   private final static SimpleDateFormat JUST_DATE_FORMAT = new SimpleDateFormat("EEEE dd MMMM yyyy");
@@ -512,6 +514,7 @@ public class TideInternalFrame
             sunSet.set(Calendar.HOUR_OF_DAY, (int)r);
             
             SUN_RISE_SET_SDF.setTimeZone(TimeZone.getTimeZone(ts.getTimeZone()));
+            MERIDIAN_SDF.setTimeZone(TimeZone.getTimeZone(ts.getTimeZone()));
 //          System.out.println("Sun Rise:" + SUN_RISE_SET_SDF.format(sunRise.getTime()) + ", Set:" + SUN_RISE_SET_SDF.format(sunSet.getTime()));
 
             // Paint background for Sun
@@ -690,6 +693,7 @@ public class TideInternalFrame
                       int k = lookBusy("Calculating Sun and Moon altitudes");
                       sunAltitudes  = new ArrayList<DataPoint>();
                       moonAltitudes = new ArrayList<DataPoint>();
+                      sunMeridianPassage = null;
                       for (int h=0; h<24; h++)
                       {
                         for (int m=0; m<60; m+=5)
@@ -712,6 +716,16 @@ public class TideInternalFrame
                                                                             0, 
                                                                             ts.getLatitude(), 
                                                                             ts.getLongitude());
+                          
+                          if (sunMeridianPassage == null && (cal.get(Calendar.HOUR_OF_DAY) + (ts.getLongitude() / 15d)) >= 12) // ~local noon
+                          {
+//                          System.out.println("HoD:" + cal.get(Calendar.HOUR_OF_DAY) + ", GinH:" + (ts.getLongitude() / 15d));
+                            double tPass = AstroComputer.getSunMeridianPassageTime(ts.getLatitude(), 
+                                                                                   ts.getLongitude());
+                            sunMeridianPassage = Utils.decimalHourToDate(cal, tPass);
+//                          sunMeridianPassage.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
+//                          System.out.println("At " + cal.getTime().toString() + ", tPass:" + tPass + ", " + passCal.getTime());
+                          }
                           double value = values[AstroComputer.HE_SUN_IDX];  // Sun                  
                           double x = (h + (double)(m / 60D));
                           double y = value;
@@ -775,6 +789,23 @@ public class TideInternalFrame
                   if (previousPt != null)
                     g.drawLine(previousPt.x, previousPt.y, p.x, p.y);
                   previousPt = p;
+                }
+                // Meridian Time
+                if (sunMeridianPassage != null)
+                {            
+            //    sunMeridianPassage.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
+//                System.out.println(">>> DEBUG (pass) >>> " + sunMeridianPassage.getTime().toString());
+                  MERIDIAN_HH_SDF.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
+                  MERIDIAN_mm_SDF.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
+                  MERIDIAN_ss_SDF.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
+                  int _tx = (int)((Integer.parseInt(MERIDIAN_HH_SDF.format(sunMeridianPassage.getTime())) - hourOffset + 
+                                   (double)(Integer.parseInt(MERIDIAN_mm_SDF.format(sunMeridianPassage.getTime())) / 60D) + 
+                                   ((double)(Integer.parseInt(MERIDIAN_ss_SDF.format(sunMeridianPassage.getTime())) / 3600D))) * widthRatio);
+                  origStroke = ((Graphics2D)g).getStroke();
+                  ((Graphics2D) g).setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+                  g.setColor(Color.ORANGE);
+                  g.drawLine(_tx, 0, _tx, height);
+                  ((Graphics2D) g).setStroke(origStroke);
                 }
                 // Moon
                 g.setColor(Color.BLACK);
@@ -1097,8 +1128,16 @@ public class TideInternalFrame
                   found = matcher.find();
                 }              
                 g.drawString(astr.getIterator(), x, y);
-                
                 y += (fontSize + 2);            
+                // Time equation, meridian passage ?
+                if (sunMeridianPassage != null)
+                {
+                  MERIDIAN_SDF.setTimeZone(TimeZone.getTimeZone(timeZone2Use));
+                  String timeMess = MERIDIAN_SDF.format(sunMeridianPassage.getTime());
+//                System.out.println(">>> DEBUG (str) >>> " + sunMeridianPassage.getTime().toString() + ", " + timeMess);
+                  g.drawString("Sun Meridian Passage:" + timeMess, x, y);
+                  y += (fontSize + 2);                              
+                }
               }
               double prevHeight = -Double.MAX_VALUE;
               int diffOffset = -1;
@@ -4336,6 +4375,7 @@ public class TideInternalFrame
     protected transient Hashtable<String, List<DataPoint>> harmonicCurves = null;    
     protected transient List<DataPoint> sunAltitudes  = null;
     protected transient List<DataPoint> moonAltitudes = null;    
+    protected transient Calendar sunMeridianPassage = null;
     
     protected boolean mainCurveReady = false;
     protected boolean harmonicsReady = false;
@@ -4377,6 +4417,8 @@ public class TideInternalFrame
       if (harmonicCurves != null) synchronized (harmonicCurves) { harmonicCurves = null; }
       if (sunAltitudes != null) synchronized (sunAltitudes) { sunAltitudes = null; }
       if (moonAltitudes != null) synchronized (moonAltitudes) { moonAltitudes = null; }
+      if (sunMeridianPassage != null) synchronized (sunMeridianPassage) { sunMeridianPassage = null; }
+            
       mainCurveReady = false;
       harmonicsReady = false; 
       astroReady = false; 

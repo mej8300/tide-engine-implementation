@@ -54,6 +54,22 @@ public class Utils
     return s;
   }
   
+  public static Calendar decimalHourToDate(Calendar cal, double decHour)
+  {
+    int h = (int)Math.floor(decHour);
+    int m = (int)Math.floor((decHour - h) * 60);
+    int s = (int)Math.round(3600d * ((decHour - h) - (m / 60d)));
+    
+    Calendar newCal = (Calendar)cal.clone();
+    newCal.setTimeZone(TimeZone.getTimeZone("Etc/UTC"));
+    newCal.set(Calendar.HOUR_OF_DAY, h);
+    newCal.set(Calendar.MINUTE, m);
+    newCal.set(Calendar.SECOND, s);
+    newCal.set(Calendar.MILLISECOND, 0);
+    
+    return newCal;
+  }
+  
   public static float daylightOffset(Calendar cal)
   {
     float dstOffset  = (cal.get(Calendar.DST_OFFSET) / 3600000f);
